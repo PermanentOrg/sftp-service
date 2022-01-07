@@ -8,8 +8,8 @@
     "check-types": "tsc",
     "eslint": "eslint ./src --ext .ts,.tsx",
     "lint": "npm run eslint && npm run check-types",
-    "start": "npm run build && node build/index.js",
-    "dev": "nodemon --delay 500ms --exec babel-node --extensions \".ts,.tsx\" src/index.ts",
+    "start": "npm run build && node -r dotenv/config build/index.js",
+    "dev": "nodemon --delay 500ms --exec babel-node -r dotenv/config --extensions \".ts,.tsx\" src/index.ts",
     "test": "jest"
   },
   "author": {
@@ -50,6 +50,7 @@
     "typescript": "^4.5.4"
   },
   "dependencies": {
-    "@sentry/node": "^6.16.1"
+    "@sentry/node": "^6.16.1",
+    "dotenv": "^10.0.0"
   }
 }
