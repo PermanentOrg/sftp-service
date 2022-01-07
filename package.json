@@ -9,6 +9,7 @@
     "eslint": "eslint ./src --ext .ts,.tsx",
     "lint": "npm run eslint && npm run check-types",
     "start": "npm run build && node build/index.js",
+    "dev": "nodemon --delay 500ms --exec babel-node --extensions \".ts,.tsx\" src/index.ts",
     "test": "jest"
   },
   "author": {

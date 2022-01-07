@@ -10,6 +10,18 @@ This project uses NodeJS 16.x and contains an implementation of the SFTP protoco
 npm install
 ```
 
+2. Start the service
+
+```
+npm start
+```
+
+or, if you want to start the development environment
+
+```
+npm run dev
+```
+
 ## Contributing
 
 Contributors to this repository agree to adhere to the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). To report violations, get in touch with engineers@permanent.org.
