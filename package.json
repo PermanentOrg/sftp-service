@@ -4,7 +4,7 @@
   "main": "index.js",
   "repository": "git@github.com:PermanentOrg/sftp-service.git",
   "scripts": {
-    "build": "node ./node_modules/@babel/cli/bin/babel.js --extensions \".ts,.tsx\" src -d lib",
+    "build": "babel --extensions \".ts,.tsx\" src -d build",
     "check-types": "tsc",
     "eslint": "eslint ./src --ext .ts,.tsx",
     "lint": "npm run eslint && npm run check-types",
