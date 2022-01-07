@@ -1,0 +1,50 @@
+{
+  "name": "sftp-service",
+  "version": "0.1.0",
+  "main": "index.js",
+  "repository": "git@github.com:PermanentOrg/sftp-service.git",
+  "scripts": {
+    "build": "node ./node_modules/@babel/cli/bin/babel.js --extensions \".ts,.tsx\" src -d lib",
+    "check-types": "tsc",
+    "eslint": "eslint ./src --ext .ts,.tsx",
+    "lint": "npm run eslint && npm run check-types",
+    "start": "babel-node --extensions \".ts,.tsx\" src/index.ts",
+    "test": "jest"
+  },
+  "author": {
+    "name": "Permanent.org",
+    "email": "engineers@permanent.org",
+    "url": "https://www.permanent.org/"
+  },
+  "contributors": [
+    {
+      "name": "Dan Schultz",
+      "email": "dan@opentechstrategies.com",
+      "url": "https://slifty.com"
+    }
+  ],
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/PermanentOrg/sftp-service/issues"
+  },
+  "engines": {
+    "node": ">=16.0"
+  },
+  "private": true,
+  "devDependencies": {
+    "@babel/cli": "^7.16.7",
+    "@babel/core": "^7.16.7",
+    "@babel/node": "^7.16.7",
+    "@babel/preset-env": "^7.16.7",
+    "@babel/preset-typescript": "^7.16.7",
+    "@tsconfig/node16": "^1.0.2",
+    "@typescript-eslint/eslint-plugin": "^5.9.0",
+    "@typescript-eslint/parser": "^5.9.0",
+    "eslint": "^8.6.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-airbnb-typescript": "^16.1.0",
+    "eslint-plugin-import": "^2.25.4",
+    "jest": "^27.4.7",
+    "typescript": "^4.5.4"
+  }
+}
