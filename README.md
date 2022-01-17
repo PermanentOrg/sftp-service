@@ -10,14 +10,20 @@ This project uses NodeJS 16.x and contains an implementation of the SFTP protoco
 npm install
 ```
 
-2. Configure your `.env`
+2. Generate a host key for your SSH server
+
+```
+ssh-keygen -f ./keys/host.key -t ed25519 -N ""
+```
+
+3. Configure your `.env`
 
 ```
 cp .env.example .env
 vi .env
 ```
 
-3. Start the service
+4. Start the service
 
 ```
 npm start
