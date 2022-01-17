@@ -105,3 +105,7 @@ dist
 
 # Ignore transpiled code
 /build
+
+# Ignore any host keys that were generated for the SSH service
+*.key
+*.key.pub
