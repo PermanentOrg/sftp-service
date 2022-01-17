@@ -1,3 +1,4 @@
+import { readFileSync } from 'fs';
 import { Server } from 'ssh2';
 import type {
   Connection,
@@ -5,8 +6,13 @@ import type {
 } from 'ssh2';
 import { SshConnectionHandler } from './classes/SshConnectionHandler';
 
+const hostKeys = [];
+if (typeof process.env.SSH_HOST_KEY_PATH == 'string') {
+  hostKeys.push(readFileSync(process.env.SSH_HOST_KEY_PATH));
+}
+
 const serverConfig: ServerConfig = {
-  hostKeys: [],
+  hostKeys,
 };
 
 const connectionListener = ( client: Connection ): void => {
