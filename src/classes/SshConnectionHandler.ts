@@ -1,5 +1,9 @@
 import { logger } from '../logger';
-import type { AuthContext } from 'ssh2';
+import { SshSessionHandler } from './SshSessionHandler';
+import type {
+  AuthContext,
+  Session,
+} from 'ssh2';
 
 export class SshConnectionHandler {
   /**
@@ -84,8 +88,14 @@ export class SshConnectionHandler {
    * See: Connection Events (session)
    * https://github.com/mscdex/ssh2#connection-events
    */
-  public onSession = (): void => {
+  public onSession = (
+    accept: () => Session,
+  ): void => {
     logger.debug('SSH request for a new session');
+    const session = accept();
+    const sessionHandler = new SshSessionHandler();
+    session.on('sftp', sessionHandler.onSftp);
+    session.on('close', sessionHandler.onClose);
   };
 
   /**
