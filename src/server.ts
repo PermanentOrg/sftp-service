@@ -4,6 +4,7 @@ import type {
   Connection,
   ServerConfig,
 } from 'ssh2';
+import { logger } from './logger';
 import { SshConnectionHandler } from './classes/SshConnectionHandler';
 
 const hostKeys = [];
@@ -16,6 +17,7 @@ const serverConfig: ServerConfig = {
 };
 
 const connectionListener = ( client: Connection ): void => {
+  logger.debug('New connection');
   const connectionHandler = new SshConnectionHandler();
   client.on('authentication', connectionHandler.onAuthentication);
   client.on('close', connectionHandler.onClose);
