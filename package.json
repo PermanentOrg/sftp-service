@@ -51,8 +51,10 @@
   },
   "dependencies": {
     "@sentry/node": "^6.16.1",
+    "@types/ssh2": "^0.5.50",
     "dotenv": "^10.0.0",
     "logform": "^2.3.2",
+    "ssh2": "^1.5.0",
     "winston": "^3.4.0"
   }
 }
