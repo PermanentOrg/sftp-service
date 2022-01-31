@@ -11,7 +11,7 @@ export class SshConnectionHandler {
    * https://datatracker.ietf.org/doc/html/rfc4252#section-5
    */
   public onAuthentication = (authContext: AuthContext): void => {
-    logger.debug('SSH authentication request recieved.', {
+    logger.verbose('SSH authentication request recieved.', {
       username: authContext.username,
       method: authContext.method,
     });
@@ -33,7 +33,7 @@ export class SshConnectionHandler {
    * https://github.com/mscdex/ssh2#connection-events
    */
   public onClose = (): void => {
-    logger.debug('SSH connection has closed');
+    logger.verbose('SSH connection has closed');
   };
 
   /**
@@ -41,7 +41,7 @@ export class SshConnectionHandler {
    * https://github.com/mscdex/ssh2#connection-events
    */
   public onEnd = (): void => {
-    logger.debug('SSH connection is ending');
+    logger.verbose('SSH connection is ending');
   };
 
   /**
@@ -49,7 +49,7 @@ export class SshConnectionHandler {
    * https://github.com/mscdex/ssh2#connection-events
    */
   public onError = (error: Error): void => {
-    logger.info('SSH error: ', error);
+    logger.verbose('SSH error: ', error);
   };
 
   /**
@@ -57,7 +57,7 @@ export class SshConnectionHandler {
    * https://github.com/mscdex/ssh2#connection-events
    */
   public onHandshake = (): void => {
-    logger.debug('SSH handshake complete');
+    logger.verbose('SSH handshake complete');
   };
 
   /**
@@ -65,7 +65,7 @@ export class SshConnectionHandler {
    * https://github.com/mscdex/ssh2#connection-events
    */
   public onReady = (): void => {
-    logger.debug('SSH connection is ready');
+    logger.verbose('SSH connection is ready');
   };
 
   /**
@@ -73,7 +73,7 @@ export class SshConnectionHandler {
    * https://github.com/mscdex/ssh2#connection-events
    */
   public onRekey = (): void => {
-    logger.debug('SSH connection has been re-keyed');
+    logger.verbose('SSH connection has been re-keyed');
   };
 
   /**
@@ -81,7 +81,7 @@ export class SshConnectionHandler {
    * https://github.com/mscdex/ssh2#connection-events
    */
   public onRequest = (): void => {
-    logger.debug('SSH request for a resource');
+    logger.verbose('SSH request for a resource');
   };
 
   /**
@@ -91,7 +91,7 @@ export class SshConnectionHandler {
   public onSession = (
     accept: () => Session,
   ): void => {
-    logger.debug('SSH request for a new session');
+    logger.verbose('SSH request for a new session');
     const session = accept();
     const sessionHandler = new SshSessionHandler();
     session.on('sftp', sessionHandler.onSftp);
@@ -103,6 +103,6 @@ export class SshConnectionHandler {
    * https://github.com/mscdex/ssh2#connection-events
    */
   public onTcpip = (): void => {
-    logger.debug('SSH request for an outbound TCP connection');
+    logger.verbose('SSH request for an outbound TCP connection');
   };
 }
