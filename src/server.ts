@@ -17,7 +17,7 @@ const serverConfig: ServerConfig = {
 };
 
 const connectionListener = ( client: Connection ): void => {
-  logger.debug('New connection');
+  logger.verbose('New connection');
   const connectionHandler = new SshConnectionHandler();
   client.on('authentication', connectionHandler.onAuthentication);
   client.on('close', connectionHandler.onClose);

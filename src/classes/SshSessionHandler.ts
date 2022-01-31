@@ -10,7 +10,7 @@ export class SshSessionHandler {
   public onSftp = (
     accept: () => SFTPStream,
   ): void => {
-    logger.debug('SFTP requested');
+    logger.verbose('SFTP requested');
     const sftp = accept();
     const sftpStreamHandler = new SftpStreamHandler();
     sftp.on('OPEN', sftpStreamHandler.openHandler);
@@ -38,6 +38,6 @@ export class SshSessionHandler {
    * https://github.com/mscdex/ssh2#session-events
    */
   public onClose = (): void => {
-    logger.debug('SSH session closed');
+    logger.verbose('SSH session closed');
   };
 }

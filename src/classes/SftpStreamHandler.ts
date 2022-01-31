@@ -8,7 +8,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.3
    */
   public openHandler = (): void => {
-    logger.debug('SFTP file open request (SSH_FXP_OPEN)');
+    logger.verbose('SFTP file open request (SSH_FXP_OPEN)');
   };
 
   /**
@@ -18,7 +18,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.4
    */
   public readHandler = (): void => {
-    logger.debug('SFTP read file request (SSH_FXP_READ)');
+    logger.verbose('SFTP read file request (SSH_FXP_READ)');
   };
 
   /**
@@ -28,7 +28,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.4
    */
   public writeHandler = (): void => {
-    logger.debug('SFTP write file request (SSH_FXP_WRITE)');
+    logger.verbose('SFTP write file request (SSH_FXP_WRITE)');
   };
 
   /**
@@ -38,7 +38,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.8
    */
   public fstatHandler = (): void => {
-    logger.debug('SFTP read open file statistics request (SSH_FXP_FSTAT)');
+    logger.verbose('SFTP read open file statistics request (SSH_FXP_FSTAT)');
   };
 
   /**
@@ -48,7 +48,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.9
    */
   public fsetStatHandler = (): void => {
-    logger.debug('SFTP write open file statistics request (SSH_FXP_FSETSTAT)');
+    logger.verbose('SFTP write open file statistics request (SSH_FXP_FSETSTAT)');
   };
 
   /**
@@ -58,7 +58,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.3
    */
   public closeHandler = (): void => {
-    logger.debug('SFTP close file request (SSH_FXP_CLOSE)');
+    logger.verbose('SFTP close file request (SSH_FXP_CLOSE)');
   };
 
   /**
@@ -68,7 +68,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.7
    */
   public openDirHandler = (): void => {
-    logger.debug('SFTP open directory request (SSH_FXP_OPENDIR)');
+    logger.verbose('SFTP open directory request (SSH_FXP_OPENDIR)');
   };
 
   /**
@@ -78,7 +78,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.7
    */
   public readDirHandler = (): void => {
-    logger.debug('SFTP read directory request (SSH_FXP_READDIR)');
+    logger.verbose('SFTP read directory request (SSH_FXP_READDIR)');
   };
 
   /**
@@ -88,7 +88,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.8
    */
   public lstatHandler = (): void => {
-    logger.debug('SFTP read file statistics without following symbolic links request (SSH_FXP_LSTAT)');
+    logger.verbose('SFTP read file statistics without following symbolic links request (SSH_FXP_LSTAT)');
   };
 
   /**
@@ -98,7 +98,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.8
    */
   public statHandler = (): void => {
-    logger.debug('SFTP read file statistics following symbolic links request (SSH_FXP_STAT)');
+    logger.verbose('SFTP read file statistics following symbolic links request (SSH_FXP_STAT)');
   };
 
   /**
@@ -108,7 +108,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.5
    */
   public removeHandler = (): void => {
-    logger.debug('SFTP remove file request (SSH_FXP_REMOVE)');
+    logger.verbose('SFTP remove file request (SSH_FXP_REMOVE)');
   };
 
   /**
@@ -118,7 +118,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.6
    */
   public rmDirHandler = (): void => {
-    logger.debug('SFTP remove directory request (SSH_FXP_RMDIR)');
+    logger.verbose('SFTP remove directory request (SSH_FXP_RMDIR)');
   };
 
   /**
@@ -128,7 +128,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.11
    */
   public realPathHandler = (): void => {
-    logger.debug('SFTP canonicalize path request (SSH_FXP_REALPATH)');
+    logger.verbose('SFTP canonicalize path request (SSH_FXP_REALPATH)');
   };
 
   /**
@@ -138,7 +138,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.10
    */
   public readLinkHandler = (): void => {
-    logger.debug('SFTP read link request (SSH_FXP_READLINK)');
+    logger.verbose('SFTP read link request (SSH_FXP_READLINK)');
   };
 
   /**
@@ -148,7 +148,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.9
    */
   public setStatHandler = (): void => {
-    logger.debug('SFTP set file attributes request (SSH_FXP_SETSTAT)');
+    logger.verbose('SFTP set file attributes request (SSH_FXP_SETSTAT)');
   };
 
   /**
@@ -158,7 +158,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.6
    */
   public mkDirHandler = (): void => {
-    logger.debug('SFTP create directory request (SSH_FXP_MKDIR)');
+    logger.verbose('SFTP create directory request (SSH_FXP_MKDIR)');
   };
 
   /**
@@ -168,7 +168,7 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.5
    */
   public renameHandler = (): void => {
-    logger.debug('SFTP file rename request (SSH_FXP_RENAME)');
+    logger.verbose('SFTP file rename request (SSH_FXP_RENAME)');
   };
 
   /**
@@ -178,6 +178,6 @@ export class SftpStreamHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.10
    */
   public symLinkHandler = (): void => {
-    logger.debug('SFTP create symlink request (SSH_FXP_SYMLINK)');
+    logger.verbose('SFTP create symlink request (SSH_FXP_SYMLINK)');
   };
 }
