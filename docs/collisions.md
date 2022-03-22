@@ -3,7 +3,7 @@
 
 ## Overview
 
-Permanent’s file system allows users to upload **files and folders ** with exactly the same name in the same parent folder.** In the context of computers this is referred to as a **name collision.** 
+Permanent’s file system allows users to upload **files and folders** with exactly the same name in the same parent folder.** In the context of computers this is referred to as a **name collision.** 
 
 
 **In traditional file systems, name collisions are not allowed**. Typically such file systems handle name collisions by appending a number that uniquely identifies the incoming file (or folder)  within parentheses. Sometimes there’s a possibility to override or replace duplicates but this is not a consideration for Permanent and rclone. 
@@ -47,6 +47,10 @@ In the event of a conflict,
 For example if a folder has five 5 with the same name say **_A.txt _** the five files would have downloadName ‘s as `A, A (1).txt, A (2).txt, A (3).txt, A (4).txt`
 
 
+- Hence, the standard convention employed by most file systems that is; “space, parentheses open, number, parentheses close”  for example (5) is used.
+- The number within the parenthesis is a sequential calculated by increamenting until it constitutes a unique `downloadName` within the destination namespace or folder.
+- If an incoming file of folder has a dedube string that can lead to recursive contecationation, the existing dedupe string is updated to until it is unique. For example say an incoming file has name `A (1).txt` if there were already two files both named `A.txt` then one would have the download name `A (1).txt` implying that the unique download name for the incomding file should predictively be `A (1) (1).txt`. However, multiple deduplication strings would be avoided and the number in the last pathensis closest to the extension would be updated. Conclusively, the incoming file `A (1).txt` in the stated example would assume a download name such as `A (1+n).txt` instead of `A (1)(1).txt` and subsequently or arrangements like `A (1)(1)(1).txt | A (2)(3)(1).txt` ....
+
 ### Algorithm
 
 
@@ -56,10 +60,6 @@ For example if a folder has five 5 with the same name say **_A.txt _** the five 
 
 **Notes:**
 
-
-* A proposal was made to use the actual filesystem convention for handling name collisions which is  “space, parentheses open, number, parentheses close”  for example (2232)
-* A proposal was made to use the **recordId or FolderId **within the parenthesis instead of just natural incrementation. This would make downloadName collisions impossible and checking for available names unnecessary.
-* A proposal was made to not even store **downloadName **in the database since all the parameters that make it up are unique and already available. Instead they would be calculated as needed. [There would be a good case to store it though to make operations faster]
 * Name collisions should be checked across record and folder tables
 * [Extensions in folder names matter](https://apple.stackexchange.com/questions/123001/renamed-folder-becomes-a-file-with-an-extension) and should be handled :
 * Case sensitivity is taken into account. `Myfile` and `myFile` are different for example. That is useful to [ensure complete syncs](https://rclone.org/overview/#case-insensitive).
@@ -179,11 +179,25 @@ _What each unsupported character encodes to has to ultimately be decided and the
    </td>
    <td>File
    </td>
-   <td>Resume (4).pdf
+   <td>Resume (1).pdf
    </td>
   </tr>
   <tr>
    <td>5
+   </td>
+   <td>1
+   </td>
+   <td>Resume (1).pdf
+   </td>
+   <td>YES (in downloadName)
+   </td>
+   <td>File
+   </td>
+   <td>Resume (2).pdf
+   </td>
+  </tr>
+  <tr>
+   <td>6
    </td>
    <td>3
    </td>
@@ -194,20 +208,6 @@ _What each unsupported character encodes to has to ultimately be decided and the
    <td>File
    </td>
    <td>Resume.pdf
-   </td>
-  </tr>
-  <tr>
-   <td>6
-   </td>
-   <td>3
-   </td>
-   <td>Photos
-   </td>
-   <td>NO
-   </td>
-   <td>Folder
-   </td>
-   <td>Photos
    </td>
   </tr>
   <tr>
@@ -217,15 +217,29 @@ _What each unsupported character encodes to has to ultimately be decided and the
    </td>
    <td>Photos
    </td>
-   <td>YES
+   <td>NO
    </td>
-   <td>File
+   <td>Folder
    </td>
-   <td>Photos (7)
+   <td>Photos
    </td>
   </tr>
   <tr>
    <td>8
+   </td>
+   <td>3
+   </td>
+   <td>Photos
+   </td>
+   <td>YES
+   </td>
+   <td>File
+   </td>
+   <td>Photos (1)
+   </td>
+  </tr>
+  <tr>
+   <td>9
    </td>
    <td>1
    </td>
@@ -235,11 +249,11 @@ _What each unsupported character encodes to has to ultimately be decided and the
    </td>
    <td>File
    </td>
-   <td>Resume (8).pdf
+   <td>Resume (3).pdf
    </td>
   </tr>
   <tr>
-   <td>9
+   <td>10
    </td>
    <td>1
    </td>
@@ -250,20 +264,6 @@ _What each unsupported character encodes to has to ultimately be decided and the
    <td>Folder
    </td>
    <td>Certifications
-   </td>
-  </tr>
-  <tr>
-   <td>10
-   </td>
-   <td>2
-   </td>
-   <td>Photos
-   </td>
-   <td>NO
-   </td>
-   <td>Folder
-   </td>
-   <td>Photos
    </td>
   </tr>
   <tr>
@@ -273,15 +273,29 @@ _What each unsupported character encodes to has to ultimately be decided and the
    </td>
    <td>Photos
    </td>
-   <td>YES
+   <td>NO
    </td>
    <td>Folder
    </td>
-   <td>Photos (11)
+   <td>Photos
    </td>
   </tr>
   <tr>
    <td>12
+   </td>
+   <td>2
+   </td>
+   <td>Photos
+   </td>
+   <td>YES
+   </td>
+   <td>Folder
+   </td>
+   <td>Photos (1)
+   </td>
+  </tr>
+  <tr>
+   <td>13
    </td>
    <td>1
    </td>
@@ -291,11 +305,11 @@ _What each unsupported character encodes to has to ultimately be decided and the
    </td>
    <td>File
    </td>
-   <td>Resume (12).pdf
+   <td>Resume (4).pdf
    </td>
   </tr>
   <tr>
-   <td>13
+   <td>14
    </td>
    <td>1
    </td>
@@ -305,11 +319,11 @@ _What each unsupported character encodes to has to ultimately be decided and the
    </td>
    <td>Folder
    </td>
-   <td>Certifications (13)
+   <td>Certifications (1)
    </td>
   </tr>
   <tr>
-   <td>14
+   <td>15
    </td>
    <td>1
    </td>
@@ -319,11 +333,11 @@ _What each unsupported character encodes to has to ultimately be decided and the
    </td>
    <td>Folder
    </td>
-   <td>Certifications_1 (14)
+   <td>Certifications_1 (1)
    </td>
   </tr>
   <tr>
-   <td>15
+   <td>16
    </td>
    <td>2
    </td>
@@ -337,7 +351,7 @@ _What each unsupported character encodes to has to ultimately be decided and the
    </td>
   </tr>
   <tr>
-   <td>16
+   <td>17
    </td>
    <td>3
    </td>
@@ -347,7 +361,7 @@ _What each unsupported character encodes to has to ultimately be decided and the
    </td>
    <td>Folder
    </td>
-   <td>Photos_1
+   <td>Photos (2)
    </td>
   </tr>
 </table>
@@ -401,6 +415,13 @@ NB: downloadFileName & downloadFolderName **should be recalculated after file or
   </tr>
 </table>
 
+
+## Testing Plan
+
+- Test generates unique & correctly formatted `downloadName` for n colliding files in the same namespace (parent folder).
+- Test generates unique & correctly formatted `downloadName` for n colliding folders in the same namespace.
+- Test generates unique & correctly formatted `downloadName` for n colliding files & folders in the same namespace.
+- Test generates unique & correctly formatted `downloadName` for incoming files and folders holding colliding deduplication strings.
 
 
 # Synchronization
@@ -557,11 +578,11 @@ Note that Permanent’s root directory will never be “empty” for the purpose
 
 ## Deletion Risks
 
-We want to make sure that users understand the difference between a **sync **and a **copy. ** Those two commands mean different things in rclone:
+We want to make sure that users understand the difference between a **sync** and a **copy**. Those two commands mean different things in rclone:
 
 
 * **“sync”** is more destructive because it can delete files.  For example syncing an empty local folder with a populated Permanent archive would lead to the complete deletion of the archive which may not be what the user expected. Hence the buttons or whatever UI is exposed to the user for rclone interaction must provide the appropriate warning.
-* **“copy” **is less destructive because it does not delete files, it either creates or overwrites.  It can still cause data modification in the case of an overwrite. For example if a file exists both locally and on Permanent but with different content.  After the copy both files would contain the same content.
+* **“copy”** is less destructive because it does not delete files, it either creates or overwrites.  It can still cause data modification in the case of an overwrite. For example if a file exists both locally and on Permanent but with different content.  After the copy both files would contain the same content.
 
 
 ## Other Notes
