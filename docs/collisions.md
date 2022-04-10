@@ -64,6 +64,54 @@ For example if a folder has five 5 with the same name say **_A.txt _** the five 
 * [Extensions in folder names matter](https://apple.stackexchange.com/questions/123001/renamed-folder-becomes-a-file-with-an-extension) and should be handled :
 * Case sensitivity is taken into account. `Myfile` and `myFile` are different for example. That is useful to [ensure complete syncs](https://rclone.org/overview/#case-insensitive).
 
+#### Extensions
+
+For both files and folders the extension is any string that follows after the last dot.
+
+For example:
+<table>
+   <thead>
+      <th>File/Folder Name</th>
+      <th>Extension</th>
+      <th>Remark</th>
+   </thead>
+   <tbody>
+      <tr>
+         <td>My File.txt</td>
+         <td>txt</td>
+         <td>Regular</td>
+      </tr>
+      <tr>
+         <td>My File.txt(1)</td>
+         <td>txt(1)</td>
+         <td>Extension contains non-alphanumeric chars</td>
+      </tr>
+      <tr>
+         <td>My File.app</td>
+         <td>app</td>
+         <td>Regular</td>
+      </tr>
+      <tr>
+         <td>something.something</td>
+         <td>something</td>
+         <td>Name same as extension</td>
+      </tr>
+      <tr>
+         <td>2022.03.02</td>
+         <td>02</td>
+         <td>Extension is number</td>
+      </tr>
+      <tr>
+         <td>Folder.Work Files</td>
+         <td>Work Files</td>
+         <td>Extension contains spaces</td>
+      </tr>
+   </tbody>
+</table>
+
+As seen, extension can take infinite number of "shapes" BUT as long as all characters in the file name including the extension are valid file name chacters, then, **the extension is the string tha follows after the last dot** (Emphasis).
+
+
 ### Reserved/unsupported characters
 
 Characters that do not map to various file systems would be encoded. For example, `/` is not allowed in file names in all operating systems, while Windows goes ahead to restrict a lot more characters including `*`, `<`, `>`, `/`, `:`, `"` and `|`. 
@@ -394,7 +442,7 @@ NB: downloadFileName & downloadFolderName **should be recalculated after file or
    </td>
    <td><strong>In progress</strong>
    </td>
-   <td><a href="https://github.com/PermanentOrg/back-end/pull/11">https://github.com/PermanentOrg/back-end/pull/11</a>
+   <td><a href="https://github.com/PermanentOrg/back-end/pull/40">https://github.com/PermanentOrg/back-end/pull/40</a>
    </td>
   </tr>
   <tr>
@@ -402,7 +450,7 @@ NB: downloadFileName & downloadFolderName **should be recalculated after file or
    </td>
    <td><strong>In progress</strong>
    </td>
-   <td><a href="https://github.com/PermanentOrg/back-end/pull/11">https://github.com/PermanentOrg/back-end/pull/11</a>
+   <td><a href="https://github.com/PermanentOrg/back-end/pull/40">https://github.com/PermanentOrg/back-end/pull/40</a>
    </td>
   </tr>
   <tr>
@@ -418,10 +466,13 @@ NB: downloadFileName & downloadFolderName **should be recalculated after file or
 
 ## Testing Plan
 
-- Test generates unique & correctly formatted `downloadName` for n colliding files in the same namespace (parent folder).
-- Test generates unique & correctly formatted `downloadName` for n colliding folders in the same namespace.
-- Test generates unique & correctly formatted `downloadName` for n colliding files & folders in the same namespace.
-- Test generates unique & correctly formatted `downloadName` for incoming files and folders holding colliding deduplication strings.
+- Test generates directory-unique & correctly formatted `downloadName` for n colliding files in the same namespace (parent folder).
+- Test generates directory-unique & correctly formatted `downloadName` for n colliding folders in the same namespace.
+- Test generates directory-unique & correctly formatted `downloadName` for n colliding files & folders in the same namespace.
+- Test generates directory-unique & correctly formatted `downloadName` for incoming files and folders holding colliding deduplication strings.
+- Test generates directory-unique & correctly formatted `downloadName` for files and folders with uncommon naming styles.
+
+*Directory-unique: Download names need be unique only for files and folders in thesame directory*
 
 
 # Synchronization
