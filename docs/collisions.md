@@ -112,6 +112,13 @@ For example:
 As seen, extension can take infinite number of "shapes" BUT as long as all characters in the file name including the extension are valid file name chacters, then, **the extension is the string tha follows after the last dot** (Emphasis).
 
 
+#### Source of extensions
+
+a) The **source string for file extensions ON FILES** is the **`uploadFileName`** because that's the only place where it is maintained after a file is first uploaded in Permanent. In other words permanent takes a file and then removes its extension and then what is left is called the `displayName`
+
+b) The **source string for file extensions ON FOLDERS** is the `displayName` because Permanent does not (or at least did not ) do any kind of extension proccessing on folders, hence folder extensions are always visible in their `displayName`.
+
+
 ### Reserved/unsupported characters
 
 Characters that do not map to various file systems would be encoded. For example, `/` is not allowed in file names in all operating systems, while Windows goes ahead to restrict a lot more characters including `*`, `<`, `>`, `/`, `:`, `"` and `|`. 
