@@ -109,12 +109,13 @@ For example:
    </tbody>
 </table>
 
-As seen, extension can take infinite number of "shapes" BUT as long as all characters in the file name including the extension are valid file name chacters, then, **the extension is the string tha follows after the last dot** (Emphasis).
+As seen, extension can take infinite number of "shapes" BUT as long as all characters in the file name including the extension are valid file name chacters, then, **the extension is the string that follows after the last dot** (Emphasis).
 
 
 #### Source of extensions
 
-a) The **source string for file extensions ON FILES** is the **`uploadFileName`** because that's the only place where it is maintained after a file is first uploaded in Permanent. In other words permanent takes a file and then removes its extension and then what is left is called the `displayName`
+a) The **source string for file extensions ON FILES** could be the **`displayName`** OR the **`uploadFileName`**. When a file is uploaded to Permanent if the extension is recognized, then the `displayName` is calculated as `uploadFileName - File Extension`. So, if `My File.txt` is uploaded the `displayName` is `My File` while the `uploadFileName` would be `My File.txt`. This means when Permanent recognizes the extension, it removes it (the extension) from the `displayName` and keeps track of it(the extension) via the `uploadFileName`. When Permanent does not recognize the extension, the `uploadFileName` is thesame as `displayName` **at the point of creation**. For exampl, in the case of `File My.abcxyz` both the `uploadFileName` and `displayName` would be `My File.abcxyz` and so in this case the source of the extension is the `displayName` even though the extension can be obtained from the `uploadFileName` it risk being wrong if the user ever updates the `displayName`. This is the case because an update to the `displayName` does not affect the `uploadFileName` correctly so.
+
 
 b) The **source string for file extensions ON FOLDERS** is the `displayName` because Permanent does not (or at least did not ) do any kind of extension proccessing on folders, hence folder extensions are always visible in their `displayName`.
 
