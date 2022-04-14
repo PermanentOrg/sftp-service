@@ -433,45 +433,6 @@ _What each unsupported character encodes to has to ultimately be decided and the
 NB: downloadFileName & downloadFolderName **should be recalculated after file or folder rename.**
 
 
-## Status
-
-
-<table>
-  <tr>
-   <td>Implementation Plan Step
-   </td>
-   <td>Status
-   </td>
-   <td> REFERENCE
-   </td>
-  </tr>
-  <tr>
-   <td>1
-   </td>
-   <td><strong>In progress</strong>
-   </td>
-   <td><a href="https://github.com/PermanentOrg/back-end/pull/40">https://github.com/PermanentOrg/back-end/pull/40</a>
-   </td>
-  </tr>
-  <tr>
-   <td>2
-   </td>
-   <td><strong>In progress</strong>
-   </td>
-   <td><a href="https://github.com/PermanentOrg/back-end/pull/40">https://github.com/PermanentOrg/back-end/pull/40</a>
-   </td>
-  </tr>
-  <tr>
-   <td>3
-   </td>
-   <td><strong>Pending 1 & 2</strong>
-   </td>
-   <td>
-   </td>
-  </tr>
-</table>
-
-
 ## Testing Plan
 
 - Test generates directory-unique & correctly formatted `downloadName` for n colliding files in the same namespace (parent folder).
