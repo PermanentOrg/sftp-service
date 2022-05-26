@@ -8,10 +8,10 @@ Permanent’s file system allows users to upload **files and folders** with exac
 
 **In traditional file systems, name collisions are not allowed**. Typically such file systems handle name collisions by appending a number that uniquely identifies the incoming file (or folder)  within parentheses. Sometimes there’s a possibility to override or replace duplicates but this is not a consideration for Permanent and rclone. 
 
-To achieve Permanent’s feature goal of letting it synchronize with other filesystems, a way needs to be found to ensure **name collisions which are allowed within permanent can be safely transferred and mirrored on external file systems that do not allow name collisions.**
+To achieve Permanent’s feature goal of letting it synchronize with other file systems, a way needs to be found to ensure **name collisions which are allowed within permanent can be safely transferred and mirrored on external file systems that do not allow name collisions.**
 
 
-## Name collision handling algorithm for external filesystems
+## Name collision handling algorithm for external file systems
 
 Since Permanent already knows how to handle collisions the deduplication mechanism is designed to ensure that mapping files from Permanent to other file systems first of all works and then, assumes a structure similar to the one it had on permanent to the greatest extent possible. This makes it easy for users to easily identify their file structure out of Permanent.
 
@@ -48,8 +48,8 @@ For example if a folder has five 5 with the same name say **_A.txt _** the five 
 
 
 - Hence, the standard convention employed by most file systems that is; “space, parentheses open, number, parentheses close”  for example (5) is used.
-- The number within the parenthesis is a sequential calculated by increamenting until it constitutes a unique `downloadName` within the destination namespace or folder.
-- If an incoming file of folder has a dedube string that can lead to recursive contecationation, the existing dedupe string is updated to until it is unique. For example say an incoming file has name `A (1).txt` if there were already two files both named `A.txt` then one would have the download name `A (1).txt` implying that the unique download name for the incomding file should predictively be `A (1) (1).txt`. However, multiple deduplication strings would be avoided and the number in the last pathensis closest to the extension would be updated. Conclusively, the incoming file `A (1).txt` in the stated example would assume a download name such as `A (1+n).txt` instead of `A (1)(1).txt` and subsequently or arrangements like `A (1)(1)(1).txt | A (2)(3)(1).txt` ....
+- The number within the parenthesis is a sequential calculated by incrementing until it constitutes a unique `downloadName` within the destination namespace or folder.
+- If an incoming file of folder has a dedupe string that can lead to recursive concatenation, the existing dedupe string is updated to until it is unique. For example say an incoming file has name `A (1).txt` if there were already two files both named `A.txt` then one would have the download name `A (1).txt` implying that the unique download name for the incoming file should predictively be `A (1) (1).txt`. However, multiple deduplication strings would be avoided and the number in the last parentheses closest to the extension would be updated. Conclusively, the incoming file `A (1).txt` in the stated example would assume a download name such as `A (1+n).txt` instead of `A (1)(1).txt` and subsequently or arrangements like `A (1)(1)(1).txt | A (2)(3)(1).txt` ....
 
 ### Algorithm
 
@@ -64,6 +64,22 @@ For example if a folder has five 5 with the same name say **_A.txt _** the five 
 * [Extensions in folder names matter](https://apple.stackexchange.com/questions/123001/renamed-folder-becomes-a-file-with-an-extension) and should be handled :
 * Case sensitivity is taken into account. `Myfile` and `myFile` are different for example. That is useful to [ensure complete syncs](https://rclone.org/overview/#case-insensitive).
 
+#### Extensions
+
+For both files and folders the extension is any string that follows after the last dot in the `displayName` or `uploadFileName` (see; *Source of extensions* section below).
+
+This means that an extension might contain spaces, parentheses, and other characters not traditionally thought of as extension characters. It also means that the last dot could also be the first dot, in which case the extension is the remaining string after that first dot.
+
+#### Source of extensions
+
+a) The **source string for file extensions ON FILES** could be the **`displayName`** OR the **`uploadFileName`**. When a file is uploaded to Permanent if the extension is recognized, then the `displayName` is calculated as `uploadFileName minus File Extension`. So, if `My File.txt` is uploaded the `displayName` is `My File` while the `uploadFileName` would be `My File.txt`. This means when Permanent recognizes the extension, the `displayName` is stored without the extension so we keep track of the extension via the `uploadFileName`. 
+
+When Permanent does not recognize the extension, the `uploadFileName` is the same as `displayName` **at the point of creation**. For example, in the case of `My File.abcxyz` both the `uploadFileName` and `displayName` would be `My File.abcxyz` and so in this case the source of the extension is the `displayName` even though the extension can be obtained from the `uploadFileName` it risk being wrong if the user ever updates the `displayName`. This is the case because an update to the `displayName` does not affect the `uploadFileName` correctly so.
+
+
+b) The **source string for file extensions ON FOLDERS** is the `displayName` because Permanent does not (or at least did not ) do any kind of extension processing on folders, hence folder extensions are always visible in their `displayName`.
+
+
 ### Reserved/unsupported characters
 
 Characters that do not map to various file systems would be encoded. For example, `/` is not allowed in file names in all operating systems, while Windows goes ahead to restrict a lot more characters including `*`, `<`, `>`, `/`, `:`, `"` and `|`. 
@@ -73,7 +89,7 @@ Characters that do not map to various file systems would be encoded. For example
 * [Path Naming Conventions](https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file)
 * [Reserved Characters](https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words)
 
-_What each unsupported character encodes to has to ultimately be decided and the reference table developed if neccesary._
+_What each unsupported character encodes to has to ultimately be decided and the reference table developed if necessary._
 
 
 ## Example 
@@ -377,51 +393,15 @@ _What each unsupported character encodes to has to ultimately be decided and the
 NB: downloadFileName & downloadFolderName **should be recalculated after file or folder rename.**
 
 
-## Status
-
-
-<table>
-  <tr>
-   <td>Implementation Plan Step
-   </td>
-   <td>Status
-   </td>
-   <td> REFERENCE
-   </td>
-  </tr>
-  <tr>
-   <td>1
-   </td>
-   <td><strong>In progress</strong>
-   </td>
-   <td><a href="https://github.com/PermanentOrg/back-end/pull/11">https://github.com/PermanentOrg/back-end/pull/11</a>
-   </td>
-  </tr>
-  <tr>
-   <td>2
-   </td>
-   <td><strong>In progress</strong>
-   </td>
-   <td><a href="https://github.com/PermanentOrg/back-end/pull/11">https://github.com/PermanentOrg/back-end/pull/11</a>
-   </td>
-  </tr>
-  <tr>
-   <td>3
-   </td>
-   <td><strong>Pending 1 & 2</strong>
-   </td>
-   <td>
-   </td>
-  </tr>
-</table>
-
-
 ## Testing Plan
 
-- Test generates unique & correctly formatted `downloadName` for n colliding files in the same namespace (parent folder).
-- Test generates unique & correctly formatted `downloadName` for n colliding folders in the same namespace.
-- Test generates unique & correctly formatted `downloadName` for n colliding files & folders in the same namespace.
-- Test generates unique & correctly formatted `downloadName` for incoming files and folders holding colliding deduplication strings.
+- **File to file collision tests**: Test that colliding files get a directory-unique & correctly formatted `downloadName`, for instance in a case where 2 or more files in the same folder have the same name.
+- **Folder to folder collision tests**:  Test that colliding folders get a directory-unique & correctly formatted `downloadName`, for instance in a case where 2 or more folders in the same folder have the same name.
+- **File to folder collision tests**: Test that files colliding with folders or vice-verser get a directory-unique & correctly formatted `downloadName`. For instance, in a case where 2 or more *files AND folders* in the same folder have the same name.
+- **File/Folder with dedupe string tests**: Test that files and folder with existing deduplication strings in them get a directory-unique & correctly formatted `downloadName`. For instance files containing dedupe strings such as `My File (1).png` as their original name.
+- **Edge case tests**: Test that files and folders with weird extensions, uncommon characters in files name, name with too many dots et al get a directory-unique & correctly formatted `downloadName` for files and folders with uncommon naming styles.
+
+*Directory-unique: Download names need be unique only for files and folders in the same directory*
 
 
 # Synchronization
