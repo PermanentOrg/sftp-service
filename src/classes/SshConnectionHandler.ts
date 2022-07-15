@@ -6,6 +6,8 @@ import type {
 } from 'ssh2';
 
 export class SshConnectionHandler {
+  private authToken = '';
+
   /**
    * See: Authentication Requests
    * https://datatracker.ietf.org/doc/html/rfc4252#section-5
@@ -18,6 +20,10 @@ export class SshConnectionHandler {
     switch (authContext.method) {
       case 'password':
         authContext.accept();
+        // THIS IS COMPLETELY TEMPORARY FOR THE DEMO
+        // This bearer token is to a local test account so it's not actually a secret in any way
+        // ^ I mention this in case / for when I commit it to my demo branch on github.
+        this.authToken = `${process.env.LOCAL_TEMPORARY_AUTH_TOKEN ?? ''}`;
         return;
       case 'none':
       default:
@@ -93,7 +99,7 @@ export class SshConnectionHandler {
   ): void => {
     logger.verbose('SSH request for a new session');
     const session = accept();
-    const sessionHandler = new SshSessionHandler();
+    const sessionHandler = new SshSessionHandler(this.authToken);
     session.on('sftp', sessionHandler.onSftp);
     session.on('close', sessionHandler.onClose);
   };
