@@ -70,6 +70,7 @@ export class SftpSessionHandler {
    * Also: Reading and Writing
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.4
    */
+  // eslint-disable-next-line class-methods-use-this
   public readHandler = (): void => {
     logger.verbose('SFTP read file request (SSH_FXP_READ)');
   };
@@ -80,6 +81,7 @@ export class SftpSessionHandler {
    * Also: Reading and Writing
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.4
    */
+  // eslint-disable-next-line class-methods-use-this
   public writeHandler = (): void => {
     logger.verbose('SFTP write file request (SSH_FXP_WRITE)');
   };
@@ -90,6 +92,7 @@ export class SftpSessionHandler {
    * Also: Retrieving File Attributes
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.8
    */
+  // eslint-disable-next-line class-methods-use-this
   public fstatHandler = (): void => {
     logger.verbose('SFTP read open file statistics request (SSH_FXP_FSTAT)');
   };
@@ -100,6 +103,7 @@ export class SftpSessionHandler {
    * Also: Setting File Attributes
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.9
    */
+  // eslint-disable-next-line class-methods-use-this
   public fsetStatHandler = (): void => {
     logger.verbose('SFTP write open file statistics request (SSH_FXP_FSETSTAT)');
   };
@@ -172,6 +176,7 @@ export class SftpSessionHandler {
    * Also: Retrieving File Attributes
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.8
    */
+  // eslint-disable-next-line class-methods-use-this
   public lstatHandler = (): void => {
     logger.verbose('SFTP read file statistics without following symbolic links request (SSH_FXP_LSTAT)');
   };
@@ -182,6 +187,7 @@ export class SftpSessionHandler {
    * Also: Retrieving File Attributes
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.8
    */
+  // eslint-disable-next-line class-methods-use-this
   public statHandler = (reqId: number, handle: Buffer): void => {
     logger.verbose('SFTP read file statistics following symbolic links request (SSH_FXP_STAT)');
     logger.debug('Request:', { reqId, handle });
@@ -200,6 +206,7 @@ export class SftpSessionHandler {
    * Also: Removing and Renaming Files
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.5
    */
+  // eslint-disable-next-line class-methods-use-this
   public removeHandler = (): void => {
     logger.verbose('SFTP remove file request (SSH_FXP_REMOVE)');
   };
@@ -210,6 +217,7 @@ export class SftpSessionHandler {
    * Also: Creating and Deleting Directories
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.6
    */
+  // eslint-disable-next-line class-methods-use-this
   public rmDirHandler = (): void => {
     logger.verbose('SFTP remove directory request (SSH_FXP_RMDIR)');
   };
@@ -240,6 +248,7 @@ export class SftpSessionHandler {
    * Also: Dealing with Symbolic Links
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.10
    */
+  // eslint-disable-next-line class-methods-use-this
   public readLinkHandler = (): void => {
     logger.verbose('SFTP read link request (SSH_FXP_READLINK)');
   };
@@ -250,6 +259,7 @@ export class SftpSessionHandler {
    * Also: Setting File Attributes
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.9
    */
+  // eslint-disable-next-line class-methods-use-this
   public setStatHandler = (): void => {
     logger.verbose('SFTP set file attributes request (SSH_FXP_SETSTAT)');
   };
@@ -260,6 +270,7 @@ export class SftpSessionHandler {
    * Also: Creating and Deleting Directories
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.6
    */
+  // eslint-disable-next-line class-methods-use-this
   public mkDirHandler = (): void => {
     logger.verbose('SFTP create directory request (SSH_FXP_MKDIR)');
   };
@@ -270,6 +281,7 @@ export class SftpSessionHandler {
    * Also: Removing and Renaming FIles
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.5
    */
+  // eslint-disable-next-line class-methods-use-this
   public renameHandler = (): void => {
     logger.verbose('SFTP file rename request (SSH_FXP_RENAME)');
   };
@@ -280,6 +292,7 @@ export class SftpSessionHandler {
    * Also: Dealing with Symbolic links
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.10
    */
+  // eslint-disable-next-line class-methods-use-this
   public symLinkHandler = (): void => {
     logger.verbose('SFTP create symlink request (SSH_FXP_SYMLINK)');
   };

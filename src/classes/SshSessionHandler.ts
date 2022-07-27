@@ -1,5 +1,5 @@
-import { SftpSessionHandler } from './SftpSessionHandler';
 import { logger } from '../logger';
+import { SftpSessionHandler } from './SftpSessionHandler';
 import type { SFTPWrapper } from 'ssh2';
 
 export class SshSessionHandler {
@@ -46,6 +46,7 @@ export class SshSessionHandler {
    * See: Session Events (close)
    * https://github.com/mscdex/ssh2#session-events
    */
+  // eslint-disable-next-line class-methods-use-this
   public onClose = (): void => {
     logger.verbose('SSH session closed');
   };
