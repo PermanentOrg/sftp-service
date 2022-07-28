@@ -6,6 +6,8 @@ import type {
 } from 'ssh2';
 
 export class SshConnectionHandler {
+  private authToken = '';
+
   /**
    * See: Authentication Requests
    * https://datatracker.ietf.org/doc/html/rfc4252#section-5
@@ -18,13 +20,16 @@ export class SshConnectionHandler {
     switch (authContext.method) {
       case 'password':
         authContext.accept();
+        // THIS IS COMPLETELY TEMPORARY FOR THE DEMO
+        // This bearer token is to a local test account so it's not actually a secret in any way
+        // ^ I mention this in case / for when I commit it to my demo branch on github.
+        this.authToken = `${process.env.LOCAL_TEMPORARY_AUTH_TOKEN ?? ''}`;
         return;
       case 'none':
       default:
         authContext.reject(
           ['password'],
         );
-        return;
     }
   };
 
@@ -32,6 +37,7 @@ export class SshConnectionHandler {
    * See: Connection Events (close)
    * https://github.com/mscdex/ssh2#connection-events
    */
+  // eslint-disable-next-line class-methods-use-this
   public onClose = (): void => {
     logger.verbose('SSH connection has closed');
   };
@@ -40,6 +46,7 @@ export class SshConnectionHandler {
    * See: Connection Events (end)
    * https://github.com/mscdex/ssh2#connection-events
    */
+  // eslint-disable-next-line class-methods-use-this
   public onEnd = (): void => {
     logger.verbose('SSH connection is ending');
   };
@@ -48,6 +55,7 @@ export class SshConnectionHandler {
    * See: Connection Events (error)
    * https://github.com/mscdex/ssh2#connection-events
    */
+  // eslint-disable-next-line class-methods-use-this
   public onError = (error: Error): void => {
     logger.verbose('SSH error: ', error);
   };
@@ -56,6 +64,7 @@ export class SshConnectionHandler {
    * See: Connection Events (handshake)
    * https://github.com/mscdex/ssh2#connection-events
    */
+  // eslint-disable-next-line class-methods-use-this
   public onHandshake = (): void => {
     logger.verbose('SSH handshake complete');
   };
@@ -64,6 +73,7 @@ export class SshConnectionHandler {
    * See: Connection Events (ready)
    * https://github.com/mscdex/ssh2#connection-events
    */
+  // eslint-disable-next-line class-methods-use-this
   public onReady = (): void => {
     logger.verbose('SSH connection is ready');
   };
@@ -72,6 +82,7 @@ export class SshConnectionHandler {
    * See: Connection Events (rekey)
    * https://github.com/mscdex/ssh2#connection-events
    */
+  // eslint-disable-next-line class-methods-use-this
   public onRekey = (): void => {
     logger.verbose('SSH connection has been re-keyed');
   };
@@ -80,6 +91,7 @@ export class SshConnectionHandler {
    * See: Connection Events (request)
    * https://github.com/mscdex/ssh2#connection-events
    */
+  // eslint-disable-next-line class-methods-use-this
   public onRequest = (): void => {
     logger.verbose('SSH request for a resource');
   };
@@ -93,7 +105,7 @@ export class SshConnectionHandler {
   ): void => {
     logger.verbose('SSH request for a new session');
     const session = accept();
-    const sessionHandler = new SshSessionHandler();
+    const sessionHandler = new SshSessionHandler(this.authToken);
     session.on('sftp', sessionHandler.onSftp);
     session.on('close', sessionHandler.onClose);
   };
@@ -102,6 +114,7 @@ export class SshConnectionHandler {
    * See: Connection Events (tcpip)
    * https://github.com/mscdex/ssh2#connection-events
    */
+  // eslint-disable-next-line class-methods-use-this
   public onTcpip = (): void => {
     logger.verbose('SSH request for an outbound TCP connection');
   };

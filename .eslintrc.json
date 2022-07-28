@@ -9,12 +9,17 @@
     ],
     "extends": [
       "plugin:@typescript-eslint/all",
+      "airbnb-base",
       "airbnb-typescript/base"
     ],
     "rules": {
       "import/prefer-default-export": "off",
       "import/no-default-export":  "error",
-      "@typescript-eslint/prefer-readonly-parameter-types": "off"
+      "@typescript-eslint/prefer-readonly-parameter-types": "off",
+      "import/order": ["error", {
+        "groups": ["builtin", "external", "internal", "parent", "sibling", "index", "object", "type"],
+        "newlines-between": "never"
+      }]
     },
     "env": {
       "es6": true,

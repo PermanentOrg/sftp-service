@@ -13,13 +13,11 @@ if ('SENTRY_DSN' in process.env
 }
 
 const listenOptions: ListenOptions = {
-  port: Number.parseInt(process.env.SSH_PORT ?? '22'),
+  port: Number.parseInt(process.env.SSH_PORT ?? '22', 10),
   host: process.env.SSH_HOST ?? '127.0.0.1',
 };
 
 server.listen(
   listenOptions,
-  function () {
-    logger.info(`Listening for SSH requests on ${listenOptions.host ?? ''}:${listenOptions.port ?? ''}`);
-  },
+  () => logger.info(`Listening for SSH requests on ${listenOptions.host ?? ''}:${listenOptions.port ?? ''}`),
 );
