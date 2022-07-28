@@ -144,7 +144,7 @@ export class SftpSessionHandler {
         );
       })
       .catch((reason: unknown) => {
-        logger.debug('Failed to load path', { reqId, dirPath }, reason);
+        logger.error('Failed to load path', { reqId, dirPath, reason });
         logger.debug('Response: Status (FAILURE)', { reqId }, SFTP_STATUS_CODE.FAILURE);
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
       });
