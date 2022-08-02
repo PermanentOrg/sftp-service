@@ -1,5 +1,8 @@
 import fs from 'fs';
-import { getArchives } from '@permanentorg/sdk';
+import {
+  getArchives,
+  getArchiveFolders,
+} from '@permanentorg/sdk';
 import { generateDefaultAttributes } from './generateDefaultAttributes';
 import { generateFileEntry } from './generateFileEntry';
 import type { FileEntry } from 'ssh2';
@@ -8,6 +11,7 @@ import type { Archive } from '@permanentorg/sdk';
 const loadArchives = async (authToken: string): Promise<FileEntry[]> => {
   const archives = await getArchives({
     bearerToken: authToken,
+    baseUrl: process.env.PERMANENT_API_BASE_PATH,
   });
   return archives.map((archive: Archive) => {
     const archiveDirectoryPath = `/archives/${archive.name} (${archive.id})`;
@@ -18,26 +22,28 @@ const loadArchives = async (authToken: string): Promise<FileEntry[]> => {
   });
 };
 
-// TODO - this is spoofed right now but will be replaced with appropriate SDK calls once
-// that part of the SDK is released.
-const loadArchive = async (authToken: string, archiveName: string): Promise<FileEntry[]> => [
-  generateFileEntry(
-    `${archiveName}/MyFiles`,
+const getArchiveIdFromArchivePath = (archivePath: string): number => {
+  const archiveIdPattern = /^.* \((\d+)\)$/;
+  const matches = archiveIdPattern.exec(archivePath);
+  if (matches === null) {
+    return -1;
+  }
+  return parseInt(matches[1], 10);
+};
+
+const loadArchive = async (authToken: string, requestedPath: string): Promise<FileEntry[]> => {
+  const archiveFolders = await getArchiveFolders(
+    {
+      bearerToken: authToken,
+      baseUrl: process.env.PERMANENT_API_BASE_PATH,
+    },
+    getArchiveIdFromArchivePath(requestedPath),
+  );
+  return archiveFolders.map((archiveFolder) => generateFileEntry(
+    `${requestedPath}/${archiveFolder.name}`,
     generateDefaultAttributes(fs.constants.S_IFDIR),
-  ),
-  generateFileEntry(
-    `${archiveName}/Shares`,
-    generateDefaultAttributes(fs.constants.S_IFDIR),
-  ),
-  generateFileEntry(
-    `${archiveName}/Public`,
-    generateDefaultAttributes(fs.constants.S_IFDIR),
-  ),
-  generateFileEntry(
-    `${archiveName}/Apps`,
-    generateDefaultAttributes(fs.constants.S_IFDIR),
-  ),
-];
+  ));
+};
 
 const isRootPath = (requestedPath: string): boolean => (
   requestedPath === '/'
