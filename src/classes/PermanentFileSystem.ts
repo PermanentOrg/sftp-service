@@ -1,0 +1,179 @@
+import path from 'path';
+import fs from 'fs';
+import {
+  getArchives,
+  getArchiveFolders,
+  getFolder,
+} from '@permanentorg/sdk';
+import {
+  generateDefaultAttributes,
+  generateFileEntry,
+} from '../utils';
+import type {
+  Archive,
+  ClientConfiguration,
+  Folder,
+} from '@permanentorg/sdk';
+import type { FileEntry } from 'ssh2';
+
+const isRootPath = (requestedPath: string): boolean => (
+  requestedPath === '/'
+);
+
+const isArchiveCataloguePath = (requestedPath: string): boolean => (
+  requestedPath === '/archives'
+);
+
+const isArchivePath = (requestedPath: string): boolean => (
+  requestedPath.startsWith('/archives')
+  && requestedPath.split('/').length === 3
+);
+
+const isItemPath = (requestedPath: string): boolean => (
+  requestedPath.startsWith('/archives')
+  && requestedPath.split('/').length > 3
+);
+
+const getArchiveIdFromPath = (archivePath: string): number => {
+  const archiveIdPattern = /^\/archives\/.* \((\d+)\)(\/.*)?$/;
+  const matches = archiveIdPattern.exec(archivePath);
+  if (matches === null) {
+    return -1;
+  }
+  return parseInt(matches[1], 10);
+};
+
+export class PermanentFileSystem {
+  private readonly folderCache = new Map<string, Folder>();
+
+  private readonly archiveFoldersCache = new Map<number, Folder[]>();
+
+  private archivesCache?: Archive[];
+
+  private readonly authToken;
+
+  public constructor(authToken: string) {
+    this.authToken = authToken;
+  }
+
+  private static loadRootFileEntries(): FileEntry[] {
+    return [
+      generateFileEntry(
+        '/archives',
+        generateDefaultAttributes(fs.constants.S_IFDIR),
+      ),
+    ];
+  }
+
+  public async loadDirectory(requestedPath: string): Promise<FileEntry[]> {
+    if (isRootPath(requestedPath)) {
+      return PermanentFileSystem.loadRootFileEntries();
+    }
+    if (isArchiveCataloguePath(requestedPath)) {
+      return this.loadArchiveFileEntries();
+    }
+    if (isArchivePath(requestedPath)) {
+      return this.loadArchiveFoldersFileEntries(requestedPath);
+    }
+    if (isItemPath(requestedPath)) {
+      return this.loadFolderFileEntries(requestedPath);
+    }
+    return [];
+  }
+
+  private getClientConfiguration(): ClientConfiguration {
+    return {
+      bearerToken: this.authToken,
+      baseUrl: process.env.PERMANENT_API_BASE_PATH,
+    };
+  }
+
+  private async loadArchives(): Promise<Archive[]> {
+    if (!this.archivesCache) {
+      this.archivesCache = await getArchives(
+        this.getClientConfiguration(),
+      );
+    }
+    return this.archivesCache;
+  }
+
+  private async loadArchiveFolders(archiveId: number): Promise<Folder[]> {
+    const cachedArchiveFolders = this.archiveFoldersCache.get(archiveId);
+    if (cachedArchiveFolders) {
+      return cachedArchiveFolders;
+    }
+    const archiveFolders = await getArchiveFolders(
+      this.getClientConfiguration(),
+      archiveId,
+    );
+    this.archiveFoldersCache.set(archiveId, archiveFolders);
+    return archiveFolders;
+  }
+
+  private async loadFolder(requestedPath: string): Promise<Folder> {
+    const cachedFolder = this.folderCache.get(requestedPath);
+    if (cachedFolder) {
+      return cachedFolder;
+    }
+
+    const parentPath = path.dirname(requestedPath);
+    const childName = path.basename(requestedPath);
+    const archiveId = getArchiveIdFromPath(parentPath);
+    const childFolders = isArchivePath(parentPath)
+      ? await this.loadArchiveFolders(archiveId)
+      : (await this.loadFolder(parentPath)).folders;
+    const targetFolder = childFolders.find(
+      (folder) => folder.name === childName,
+    );
+    if (!targetFolder) {
+      throw new Error();
+    }
+    const populatedTargetFolder = await getFolder(
+      this.getClientConfiguration(),
+      targetFolder.id,
+      archiveId,
+    );
+    this.folderCache.set(requestedPath, populatedTargetFolder);
+    return populatedTargetFolder;
+  }
+
+  private async loadArchiveFileEntries(): Promise<FileEntry[]> {
+    const archives = await this.loadArchives();
+    return archives.map((archive: Archive) => {
+      const archiveDirectoryPath = `/archives/${archive.name} (${archive.id})`;
+      return generateFileEntry(
+        archiveDirectoryPath,
+        generateDefaultAttributes(fs.constants.S_IFDIR),
+      );
+    });
+  }
+
+  private async loadArchiveFoldersFileEntries(archivePath: string): Promise<FileEntry[]> {
+    const archiveId = getArchiveIdFromPath(archivePath);
+    const folders = await this.loadArchiveFolders(archiveId);
+    return folders.map((archiveFolder) => generateFileEntry(
+      `${archivePath}/${archiveFolder.name}`,
+      generateDefaultAttributes(fs.constants.S_IFDIR),
+    ));
+  }
+
+  private async loadFolderFileEntries(requestedPath: string): Promise<FileEntry[]> {
+    const childFolder = await this.loadFolder(requestedPath);
+    const folderFileEntities = childFolder.folders.map(
+      (folder) => generateFileEntry(
+        `${requestedPath}/${folder.name}`,
+        generateDefaultAttributes(fs.constants.S_IFDIR),
+      ),
+    );
+    const recordFileEntities = childFolder.records.map(
+      (record) => generateFileEntry(
+        `${requestedPath}/${record.name}`,
+        generateDefaultAttributes(fs.constants.S_IFREG),
+      ),
+    );
+    return [
+      ...folderFileEntities,
+      ...recordFileEntities,
+    ];
+  }
+}

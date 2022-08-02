@@ -6,8 +6,8 @@ import {
   generateFileEntry,
   getFileType,
   generateDefaultAttributes,
-  loadPath,
 } from '../utils';
+import { PermanentFileSystem } from './PermanentFileSystem';
 import type {
   Attributes,
   FileEntry,
@@ -19,20 +19,20 @@ const SFTP_STATUS_CODE = ssh2.utils.sftp.STATUS_CODE;
 const generateHandle = (): string => uuidv4();
 
 export class SftpSessionHandler {
-  private readonly authToken: string;
-
   private readonly sftpConnection: SFTPWrapper;
 
   private readonly openDirectories: Map<string, FileEntry[]> = new Map();
 
   private readonly openFiles: Map<string, Buffer> = new Map();
 
+  private readonly permanentFileSystem: PermanentFileSystem;
+
   public constructor(
     sftpConnection: SFTPWrapper,
     authToken: string,
   ) {
     this.sftpConnection = sftpConnection;
-    this.authToken = authToken;
+    this.permanentFileSystem = new PermanentFileSystem(authToken);
   }
 
   /**
@@ -133,7 +133,7 @@ export class SftpSessionHandler {
     logger.debug('Request:', { reqId, dirPath });
     const handle = generateHandle();
     logger.debug(`Opening ${dirPath}:`, handle);
-    loadPath(dirPath, this.authToken)
+    this.permanentFileSystem.loadDirectory(dirPath)
       .then((fileEntries) => {
         logger.debug('Contents:', fileEntries);
         this.openDirectories.set(handle, fileEntries);

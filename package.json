@@ -52,7 +52,7 @@
     "typescript": "^4.5.4"
   },
   "dependencies": {
-    "@permanentorg/sdk": "^0.2.0",
+    "@permanentorg/sdk": "^0.2.1",
     "@sentry/node": "^6.16.1",
     "dotenv": "^10.0.0",
     "logform": "^2.3.2",
