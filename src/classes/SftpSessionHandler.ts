@@ -155,9 +155,22 @@ export class SftpSessionHandler {
    * Also: Retrieving File Attributes
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.8
    */
-  // eslint-disable-next-line class-methods-use-this
-  public fstatHandler = (): void => {
+  public fstatHandler = (
+    reqId: number,
+    handle: Buffer,
+  ): void => {
     logger.verbose('SFTP read open file statistics request (SSH_FXP_FSTAT)');
+    logger.debug('Request:', { reqId, handle });
+    const file = this.openFiles.get(handle.toString());
+    if (!file) {
+      logger.info('There is no open file associated with this handle', { reqId, handle });
+      logger.debug('Response: Status (FAILURE)', { reqId }, SFTP_STATUS_CODE.FAILURE);
+      this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+      return;
+    }
+    const attrs = generateAttributesForFile(file);
+    logger.debug('Response: Attributes', { reqId, attrs });
+    this.sftpConnection.attrs(reqId, attrs);
   };
 
   /**
