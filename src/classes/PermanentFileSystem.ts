@@ -4,15 +4,20 @@ import {
   getArchives,
   getArchiveFolders,
   getFolder,
+  getRecord,
+  DerivativeType,
 } from '@permanentorg/sdk';
 import {
   generateDefaultAttributes,
   generateFileEntry,
 } from '../utils';
+import { generateAttributesForFile } from '../utils/generateAttributesForFile';
 import type {
   Archive,
   ClientConfiguration,
   Folder,
+  File,
+  Record,
 } from '@permanentorg/sdk';
 import type { FileEntry } from 'ssh2';
 
@@ -48,6 +53,8 @@ export class PermanentFileSystem {
 
   private readonly archiveFoldersCache = new Map<number, Folder[]>();
 
+  private readonly recordCache = new Map<string, Record>();
+
   private archivesCache?: Archive[];
 
   private readonly authToken;
@@ -79,6 +86,44 @@ export class PermanentFileSystem {
       return this.loadFolderFileEntries(requestedPath);
     }
     return [];
+  }
+
+  public async loadFile(requestedPath: string): Promise<File> {
+    if (!isItemPath(requestedPath)) {
+      throw new Error('Invalid file path');
+    }
+    const record = await this.loadRecord(requestedPath);
+    const originalFile = record.files.find(
+      (file) => file.derivativeType === DerivativeType.Original,
+    );
+    if (!originalFile) {
+      throw Error('Permanent does not have an original file for this record');
+    }
+    return originalFile;
+  }
+
+  private async loadRecord(requestedPath: string): Promise<Record> {
+    const cachedRecord = this.recordCache.get(requestedPath);
+    if (cachedRecord) {
+      return cachedRecord;
+    }
+    const parentPath = path.dirname(requestedPath);
+    const childName = path.basename(requestedPath);
+    const parentFolder = await this.loadFolder(parentPath);
+    const archiveId = getArchiveIdFromPath(parentPath);
+    const targetRecord = parentFolder.records.find(
+      (record) => record.fileName === childName,
+    );
+    if (!targetRecord) {
+      throw new Error('This file does not exist');
+    }
+    const populatedRecord = await getRecord(
+      this.getClientConfiguration(),
+      targetRecord.id,
+      archiveId,
+    );
+    this.recordCache.set(requestedPath, populatedRecord);
+    return populatedRecord;
   }
 
   private getClientConfiguration(): ClientConfiguration {
@@ -165,12 +210,16 @@ export class PermanentFileSystem {
         generateDefaultAttributes(fs.constants.S_IFDIR),
       ),
     );
-    const recordFileEntities = childFolder.records.map(
-      (record) => generateFileEntry(
-        `${requestedPath}/${record.name}`,
-        generateDefaultAttributes(fs.constants.S_IFREG),
-      ),
-    );
+    const recordFileEntities = await Promise.all(childFolder.records.map(
+      async (record) => {
+        const filePath = `${requestedPath}/${record.fileName}`;
+        const file = await this.loadFile(filePath);
+        return generateFileEntry(
+          filePath,
+          generateAttributesForFile(file),
+        );
+      },
+    ));
     return [
       ...folderFileEntities,
       ...recordFileEntities,
