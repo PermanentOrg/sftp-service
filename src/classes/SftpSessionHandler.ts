@@ -114,7 +114,7 @@ export class SftpSessionHandler {
 
     fetch(file.downloadUrl, {
       headers: {
-        Range: `bytes=${offset}-${offset + length}`,
+        Range: `bytes=${offset}-${offset + length - 1}`,
       },
     })
       .then(async (response) => {
