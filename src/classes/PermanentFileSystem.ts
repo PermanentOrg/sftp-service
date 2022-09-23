@@ -66,7 +66,7 @@ export class PermanentFileSystem {
   private static loadRootFileEntries(): FileEntry[] {
     return [
       generateFileEntry(
-        '/archives',
+        'archives',
         generateDefaultAttributes(fs.constants.S_IFDIR),
       ),
     ];
@@ -184,20 +184,17 @@ export class PermanentFileSystem {
 
   private async loadArchiveFileEntries(): Promise<FileEntry[]> {
     const archives = await this.loadArchives();
-    return archives.map((archive: Archive) => {
-      const archiveDirectoryPath = `/archives/${archive.name} (${archive.id})`;
-      return generateFileEntry(
-        archiveDirectoryPath,
-        generateDefaultAttributes(fs.constants.S_IFDIR),
-      );
-    });
+    return archives.map((archive: Archive) => generateFileEntry(
+      `${archive.name} (${archive.id})`,
+      generateDefaultAttributes(fs.constants.S_IFDIR),
+    ));
   }
 
   private async loadArchiveFoldersFileEntries(archivePath: string): Promise<FileEntry[]> {
     const archiveId = getArchiveIdFromPath(archivePath);
     const folders = await this.loadArchiveFolders(archiveId);
     return folders.map((archiveFolder) => generateFileEntry(
-      `${archivePath}/${archiveFolder.name}`,
+      `${archiveFolder.name}`,
       generateDefaultAttributes(fs.constants.S_IFDIR),
     ));
   }
@@ -206,16 +203,17 @@ export class PermanentFileSystem {
     const childFolder = await this.loadFolder(requestedPath);
     const folderFileEntities = childFolder.folders.map(
       (folder) => generateFileEntry(
-        `${requestedPath}/${folder.name}`,
+        `${folder.name}`,
         generateDefaultAttributes(fs.constants.S_IFDIR),
       ),
     );
     const recordFileEntities = await Promise.all(childFolder.records.map(
       async (record) => {
-        const filePath = `${requestedPath}/${record.fileName}`;
+        const fileName = `${record.fileName}`;
+        const filePath = `${requestedPath}/${fileName}`;
         const file = await this.loadFile(filePath);
         return generateFileEntry(
-          filePath,
+          fileName,
           generateAttributesForFile(file),
         );
       },
