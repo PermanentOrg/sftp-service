@@ -114,7 +114,7 @@ export class SftpSessionHandler {
 
     fetch(file.downloadUrl, {
       headers: {
-        Range: `bytes=${offset}-${offset + length}`,
+        Range: `bytes=${offset}-${offset + length - 1}`,
       },
     })
       .then(async (response) => {
@@ -235,8 +235,8 @@ export class SftpSessionHandler {
    */
   public readDirHandler = (reqId: number, handle: Buffer): void => {
     logger.verbose('SFTP read directory request (SSH_FXP_READDIR)');
-    logger.debug('Request:', { reqId, handle });
     const names = this.openDirectories.get(handle.toString()) ?? [];
+    logger.debug('Request:', { reqId, handle, names });
     if (names.length !== 0) {
       logger.debug('Response:', { reqId, names });
       this.openDirectories.set(handle.toString(), []);
@@ -254,9 +254,16 @@ export class SftpSessionHandler {
    * Also: Retrieving File Attributes
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.8
    */
-  // eslint-disable-next-line class-methods-use-this
-  public lstatHandler = (): void => {
+  public lstatHandler = (reqId: number, handle: Buffer): void => {
     logger.verbose('SFTP read file statistics without following symbolic links request (SSH_FXP_LSTAT)');
+    logger.debug('Request:', { reqId, handle });
+    const fileType = getFileType(handle.toString());
+    const attrs = generateDefaultAttributes(fileType);
+    logger.debug('Response:', { reqId, attrs });
+    this.sftpConnection.attrs(
+      reqId,
+      attrs,
+    );
   };
 
   /**

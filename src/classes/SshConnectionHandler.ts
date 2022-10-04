@@ -1,4 +1,5 @@
 import { logger } from '../logger';
+import { AuthenticationSession } from './AuthenticationSession';
 import { SshSessionHandler } from './SshSessionHandler';
 import type {
   AuthContext,
@@ -6,7 +7,7 @@ import type {
 } from 'ssh2';
 
 export class SshConnectionHandler {
-  private authToken = '';
+  private authSession?: AuthenticationSession;
 
   /**
    * See: Authentication Requests
@@ -18,17 +19,16 @@ export class SshConnectionHandler {
       method: authContext.method,
     });
     switch (authContext.method) {
-      case 'password':
-        authContext.accept();
-        // THIS IS COMPLETELY TEMPORARY FOR THE DEMO
-        // This bearer token is to a local test account so it's not actually a secret in any way
-        // ^ I mention this in case / for when I commit it to my demo branch on github.
-        this.authToken = `${process.env.LOCAL_TEMPORARY_AUTH_TOKEN ?? ''}`;
+      case 'keyboard-interactive': {
+        const authenticationSession = new AuthenticationSession(authContext);
+        authenticationSession.invokeAuthenticationFlow();
+        this.authSession = authenticationSession;
         return;
+      }
       case 'none':
       default:
         authContext.reject(
-          ['password'],
+          ['keyboard-interactive'],
         );
     }
   };
@@ -105,7 +105,7 @@ export class SshConnectionHandler {
   ): void => {
     logger.verbose('SSH request for a new session');
     const session = accept();
-    const sessionHandler = new SshSessionHandler(this.authToken);
+    const sessionHandler = new SshSessionHandler(this.authSession?.authToken ?? '');
     session.on('sftp', sessionHandler.onSftp);
     session.on('close', sessionHandler.onClose);
   };
