@@ -1,0 +1,32 @@
+name: upload
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - run: npm install
+      - run: npm run build
+      - name: Create a tar archive
+        run: |
+          cd ..
+          tar --exclude=.git* --exclude=node_modules/* --exclude=src/* -czvf sftp-service.tar.gz sftp-service
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+      - name: Copy package to S3
+        run: |
+          aws s3 cp ../sftp-service.tar.gz s3://permanent-repos/dev/sftp-service.tar.gz
+          aws s3 cp ../sftp-service.tar.gz s3://permanent-repos/staging/sftp-service.tar.gz
+          aws s3 cp ../sftp-service.tar.gz s3://permanent-repos/prod/sftp-service.tar.gz
