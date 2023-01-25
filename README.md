@@ -35,6 +35,50 @@ or, if you want to start the development environment
 npm run dev
 ```
 
+## Running [rclone](https://rclone.org) against Permanent.org instances
+
+- Install rclone, using [official install guide](https://rclone.org/install/)
+
+### Setting up an rclone remote
+
+- `rclone config`
+- Select option n for new and enter a remote name such as `permanent-prod` or `permanent-dev`.
+- Set `SFTP` as storage protocol by by selecting from displayed menu, after name prompt.
+- Set an ssh host, the host format is `sftp.${environment}.permanent.org` where `${environment}` is either `dev` or `staging` for the dev and staging environments respectively.
+    - For example `sftp.dev.permanent.org` (for dev).
+    - Prod has ssh host simply as `sftp.permanent.org` (without specifying environment).
+- Set your permanent username once prompted for example `rclone.joy@example.com`.
+- Set `SFTP` port as `22` which is the default.
+- Set `ssh` password by selecting the "Yes, type in my own password" (`y`) option, when the password options show up.
+- Set your remote password which is the password to your permanent account (in this case `rclone.joy@example.com`).
+- Set every other option from this point to the end, with its default value by simply pressing enter.
+
+At the end of the configuration you should have something like this:
+
+```
+Configuration complete.
+Options:
+- type: sftp
+- host: sftp.permanent.org
+- user: rclone.joy@example.com
+- pass: *** ENCRYPTED ***
+Keep this "permanent-prod" remote?
+y) Yes this is OK (default)
+e) Edit this remote
+d) Delete this remote
+```
+If everything looks okay, you want to select `y` (yes) to complete the remote setup. After this, you should be able to quit the configuration interface.
+
+### Running rclone clone against remote
+
+Run the following command sync down from the newly set remote:
+
+    - `rclone copy permanent-prod:/ ~/permanent-sync-folder` (where `permanent-sync-folder` is any local destination for the syncing)
+
+### Troubleshooting rclone
+
+- MFA Support : `rclone` does not support MFA. Hence, you should disable MFA in your permanent account if you have it enabled otherwise rclone would fail.`
+
 ## Contributing
 
 Contributors to this repository agree to adhere to the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). To report violations, get in touch with engineers@permanent.org.
