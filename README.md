@@ -50,7 +50,7 @@ Run **`rclone config`** and answer the questions it asks:
 
 - At the **`host>`** prompt, set the host to **`sftp.permanent.org`**.
 
-  If you want to run rclone against the dev or staging environment, then use `sftp.dev.permanent.org` or `sftp.staging.permanent.org` instead.  (You can also say `sftp.prod.permanent.org`, but it means the same thing as just `sftp.permanent.org`.)
+  If you want to run rclone against the dev or staging environment, then use `sftp.dev.permanent.org` or `sftp.staging.permanent.org` instead.
 
 - At the **`user>`** prompt, enter your Permanent username, which is the email address associated with your account.
 
