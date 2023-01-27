@@ -37,43 +37,82 @@ npm run dev
 
 ## Running [rclone](https://rclone.org) against Permanent.org instances
 
-- Install rclone, using [official install guide](https://rclone.org/install/)
+First install rclone.  See the [official installation
+guide](https://rclone.org/install/) for more information.
 
-### Setting up an rclone remote
+### Set up an rclone remote
 
-- `rclone config`
-- Select option n for new and enter a remote name such as `permanent-prod` or `permanent-dev`.
-- Set `SFTP` as storage protocol by by selecting from displayed menu, after name prompt.
-- Set an ssh host, the host format is `sftp.${environment}.permanent.org` where `${environment}` is either `dev` or `staging` for the dev and staging environments respectively.
-    - For example `sftp.dev.permanent.org` (for dev).
-    - Prod has ssh host simply as `sftp.permanent.org` (without specifying environment).
-- Set your permanent username once prompted for example `rclone.joy@example.com`.
-- Set `SFTP` port as `22` which is the default.
-- Set `ssh` password by selecting the "Yes, type in my own password" (`y`) option, when the password options show up.
-- Set your remote password which is the password to your permanent account (in this case `rclone.joy@example.com`).
-- Set every other option from this point to the end, with its default value by simply pressing enter.
+Run **`rclone config`** and answer the questions it asks:
 
-At the end of the configuration you should have something like this:
+- Select option **`n`** (for "new") and make a remote name (e.g., "permanent").
+
+- At the **`Storage>`** prompt, set the storage protocol to SFTP, either by typing "sftp" at the prompt or by selecting the corresponding number from the displayed menu (the numbered entry may say "SSH/SFTP").
+
+- At the **`host>`** prompt, set the host to **`sftp.permanent.org`**.
+
+  If you want to run rclone against the dev or staging environment, then use `sftp.dev.permanent.org` or `sftp.staging.permanent.org` instead.
+
+- At the **`user>`** prompt, enter your Permanent username, which is the email address associated with your account.
+
+- At the **`port>`** prompt, enter **`22`** (or just hit Enter, since 22 is the default).
+
+  You may recognize `22` as the standard SSH port number.  We run the SFTP storage protocol over SSH, for a secure connection.
+
+- At the **`y/g/n>`** prompt for how you'll enter SSH password, choose **`y`** for "Yes, type in my own password".
+
+  You will then be prompted to enter the password for your Permanent account.  
+
+  Note that this password will be stored in a local file, and it will be in lightly obscured form but _not_ securely encrypted.  If you'd rather not have the password stored locally that way, there are two solutions available:
+
+    - Set the environment variable `RCLONE_CONFIG_PASS` to some passphrase, which will be used to symmetrically encrypt/decrypt your Permanent password in your local rclone configuration file.
+
+       *-or-*
+
+    - Later on, when asked whether to *"Edit advanced config?"*, answer **`y`** instead of **`n`**.  Then when you get to the `ask_password>` option, enter "true" (and for all the other prompts in the advanced config section, just hit Enter to accept the default).
+
+- For the remaining options, just choose the default by pressing Enter:
+    - `key_pem>`
+    - `key_file>`
+    - `y/g/n>` for option `key_file_pass` -- just hit Enter for default `n`
+    - `pubkey_file>` 
+    - `key_use_agent>`
+    - `use_insecure_cipher>` 
+    - `disable_hashcheck>`
+    - `y/n>` for option `Edit advanced config?` -- just hit Enter for `n` (unless you're doing the `ask_password` option as described earlier)
+
+- At the **`y/e/d>`** prompt, when rclone shows you your completed configuration, hit Enter (same as `y`) to keep the new configuration.
+
+- At the **`e/n/d/r/c/s/q>`** prompt at the very end, hit **`q`** to quit out of configuration.
+
+The configuration for your Permanent remote is now stored, most likely in your `rclone.conf` file.  The location of this file can differ from system to system (on some Linux-based systems it's in `~/.config/rclone/rclone.conf`), but rclone knows where to find it.
+
+If you chose to have your password stored in the config file, then your `rclone.conf` now contains a block like this:
 
 ```
-Configuration complete.
-Options:
-- type: sftp
-- host: sftp.permanent.org
-- user: rclone.joy@example.com
-- pass: *** ENCRYPTED ***
-Keep this "permanent-prod" remote?
-y) Yes this is OK (default)
-e) Edit this remote
-d) Delete this remote
+[permanent]
+type = sftp
+host = sftp.permanent.org
+user = your@email.address
+pass = 5PfZmfI1qOPUiRvWgJJuZbztXq9g0nUpFxzVEPLB3fV-q86iZR7FtXQ--X6hUe559dM
 ```
-If everything looks okay, you want to select `y` (yes) to complete the remote setup. After this, you should be able to quit the configuration interface.
 
-### Running rclone clone against remote
+Or you chose to have rclone ask you for your password on each invocation, then your `rclone.conf` instead contains a block like this:
 
-Run the following command sync down from the newly set remote:
+```
+[permanent]
+type = sftp
+host = sftp.permanent.org
+user = your@email.address
+ask_password = true
+```
 
-    - `rclone copy permanent-prod:/ ~/permanent-sync-folder` (where `permanent-sync-folder` is any local destination for the syncing)
+In the latter case, you could of course just set up the `rclone.conf` file manually yourself, and skip the `rclone config` questionnaire entirely.
+
+### Run `rclone copy` to fetch your data from Permanent.
+
+```
+rclone copy permanent:/ ./my-permanent-data
+```
 
 ### Troubleshooting rclone
 
