@@ -5,7 +5,6 @@ import ssh2 from 'ssh2';
 import { logger } from '../logger';
 import {
   generateFileEntry,
-  getFileType,
   generateDefaultAttributes,
   generateAttributesForFile,
 } from '../utils';
@@ -257,13 +256,19 @@ export class SftpSessionHandler {
   public lstatHandler = (reqId: number, handle: Buffer): void => {
     logger.verbose('SFTP read file statistics without following symbolic links request (SSH_FXP_LSTAT)');
     logger.debug('Request:', { reqId, handle });
-    const fileType = getFileType(handle.toString());
-    const attrs = generateDefaultAttributes(fileType);
-    logger.debug('Response:', { reqId, attrs });
-    this.sftpConnection.attrs(
-      reqId,
-      attrs,
-    );
+    this.permanentFileSystem.getItemType(handle.toString())
+      .then((fileType) => {
+        const attrs = generateDefaultAttributes(fileType);
+        logger.debug('Response:', { reqId, attrs });
+        this.sftpConnection.attrs(
+          reqId,
+          attrs,
+        );
+      })
+      .catch(() => {
+        logger.debug('Response: Status (EOF)', { reqId }, SFTP_STATUS_CODE.NO_SUCH_FILE);
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      });
   };
 
   /**
@@ -275,13 +280,19 @@ export class SftpSessionHandler {
   public statHandler = (reqId: number, handle: Buffer): void => {
     logger.verbose('SFTP read file statistics following symbolic links request (SSH_FXP_STAT)');
     logger.debug('Request:', { reqId, handle });
-    const fileType = getFileType(handle.toString());
-    const attrs = generateDefaultAttributes(fileType);
-    logger.debug('Response:', { reqId, attrs });
-    this.sftpConnection.attrs(
-      reqId,
-      attrs,
-    );
+    this.permanentFileSystem.getItemType(handle.toString())
+      .then((fileType) => {
+        const attrs = generateDefaultAttributes(fileType);
+        logger.debug('Response:', { reqId, attrs });
+        this.sftpConnection.attrs(
+          reqId,
+          attrs,
+        );
+      })
+      .catch(() => {
+        logger.debug('Response: Status (EOF)', { reqId }, SFTP_STATUS_CODE.NO_SUCH_FILE);
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      });
   };
 
   /**
@@ -316,14 +327,20 @@ export class SftpSessionHandler {
     logger.verbose('SFTP canonicalize path request (SSH_FXP_REALPATH)');
     logger.debug('Request:', { reqId, relativePath });
     const resolvedPath = path.resolve('/', relativePath);
-    const fileType = getFileType(resolvedPath);
-    const fileEntry = generateFileEntry(
-      resolvedPath,
-      generateDefaultAttributes(fileType),
-    );
-    const names = [fileEntry];
-    logger.debug('Response:', { reqId, names });
-    this.sftpConnection.name(reqId, names);
+    this.permanentFileSystem.getItemType(resolvedPath)
+      .then((fileType) => {
+        const fileEntry = generateFileEntry(
+          resolvedPath,
+          generateDefaultAttributes(fileType),
+        );
+        const names = [fileEntry];
+        logger.debug('Response:', { reqId, names });
+        this.sftpConnection.name(reqId, names);
+      })
+      .catch(() => {
+        logger.debug('Response: Status (EOF)', { reqId }, SFTP_STATUS_CODE.NO_SUCH_FILE);
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      });
   };
 
   /**
