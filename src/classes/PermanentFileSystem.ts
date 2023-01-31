@@ -29,11 +29,19 @@ const isArchiveCataloguePath = (requestedPath: string): boolean => (
   requestedPath === '/archives'
 );
 
+// e.g. '/archives/Foo (1)'
 const isArchivePath = (requestedPath: string): boolean => (
   requestedPath.startsWith('/archives')
   && requestedPath.split('/').length === 3
 );
 
+// e.g. '/archives/Foo (1)/My Files'
+const isArchiveChildFolderPath = (requestedPath: string): boolean => (
+  requestedPath.startsWith('/archives')
+  && requestedPath.split('/').length === 4
+);
+
+// e.g. '/archives/Foo (1)/**'
 const isItemPath = (requestedPath: string): boolean => (
   requestedPath.startsWith('/archives')
   && requestedPath.split('/').length > 3
@@ -70,6 +78,32 @@ export class PermanentFileSystem {
         generateDefaultAttributes(fs.constants.S_IFDIR),
       ),
     ];
+  }
+
+  public async getItemType(itemPath: string): Promise<number> {
+    if (isRootPath(itemPath)
+     || isArchiveCataloguePath(itemPath)
+     || isArchivePath(itemPath)
+     || isArchiveChildFolderPath(itemPath)
+    ) {
+      return fs.constants.S_IFDIR;
+    }
+    const parentPath = path.dirname(itemPath);
+    const childName = path.basename(itemPath);
+    const parentFolder = await this.loadFolder(parentPath);
+    const targetIsRecord = parentFolder.records.some(
+      (record) => record.fileName === childName,
+    );
+    if (targetIsRecord) {
+      return fs.constants.S_IFREG;
+    }
+    const targetIsFolder = parentFolder.folders.some(
+      (folder) => folder.name === childName,
+    );
+    if (targetIsFolder) {
+      return fs.constants.S_IFDIR;
+    }
+    throw new Error('Item was not found');
   }
 
   public async loadDirectory(requestedPath: string): Promise<FileEntry[]> {
@@ -159,6 +193,10 @@ export class PermanentFileSystem {
     const cachedFolder = this.folderCache.get(requestedPath);
     if (cachedFolder) {
       return cachedFolder;
+    }
+
+    if (!isItemPath(requestedPath)) {
+      throw new Error('The requested path cannot be a folder');
     }
 
     const parentPath = path.dirname(requestedPath);
