@@ -11,6 +11,7 @@ import {
   generateFileEntry,
   generateFileEntriesForRecords,
   generateFileEntriesForFolders,
+  getArchiveIdFromPath,
   getOriginalFileForRecord,
 } from '../utils';
 import type {
@@ -47,15 +48,6 @@ const isItemPath = (requestedPath: string): boolean => (
   requestedPath.startsWith('/archives')
   && requestedPath.split('/').length > 3
 );
-
-const getArchiveIdFromPath = (archivePath: string): number => {
-  const archiveIdPattern = /^\/archives\/.* \((\d+)\)(\/.*)?$/;
-  const matches = archiveIdPattern.exec(archivePath);
-  if (matches === null) {
-    return -1;
-  }
-  return parseInt(matches[1], 10);
-};
 
 export class PermanentFileSystem {
   private readonly folderCache = new Map<string, Folder>();
