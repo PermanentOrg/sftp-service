@@ -8,13 +8,12 @@ export const generateFileEntriesForRecords = (
   records: Record[],
 ): FileEntry[] => records.reduce<FileEntry[]>(
   (fileEntries, record) => {
-    const { fileName } = record;
     try {
       const file = getOriginalFileForRecord(record);
       return [
         ...fileEntries,
         generateFileEntry(
-          fileName,
+          record.fileSystemCompatibleName,
           generateAttributesForFile(file),
         ),
       ];

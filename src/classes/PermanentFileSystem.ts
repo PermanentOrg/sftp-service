@@ -93,13 +93,13 @@ export class PermanentFileSystem {
     const childName = path.basename(itemPath);
     const parentFolder = await this.loadFolder(parentPath);
     const targetIsRecord = parentFolder.records.some(
-      (record) => record.fileName === childName,
+      (record) => record.fileSystemCompatibleName === childName,
     );
     if (targetIsRecord) {
       return fs.constants.S_IFREG;
     }
     const targetIsFolder = parentFolder.folders.some(
-      (folder) => folder.name === childName,
+      (folder) => folder.fileSystemCompatibleName === childName,
     );
     if (targetIsFolder) {
       return fs.constants.S_IFDIR;
@@ -141,7 +141,7 @@ export class PermanentFileSystem {
     const parentFolder = await this.loadFolder(parentPath);
     const archiveId = getArchiveIdFromPath(parentPath);
     const targetRecord = parentFolder.records.find(
-      (record) => record.fileName === childName,
+      (record) => record.fileSystemCompatibleName === childName,
     );
     if (!targetRecord) {
       throw new Error('This file does not exist');
@@ -201,7 +201,7 @@ export class PermanentFileSystem {
       ? await this.loadArchiveFolders(archiveId)
       : (await this.loadFolder(parentPath)).folders;
     const targetFolder = childFolders.find(
-      (folder) => folder.name === childName,
+      (folder) => folder.fileSystemCompatibleName === childName,
     );
     if (!targetFolder) {
       throw new Error();
@@ -227,7 +227,7 @@ export class PermanentFileSystem {
     const archiveId = getArchiveIdFromPath(archivePath);
     const folders = await this.loadArchiveFolders(archiveId);
     return folders.map((archiveFolder) => generateFileEntry(
-      `${archiveFolder.name}`,
+      `${archiveFolder.fileSystemCompatibleName}`,
       generateDefaultAttributes(fs.constants.S_IFDIR),
     ));
   }
