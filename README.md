@@ -54,11 +54,11 @@ Run **`rclone config`** and answer the questions it asks:
 
 - At the **`user>`** prompt, enter your Permanent username, which is the email address associated with your account.
 
+  You might see "SSH username" above the prompt and be tempted to enter your usual SSH username here (if you use SSH regularly).  But in this context, the "SSH" just refers to the fact that we run the SFTP storage protocol over SSH for a secure connection, so the relevant username is the one for your Permanent account.
+
 - At the **`port>`** prompt, enter **`22`** (or just hit Enter, since 22 is the default).
 
-  You may recognize `22` as the standard SSH port number.  We run the SFTP storage protocol over SSH, for a secure connection.
-
-- At the **`y/g/n>`** prompt for how you'll enter SSH password, choose **`y`** for "Yes, type in my own password".
+- At the **`y/g/n>`** prompt for how you'll enter your Permanent password, choose **`y`** for "Yes, type in my own password".
 
   You will then be prompted to enter the password for your Permanent account.  
 
