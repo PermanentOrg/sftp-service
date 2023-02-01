@@ -3,5 +3,6 @@ export * from './generateDefaultAttributes';
 export * from './generateFileEntriesForFolders';
 export * from './generateFileEntriesForRecords';
 export * from './generateFileEntry';
+export * from './getArchiveIdFromPath';
 export * from './getLongname';
 export * from './getOriginalFileForRecord';
