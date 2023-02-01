@@ -1,0 +1,14 @@
+import fs from 'fs';
+import { generateFileEntry } from './generateFileEntry';
+import { generateDefaultAttributes } from './generateDefaultAttributes';
+import type { Folder } from '@permanentorg/sdk';
+import type { FileEntry } from 'ssh2';
+
+export const generateFileEntriesForFolders = (
+  folders: Folder[],
+): FileEntry[] => folders.map(
+  (folder) => generateFileEntry(
+    `${folder.name}`,
+    generateDefaultAttributes(fs.constants.S_IFDIR),
+  ),
+);
