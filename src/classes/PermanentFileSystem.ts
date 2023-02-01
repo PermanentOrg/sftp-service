@@ -5,13 +5,14 @@ import {
   getArchiveFolders,
   getFolder,
   getRecord,
-  DerivativeType,
 } from '@permanentorg/sdk';
 import {
   generateDefaultAttributes,
   generateFileEntry,
+  generateFileEntriesForRecords,
+  generateFileEntriesForFolders,
+  getOriginalFileForRecord,
 } from '../utils';
-import { generateAttributesForFile } from '../utils/generateAttributesForFile';
 import type {
   Archive,
   ClientConfiguration,
@@ -127,13 +128,7 @@ export class PermanentFileSystem {
       throw new Error('Invalid file path');
     }
     const record = await this.loadRecord(requestedPath);
-    const originalFile = record.files.find(
-      (file) => file.derivativeType === DerivativeType.Original,
-    );
-    if (!originalFile) {
-      throw Error('Permanent does not have an original file for this record');
-    }
-    return originalFile;
+    return getOriginalFileForRecord(record);
   }
 
   private async loadRecord(requestedPath: string): Promise<Record> {
@@ -239,23 +234,8 @@ export class PermanentFileSystem {
 
   private async loadFolderFileEntries(requestedPath: string): Promise<FileEntry[]> {
     const childFolder = await this.loadFolder(requestedPath);
-    const folderFileEntities = childFolder.folders.map(
-      (folder) => generateFileEntry(
-        `${folder.name}`,
-        generateDefaultAttributes(fs.constants.S_IFDIR),
-      ),
-    );
-    const recordFileEntities = await Promise.all(childFolder.records.map(
-      async (record) => {
-        const fileName = `${record.fileName}`;
-        const filePath = `${requestedPath}/${fileName}`;
-        const file = await this.loadFile(filePath);
-        return generateFileEntry(
-          fileName,
-          generateAttributesForFile(file),
-        );
-      },
-    ));
+    const folderFileEntities = generateFileEntriesForFolders(childFolder.folders);
+    const recordFileEntities = generateFileEntriesForRecords(childFolder.records);
     return [
       ...folderFileEntities,
       ...recordFileEntities,
