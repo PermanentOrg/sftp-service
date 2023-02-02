@@ -7,6 +7,7 @@ import {
   getRecord,
 } from '@permanentorg/sdk';
 import {
+  deduplicateFileEntries,
   generateAttributesForFile,
   generateAttributesForFolder,
   generateDefaultAttributes,
@@ -293,9 +294,9 @@ export class PermanentFileSystem {
         requestedPath,
       ),
     );
-    return [
+    return deduplicateFileEntries([
       ...folderFileEntities,
       ...recordFileEntities,
-    ];
+    ]);
   }
 }
