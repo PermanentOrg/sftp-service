@@ -1,4 +1,5 @@
 export * from './generateAttributesForFile';
+export * from './generateAttributesForFolder';
 export * from './generateDefaultAttributes';
 export * from './generateFileEntriesForFolders';
 export * from './generateFileEntriesForRecords';

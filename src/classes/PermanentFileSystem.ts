@@ -7,6 +7,8 @@ import {
   getRecord,
 } from '@permanentorg/sdk';
 import {
+  generateAttributesForFile,
+  generateAttributesForFolder,
   generateDefaultAttributes,
   generateFileEntry,
   generateFileEntriesForRecords,
@@ -21,7 +23,10 @@ import type {
   File,
   Record,
 } from '@permanentorg/sdk';
-import type { FileEntry } from 'ssh2';
+import type {
+  Attributes,
+  FileEntry,
+} from 'ssh2';
 
 const isRootPath = (requestedPath: string): boolean => (
   requestedPath === '/'
@@ -97,6 +102,27 @@ export class PermanentFileSystem {
       return fs.constants.S_IFDIR;
     }
     throw new Error('Item was not found');
+  }
+
+  public async getItemAttributes(itemPath: string): Promise<Attributes> {
+    if (isRootPath(itemPath)
+     || isArchiveCataloguePath(itemPath)
+     || isArchivePath(itemPath)) {
+      return generateDefaultAttributes(fs.constants.S_IFDIR);
+    }
+    const fileType = await this.getItemType(itemPath);
+    switch (fileType) {
+      case fs.constants.S_IFREG: {
+        const file = await this.loadFile(itemPath);
+        return generateAttributesForFile(file);
+      }
+      case fs.constants.S_IFDIR: {
+        const folder = await this.loadFolder(itemPath);
+        return generateAttributesForFolder(folder);
+      }
+      default:
+        throw new Error('The specified path is neither a file nor a directory.');
+    }
   }
 
   public async loadDirectory(requestedPath: string): Promise<FileEntry[]> {
