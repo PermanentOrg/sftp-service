@@ -3,11 +3,7 @@ import fetch from 'node-fetch';
 import { v4 as uuidv4 } from 'uuid';
 import ssh2 from 'ssh2';
 import { logger } from '../logger';
-import {
-  generateFileEntry,
-  generateDefaultAttributes,
-  generateAttributesForFile,
-} from '../utils';
+import { generateFileEntry } from '../utils';
 import { PermanentFileSystem } from './PermanentFileSystem';
 import type {
   Attributes,
@@ -156,20 +152,11 @@ export class SftpSessionHandler {
    */
   public fstatHandler = (
     reqId: number,
-    handle: Buffer,
+    itemPath: Buffer,
   ): void => {
     logger.verbose('SFTP read open file statistics request (SSH_FXP_FSTAT)');
-    logger.debug('Request:', { reqId, handle });
-    const file = this.openFiles.get(handle.toString());
-    if (!file) {
-      logger.info('There is no open file associated with this handle', { reqId, handle });
-      logger.debug('Response: Status (FAILURE)', { reqId }, SFTP_STATUS_CODE.FAILURE);
-      this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
-      return;
-    }
-    const attrs = generateAttributesForFile(file);
-    logger.debug('Response: Attributes', { reqId, attrs });
-    this.sftpConnection.attrs(reqId, attrs);
+    logger.debug('Request:', { reqId, itemPath });
+    this.genericStatHandler(reqId, itemPath);
   };
 
   /**
@@ -253,22 +240,13 @@ export class SftpSessionHandler {
    * Also: Retrieving File Attributes
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.8
    */
-  public lstatHandler = (reqId: number, handle: Buffer): void => {
+  public lstatHandler = (
+    reqId: number,
+    itemPath: Buffer,
+  ): void => {
     logger.verbose('SFTP read file statistics without following symbolic links request (SSH_FXP_LSTAT)');
-    logger.debug('Request:', { reqId, handle });
-    this.permanentFileSystem.getItemType(handle.toString())
-      .then((fileType) => {
-        const attrs = generateDefaultAttributes(fileType);
-        logger.debug('Response:', { reqId, attrs });
-        this.sftpConnection.attrs(
-          reqId,
-          attrs,
-        );
-      })
-      .catch(() => {
-        logger.debug('Response: Status (EOF)', { reqId }, SFTP_STATUS_CODE.NO_SUCH_FILE);
-        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
-      });
+    logger.debug('Request:', { reqId, itemPath });
+    this.genericStatHandler(reqId, itemPath);
   };
 
   /**
@@ -277,22 +255,13 @@ export class SftpSessionHandler {
    * Also: Retrieving File Attributes
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.8
    */
-  public statHandler = (reqId: number, handle: Buffer): void => {
+  public statHandler = (
+    reqId: number,
+    itemPath: Buffer,
+  ): void => {
     logger.verbose('SFTP read file statistics following symbolic links request (SSH_FXP_STAT)');
-    logger.debug('Request:', { reqId, handle });
-    this.permanentFileSystem.getItemType(handle.toString())
-      .then((fileType) => {
-        const attrs = generateDefaultAttributes(fileType);
-        logger.debug('Response:', { reqId, attrs });
-        this.sftpConnection.attrs(
-          reqId,
-          attrs,
-        );
-      })
-      .catch(() => {
-        logger.debug('Response: Status (EOF)', { reqId }, SFTP_STATUS_CODE.NO_SUCH_FILE);
-        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
-      });
+    logger.debug('Request:', { reqId, itemPath });
+    this.genericStatHandler(reqId, itemPath);
   };
 
   /**
@@ -327,11 +296,11 @@ export class SftpSessionHandler {
     logger.verbose('SFTP canonicalize path request (SSH_FXP_REALPATH)');
     logger.debug('Request:', { reqId, relativePath });
     const resolvedPath = path.resolve('/', relativePath);
-    this.permanentFileSystem.getItemType(resolvedPath)
-      .then((fileType) => {
+    this.permanentFileSystem.getItemAttributes(resolvedPath)
+      .then((attrs) => {
         const fileEntry = generateFileEntry(
           resolvedPath,
-          generateDefaultAttributes(fileType),
+          attrs,
         );
         const names = [fileEntry];
         logger.debug('Response:', { reqId, names });
@@ -396,5 +365,20 @@ export class SftpSessionHandler {
   // eslint-disable-next-line class-methods-use-this
   public symLinkHandler = (): void => {
     logger.verbose('SFTP create symlink request (SSH_FXP_SYMLINK)');
+  };
+
+  private readonly genericStatHandler = (reqId: number, itemPath: Buffer): void => {
+    this.permanentFileSystem.getItemAttributes(itemPath.toString())
+      .then((attrs) => {
+        logger.debug('Response:', { reqId, attrs });
+        this.sftpConnection.attrs(
+          reqId,
+          attrs,
+        );
+      })
+      .catch(() => {
+        logger.debug('Response: Status (NO_SUCH_FILE)', { reqId }, SFTP_STATUS_CODE.NO_SUCH_FILE);
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      });
   };
 }
