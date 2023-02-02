@@ -147,6 +147,40 @@ export class PermanentFileSystem {
     return populatedRecord;
   }
 
+  private async loadRecords(requestedPaths: string[]): Promise<Record[]> {
+    // See https://github.com/PermanentOrg/permanent-sdk/issues/73
+    // This implementation is intentionally sequential even though using
+    // requestedPaths.map would allow us to run all of the lookups in parallel.
+    // This decision is because I'm worried about crushing the Permanent server
+    // if a given folder had a huge number of records.
+    return requestedPaths.reduce<Promise<Record[]>>(
+      async (
+        recordsPromise,
+        requestedPath,
+      ) => {
+        const records = await recordsPromise;
+        return [
+          ...records,
+          await this.loadRecord(requestedPath),
+        ];
+      },
+      Promise.resolve([]),
+    );
+  }
+
+  private async loadDeepRecords(
+    records: Record[],
+    basePath: string,
+  ): Promise<Record[]> {
+    // TODO: this method exists due to a limitation of the permanent SDK, which
+    // currently only returns shallow records.  We want deep records.
+    // See https://github.com/PermanentOrg/permanent-sdk/issues/73
+    const recordPaths = records.map(
+      (record) => `${basePath}/${record.fileSystemCompatibleName}`,
+    );
+    return this.loadRecords(recordPaths);
+  }
+
   private getClientConfiguration(): ClientConfiguration {
     return {
       bearerToken: this.authToken,
@@ -227,7 +261,12 @@ export class PermanentFileSystem {
   private async loadFolderFileEntries(requestedPath: string): Promise<FileEntry[]> {
     const childFolder = await this.loadFolder(requestedPath);
     const folderFileEntities = generateFileEntriesForFolders(childFolder.folders);
-    const recordFileEntities = generateFileEntriesForRecords(childFolder.records);
+    const recordFileEntities = generateFileEntriesForRecords(
+      await this.loadDeepRecords(
+        childFolder.records,
+        requestedPath,
+      ),
+    );
     return [
       ...folderFileEntities,
       ...recordFileEntities,
