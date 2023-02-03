@@ -122,7 +122,7 @@ rclone copy permanent:/ ./my-permanent-data
 
 - Empty directories are not copied down when cloning from Permanent.
 
-  By default, rclone (over SFTP) does not copy empty directories down.  However, if you pass the `--create-empty-src-dirs` flag, empty directories will be included.  Note that the flag goes after the `copy` subcommand: `rclone copy --create-empty-src-dirs permanent:/ my-permanent-data`.
+  By default, rclone (over SFTP) does not copy empty directories down.  However, if you pass the `--create-empty-src-dirs` flag, empty directories will be included.  For example: `rclone copy --create-empty-src-dirs permanent:/ my-permanent-data`.
 
   See [rclone.org/commands/rclone_copy](https://rclone.org/commands/rclone_copy/) for other flags to the `copy` subcommand, and see [rclone.org/flags](https://rclone.org/flags/) for global flags available to every subcommand.  Two global flags that we have found useful are `-v` (verbose) and `-P` (show an in-place updating progress meter).
 
