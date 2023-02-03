@@ -116,7 +116,15 @@ rclone copy permanent:/ ./my-permanent-data
 
 ### Troubleshooting rclone
 
-- MFA Support : `rclone` does not support MFA. Hence, you should disable MFA in your permanent account if you have it enabled otherwise rclone would fail.`
+- MFA / 2FA authentication prevents rclone from working.
+
+  Because rclone does not support multi-factor authentication, you must turn off MFA in your Permanent account before transferring data with rclone.  (Note thaht there might be other SFTP clients that can handle MFA; this documentation is only about rclone.)
+
+- Empty directories are not copied down when cloning from Permanent.
+
+  By default, rclone (over SFTP) does not copy empty directories down.  However, if you pass the `--create-empty-src-dirs` flag, empty directories will be included.  Note that the flag goes after the `copy` subcommand: `rclone copy --create-empty-src-dirs permanent:/ my-permanent-data`.
+
+  See [rclone.org/commands/rclone_copy](https://rclone.org/commands/rclone_copy/) for other flags to the `copy` subcommand, and see [rclone.org/flags](https://rclone.org/flags/) for global flags available to every subcommand.  Two global flags that we have found useful are `-v` (verbose) and `-P` (show an in-place updating progress meter).
 
 ## Contributing
 
