@@ -47,20 +47,22 @@ export class SftpSessionHandler {
     flags: number,
     attrs: Attributes,
   ): void => {
-    logger.verbose('SFTP file open request (SSH_FXP_OPEN)');
-    logger.debug('Request:', {
-      reqId,
-      filename,
-      flags,
-      attrs,
-    });
+    logger.verbose(
+      'Request: SFTP file open (SSH_FXP_OPEN)',
+      {
+        reqId,
+        filename,
+        flags,
+        attrs,
+      },
+    );
     const handle = generateHandle();
     logger.debug(`Opening ${filename}: ${handle}`);
     this.permanentFileSystem.loadFile(filename)
       .then((file) => {
         logger.debug('Contents:', file);
         this.openFiles.set(handle, file);
-        logger.debug('Response:', { reqId, handle });
+        logger.verbose('Response: Handle', { reqId, handle });
         this.sftpConnection.handle(
           reqId,
           Buffer.from(handle),
@@ -69,7 +71,10 @@ export class SftpSessionHandler {
       .catch((reason: unknown) => {
         logger.warn('Failed to load file', { reqId, filename });
         logger.warn(reason);
-        logger.debug('Response: Status (FAILURE)', { reqId }, SFTP_STATUS_CODE.FAILURE);
+        logger.verbose('Response: Status (FAILURE)', {
+          reqId,
+          code: SFTP_STATUS_CODE.FAILURE,
+        });
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
       });
   };
@@ -86,23 +91,37 @@ export class SftpSessionHandler {
     offset: number,
     length: number,
   ): void => {
-    logger.verbose('SFTP read file request (SSH_FXP_READ)');
-    logger.debug('Request:', {
-      reqId,
-      handle,
-      offset,
-      length,
-    });
+    logger.verbose(
+      'Request: SFTP read file (SSH_FXP_READ)',
+      {
+        reqId,
+        handle,
+        offset,
+        length,
+      },
+    );
     const file = this.openFiles.get(handle.toString());
     if (!file) {
       logger.info('There is no open file associated with this handle', { reqId, handle });
-      logger.debug('Response: Status (FAILURE)', { reqId }, SFTP_STATUS_CODE.FAILURE);
+      logger.verbose(
+        'Response: Status (FAILURE)',
+        {
+          reqId,
+          code: SFTP_STATUS_CODE.FAILURE,
+        },
+      );
       this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
       return;
     }
 
     if (offset >= file.size) {
-      logger.debug('Response: Status (EOF)', { reqId }, SFTP_STATUS_CODE.EOF);
+      logger.verbose(
+        'Response: Status (EOF)',
+        {
+          reqId,
+          code: SFTP_STATUS_CODE.EOF,
+        },
+      );
       this.sftpConnection.status(reqId, SFTP_STATUS_CODE.EOF);
       return;
     }
@@ -114,7 +133,8 @@ export class SftpSessionHandler {
     })
       .then(async (response) => {
         const data = await response.buffer();
-        logger.debug('Response: Data', { reqId, data });
+        logger.verbose('Response: Data', { reqId });
+        logger.silly('Sent data...', { data });
         this.sftpConnection.data(
           reqId,
           data,
@@ -128,7 +148,13 @@ export class SftpSessionHandler {
           length,
         });
         logger.warn(reason);
-        logger.debug('Response: Status (FAILURE)', { reqId }, SFTP_STATUS_CODE.FAILURE);
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+          },
+        );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
       });
   };
@@ -141,7 +167,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public writeHandler = (): void => {
-    logger.verbose('SFTP write file request (SSH_FXP_WRITE)');
+    logger.error('UNIMPLEMENTED Request: SFTP write file (SSH_FXP_WRITE)');
   };
 
   /**
@@ -154,8 +180,10 @@ export class SftpSessionHandler {
     reqId: number,
     itemPath: Buffer,
   ): void => {
-    logger.verbose('SFTP read open file statistics request (SSH_FXP_FSTAT)');
-    logger.debug('Request:', { reqId, itemPath });
+    logger.verbose(
+      'Request: SFTP read open file statistics (SSH_FXP_FSTAT)',
+      { reqId, itemPath },
+    );
     this.genericStatHandler(reqId, itemPath);
   };
 
@@ -167,7 +195,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public fsetStatHandler = (): void => {
-    logger.verbose('SFTP write open file statistics request (SSH_FXP_FSETSTAT)');
+    logger.error('UNIMPLEMENTED Request: SFTP write open file statistics (SSH_FXP_FSETSTAT)');
   };
 
   /**
@@ -177,10 +205,18 @@ export class SftpSessionHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.3
    */
   public closeHandler = (reqId: number, handle: Buffer): void => {
-    logger.verbose('SFTP close file request (SSH_FXP_CLOSE)');
-    logger.debug('Request:', { reqId, handle });
+    logger.verbose(
+      'Request: SFTP close file (SSH_FXP_CLOSE)',
+      { reqId, handle },
+    );
     this.openFiles.delete(handle.toString());
-    logger.debug('Response: Status (OK)', { reqId }, SFTP_STATUS_CODE.OK);
+    logger.verbose(
+      'Response: Status (OK)',
+      {
+        reqId,
+        code: SFTP_STATUS_CODE.OK,
+      },
+    );
     this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
   };
 
@@ -191,15 +227,17 @@ export class SftpSessionHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.7
    */
   public openDirHandler = (reqId: number, dirPath: string): void => {
-    logger.verbose('SFTP open directory request (SSH_FXP_OPENDIR)');
-    logger.debug('Request:', { reqId, dirPath });
+    logger.verbose(
+      'SFTP open directory request (SSH_FXP_OPENDIR)',
+      { reqId, dirPath },
+    );
     const handle = generateHandle();
     logger.debug(`Opening ${dirPath}:`, handle);
     this.permanentFileSystem.loadDirectory(dirPath)
       .then((fileEntries) => {
         logger.debug('Contents:', fileEntries);
         this.openDirectories.set(handle, fileEntries);
-        logger.debug('Response:', { reqId, handle });
+        logger.verbose('Response: Handle', { reqId, handle });
         this.sftpConnection.handle(
           reqId,
           Buffer.from(handle),
@@ -208,7 +246,13 @@ export class SftpSessionHandler {
       .catch((reason: unknown) => {
         logger.warn('Failed to load path', { reqId, dirPath });
         logger.warn(reason);
-        logger.debug('Response: Status (FAILURE)', { reqId }, SFTP_STATUS_CODE.FAILURE);
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+          },
+        );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
       });
   };
@@ -220,15 +264,23 @@ export class SftpSessionHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.7
    */
   public readDirHandler = (reqId: number, handle: Buffer): void => {
-    logger.verbose('SFTP read directory request (SSH_FXP_READDIR)');
+    logger.verbose(
+      'Request: SFTP read directory (SSH_FXP_READDIR)',
+      { reqId, handle },
+    );
     const names = this.openDirectories.get(handle.toString()) ?? [];
-    logger.debug('Request:', { reqId, handle, names });
     if (names.length !== 0) {
-      logger.debug('Response:', { reqId, names });
+      logger.verbose('Response: Name', { reqId, names });
       this.openDirectories.set(handle.toString(), []);
       this.sftpConnection.name(reqId, names);
     } else {
-      logger.debug('Response: Status (EOF)', { reqId }, SFTP_STATUS_CODE.EOF);
+      logger.verbose(
+        'Response: Status (EOF)',
+        {
+          reqId,
+          code: SFTP_STATUS_CODE.EOF,
+        },
+      );
       this.openDirectories.delete(handle.toString());
       this.sftpConnection.status(reqId, SFTP_STATUS_CODE.EOF);
     }
@@ -244,8 +296,10 @@ export class SftpSessionHandler {
     reqId: number,
     itemPath: Buffer,
   ): void => {
-    logger.verbose('SFTP read file statistics without following symbolic links request (SSH_FXP_LSTAT)');
-    logger.debug('Request:', { reqId, itemPath });
+    logger.verbose(
+      'Request: SFTP read file statistics without following symbolic links (SSH_FXP_LSTAT)',
+      { reqId, itemPath },
+    );
     this.genericStatHandler(reqId, itemPath);
   };
 
@@ -259,8 +313,10 @@ export class SftpSessionHandler {
     reqId: number,
     itemPath: Buffer,
   ): void => {
-    logger.verbose('SFTP read file statistics following symbolic links request (SSH_FXP_STAT)');
-    logger.debug('Request:', { reqId, itemPath });
+    logger.verbose(
+      'Request: SFTP read file statistics following symbolic links (SSH_FXP_STAT)',
+      { reqId, itemPath },
+    );
     this.genericStatHandler(reqId, itemPath);
   };
 
@@ -272,7 +328,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public removeHandler = (): void => {
-    logger.verbose('SFTP remove file request (SSH_FXP_REMOVE)');
+    logger.error('UNIMPLEMENTED Request: SFTP remove file (SSH_FXP_REMOVE)');
   };
 
   /**
@@ -283,7 +339,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public rmDirHandler = (): void => {
-    logger.verbose('SFTP remove directory request (SSH_FXP_RMDIR)');
+    logger.error('UNIMPLEMENTED Request: SFTP remove directory (SSH_FXP_RMDIR)');
   };
 
   /**
@@ -293,8 +349,10 @@ export class SftpSessionHandler {
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.11
    */
   public realPathHandler = (reqId: number, relativePath: string): void => {
-    logger.verbose('SFTP canonicalize path request (SSH_FXP_REALPATH)');
-    logger.debug('Request:', { reqId, relativePath });
+    logger.verbose(
+      'Request: SFTP canonicalize path (SSH_FXP_REALPATH)',
+      { reqId, relativePath },
+    );
     const resolvedPath = path.resolve('/', relativePath);
     this.permanentFileSystem.getItemAttributes(resolvedPath)
       .then((attrs) => {
@@ -303,11 +361,20 @@ export class SftpSessionHandler {
           attrs,
         );
         const names = [fileEntry];
-        logger.debug('Response:', { reqId, names });
+        logger.verbose(
+          'Response: Name',
+          { reqId, names },
+        );
         this.sftpConnection.name(reqId, names);
       })
       .catch(() => {
-        logger.debug('Response: Status (EOF)', { reqId }, SFTP_STATUS_CODE.NO_SUCH_FILE);
+        logger.verbose(
+          'Response: Status (EOF)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.NO_SUCH_FILE,
+          },
+        );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
       });
   };
@@ -320,7 +387,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public readLinkHandler = (): void => {
-    logger.verbose('SFTP read link request (SSH_FXP_READLINK)');
+    logger.error('UNIMPLEMENTED Request: SFTP read link (SSH_FXP_READLINK)');
   };
 
   /**
@@ -331,7 +398,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public setStatHandler = (): void => {
-    logger.verbose('SFTP set file attributes request (SSH_FXP_SETSTAT)');
+    logger.error('UNIMPLEMENTED Request: SFTP set file attributes (SSH_FXP_SETSTAT)');
   };
 
   /**
@@ -342,7 +409,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public mkDirHandler = (): void => {
-    logger.verbose('SFTP create directory request (SSH_FXP_MKDIR)');
+    logger.error('UNIMPLEMENTED Request: SFTP create directory (SSH_FXP_MKDIR)');
   };
 
   /**
@@ -353,7 +420,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public renameHandler = (): void => {
-    logger.verbose('SFTP file rename request (SSH_FXP_RENAME)');
+    logger.error('UNIMPLEMENTED Request: SFTP file rename (SSH_FXP_RENAME)');
   };
 
   /**
@@ -364,20 +431,29 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public symLinkHandler = (): void => {
-    logger.verbose('SFTP create symlink request (SSH_FXP_SYMLINK)');
+    logger.error('UNIMPLEMENTED Request: SFTP create symlink (SSH_FXP_SYMLINK)');
   };
 
   private readonly genericStatHandler = (reqId: number, itemPath: Buffer): void => {
     this.permanentFileSystem.getItemAttributes(itemPath.toString())
       .then((attrs) => {
-        logger.debug('Response:', { reqId, attrs });
+        logger.verbose(
+          'Response: Attrs',
+          { reqId, attrs },
+        );
         this.sftpConnection.attrs(
           reqId,
           attrs,
         );
       })
       .catch(() => {
-        logger.debug('Response: Status (NO_SUCH_FILE)', { reqId }, SFTP_STATUS_CODE.NO_SUCH_FILE);
+        logger.verbose(
+          'Response: Status (NO_SUCH_FILE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.NO_SUCH_FILE,
+          },
+        );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
       });
   };

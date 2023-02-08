@@ -14,6 +14,7 @@ if (typeof process.env.SSH_HOST_KEY_PATH === 'string') {
 
 const serverConfig: ServerConfig = {
   hostKeys,
+  debug: (message) => logger.silly(message),
 };
 
 const connectionListener = (client: Connection): void => {
