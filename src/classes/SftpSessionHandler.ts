@@ -167,7 +167,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public writeHandler = (): void => {
-    logger.verbose('Request: SFTP write file (SSH_FXP_WRITE)');
+    logger.error('UNIMPLEMENTED Request: SFTP write file (SSH_FXP_WRITE)');
   };
 
   /**
@@ -195,7 +195,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public fsetStatHandler = (): void => {
-    logger.verbose('Request: SFTP write open file statistics (SSH_FXP_FSETSTAT)');
+    logger.error('UNIMPLEMENTED Request: SFTP write open file statistics (SSH_FXP_FSETSTAT)');
   };
 
   /**
@@ -328,7 +328,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public removeHandler = (): void => {
-    logger.verbose('Request: SFTP remove file (SSH_FXP_REMOVE)');
+    logger.error('UNIMPLEMENTED Request: SFTP remove file (SSH_FXP_REMOVE)');
   };
 
   /**
@@ -339,7 +339,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public rmDirHandler = (): void => {
-    logger.verbose('Request: SFTP remove directory (SSH_FXP_RMDIR)');
+    logger.error('UNIMPLEMENTED Request: SFTP remove directory (SSH_FXP_RMDIR)');
   };
 
   /**
@@ -387,7 +387,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public readLinkHandler = (): void => {
-    logger.verbose('Request: SFTP read link (SSH_FXP_READLINK)');
+    logger.error('UNIMPLEMENTED Request: SFTP read link (SSH_FXP_READLINK)');
   };
 
   /**
@@ -398,7 +398,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public setStatHandler = (): void => {
-    logger.verbose('Request: SFTP set file attributes (SSH_FXP_SETSTAT)');
+    logger.error('UNIMPLEMENTED Request: SFTP set file attributes (SSH_FXP_SETSTAT)');
   };
 
   /**
@@ -409,7 +409,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public mkDirHandler = (): void => {
-    logger.verbose('Request: SFTP create directory (SSH_FXP_MKDIR)');
+    logger.error('UNIMPLEMENTED Request: SFTP create directory (SSH_FXP_MKDIR)');
   };
 
   /**
@@ -420,7 +420,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public renameHandler = (): void => {
-    logger.verbose('Request: SFTP file rename (SSH_FXP_RENAME)');
+    logger.error('UNIMPLEMENTED Request: SFTP file rename (SSH_FXP_RENAME)');
   };
 
   /**
@@ -431,7 +431,7 @@ export class SftpSessionHandler {
    */
   // eslint-disable-next-line class-methods-use-this
   public symLinkHandler = (): void => {
-    logger.verbose('Request: SFTP create symlink (SSH_FXP_SYMLINK)');
+    logger.error('UNIMPLEMENTED Request: SFTP create symlink (SSH_FXP_SYMLINK)');
   };
 
   private readonly genericStatHandler = (reqId: number, itemPath: Buffer): void => {
