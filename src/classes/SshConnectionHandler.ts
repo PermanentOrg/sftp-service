@@ -105,9 +105,13 @@ export class SshConnectionHandler {
   ): void => {
     logger.verbose('SSH request for a new session');
     const session = accept();
-    const sessionHandler = new SshSessionHandler(this.authSession?.authToken ?? '');
+    const sessionHandler = new SshSessionHandler(
+      session,
+      this.authSession?.authToken ?? '',
+    );
     session.on('sftp', sessionHandler.onSftp);
     session.on('close', sessionHandler.onClose);
+    session.on('eof', sessionHandler.onEof);
   };
 
   /**
