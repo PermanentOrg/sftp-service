@@ -407,9 +407,33 @@ export class SftpSessionHandler {
    * Also: Creating and Deleting Directories
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.6
    */
-  // eslint-disable-next-line class-methods-use-this
-  public mkDirHandler = (): void => {
-    logger.error('UNIMPLEMENTED Request: SFTP create directory (SSH_FXP_MKDIR)');
+  public mkDirHandler = (
+    reqId: number,
+    dirPath: string,
+    attrs: Attributes,
+  ): void => {
+    logger.verbose(
+      'Request: FTP create directory (SSH_FXP_MKDIR)',
+      { reqId, dirPath, attrs },
+    );
+    this.permanentFileSystem.makeDirectory(dirPath)
+      .then(() => {
+        logger.verbose('Response: Status (OK)', {
+          reqId,
+          code: SFTP_STATUS_CODE.OK,
+        });
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
+      })
+      .catch(() => {
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+      });
   };
 
   /**

@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import {
+  createFolder,
   getArchives,
   getArchiveFolders,
   getFolder,
@@ -140,6 +141,29 @@ export class PermanentFileSystem {
       return this.loadFolderFileEntries(requestedPath);
     }
     return [];
+  }
+
+  public async makeDirectory(requestedPath: string): Promise<Folder> {
+    if (isRootPath(requestedPath)) {
+      throw new Error('You cannot create new root level folders via SFTP.');
+    }
+    if (isArchiveCataloguePath(requestedPath)) {
+      throw new Error('You cannot create new archives via SFTP.');
+    }
+    if (isArchivePath(requestedPath)) {
+      throw new Error('You cannot create new folders at the root level of an archive via SFTP.');
+    }
+    const parentPath = path.dirname(requestedPath);
+    const childName = path.basename(requestedPath);
+    const parentFolder = await this.loadFolder(parentPath);
+    this.folderCache.delete(parentPath);
+    return createFolder(
+      this.getClientConfiguration(),
+      {
+        name: childName,
+      },
+      parentFolder,
+    );
   }
 
   public async loadFile(requestedPath: string): Promise<File> {
