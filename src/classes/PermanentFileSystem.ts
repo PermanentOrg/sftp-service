@@ -268,7 +268,7 @@ export class PermanentFileSystem {
     }
 
     if (!isItemPath(requestedPath)) {
-      throw new Error('The requested path cannot be a folder');
+      throw new Error('The requested path is not a folder');
     }
 
     const parentPath = path.dirname(requestedPath);

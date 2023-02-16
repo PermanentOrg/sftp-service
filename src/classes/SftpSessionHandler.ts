@@ -232,7 +232,7 @@ export class SftpSessionHandler {
       { reqId, dirPath },
     );
     const handle = generateHandle();
-    logger.debug(`Opening ${dirPath}:`, handle);
+    logger.debug(`Opening directory ${dirPath}:`, handle);
     this.permanentFileSystem.loadDirectory(dirPath)
       .then((fileEntries) => {
         logger.debug('Contents:', fileEntries);
@@ -413,7 +413,7 @@ export class SftpSessionHandler {
     attrs: Attributes,
   ): void => {
     logger.verbose(
-      'Request: FTP create directory (SSH_FXP_MKDIR)',
+      'Request: SFTP create directory (SSH_FXP_MKDIR)',
       { reqId, dirPath, attrs },
     );
     this.permanentFileSystem.makeDirectory(dirPath)
