@@ -5,7 +5,7 @@ import {
   getArchives,
   getArchiveFolders,
   getFolder,
-  getRecord,
+  getArchiveRecord,
 } from '@permanentorg/sdk';
 import {
   deduplicateFileEntries,
@@ -13,17 +13,17 @@ import {
   generateAttributesForFolder,
   generateDefaultAttributes,
   generateFileEntry,
-  generateFileEntriesForRecords,
+  generateFileEntriesForArchiveRecords,
   generateFileEntriesForFolders,
   getArchiveIdFromPath,
-  getOriginalFileForRecord,
+  getOriginalFileForArchiveRecord,
 } from '../utils';
 import type {
   Archive,
   ClientConfiguration,
   Folder,
   File,
-  Record,
+  ArchiveRecord,
 } from '@permanentorg/sdk';
 import type {
   Attributes,
@@ -61,7 +61,7 @@ export class PermanentFileSystem {
 
   private readonly archiveFoldersCache = new Map<number, Folder[]>();
 
-  private readonly recordCache = new Map<string, Record>();
+  private readonly archiveRecordCache = new Map<string, ArchiveRecord>();
 
   private archivesCache?: Archive[];
 
@@ -91,10 +91,10 @@ export class PermanentFileSystem {
     const parentPath = path.dirname(itemPath);
     const childName = path.basename(itemPath);
     const parentFolder = await this.loadFolder(parentPath);
-    const targetIsRecord = parentFolder.records.some(
-      (record) => record.fileSystemCompatibleName === childName,
+    const targetIsFile = parentFolder.archiveRecords.some(
+      (archiveRecord) => archiveRecord.fileSystemCompatibleName === childName,
     );
-    if (targetIsRecord) {
+    if (targetIsFile) {
       return fs.constants.S_IFREG;
     }
     const targetIsFolder = parentFolder.folders.some(
@@ -170,66 +170,66 @@ export class PermanentFileSystem {
     if (!isItemPath(requestedPath)) {
       throw new Error('Invalid file path');
     }
-    const record = await this.loadRecord(requestedPath);
-    return getOriginalFileForRecord(record);
+    const archiveRecord = await this.loadArchiveRecord(requestedPath);
+    return getOriginalFileForArchiveRecord(archiveRecord);
   }
 
-  private async loadRecord(requestedPath: string): Promise<Record> {
-    const cachedRecord = this.recordCache.get(requestedPath);
-    if (cachedRecord) {
-      return cachedRecord;
+  private async loadArchiveRecord(requestedPath: string): Promise<ArchiveRecord> {
+    const cachedArchiveRecord = this.archiveRecordCache.get(requestedPath);
+    if (cachedArchiveRecord) {
+      return cachedArchiveRecord;
     }
     const parentPath = path.dirname(requestedPath);
     const childName = path.basename(requestedPath);
     const parentFolder = await this.loadFolder(parentPath);
     const archiveId = getArchiveIdFromPath(parentPath);
-    const targetRecord = parentFolder.records.find(
-      (record) => record.fileSystemCompatibleName === childName,
+    const targetArchiveRecord = parentFolder.archiveRecords.find(
+      (archiveRecord) => archiveRecord.fileSystemCompatibleName === childName,
     );
-    if (!targetRecord) {
+    if (!targetArchiveRecord) {
       throw new Error('This file does not exist');
     }
-    const populatedRecord = await getRecord(
+    const populatedArchiveRecord = await getArchiveRecord(
       this.getClientConfiguration(),
-      targetRecord.id,
+      targetArchiveRecord.id,
       archiveId,
     );
-    this.recordCache.set(requestedPath, populatedRecord);
-    return populatedRecord;
+    this.archiveRecordCache.set(requestedPath, populatedArchiveRecord);
+    return populatedArchiveRecord;
   }
 
-  private async loadRecords(requestedPaths: string[]): Promise<Record[]> {
+  private async loadArchiveRecords(requestedPaths: string[]): Promise<ArchiveRecord[]> {
     // See https://github.com/PermanentOrg/permanent-sdk/issues/73
     // This implementation is intentionally sequential even though using
     // requestedPaths.map would allow us to run all of the lookups in parallel.
     // This decision is because I'm worried about crushing the Permanent server
-    // if a given folder had a huge number of records.
-    return requestedPaths.reduce<Promise<Record[]>>(
+    // if a given folder had a huge number of archive records.
+    return requestedPaths.reduce<Promise<ArchiveRecord[]>>(
       async (
-        recordsPromise,
+        archiveRecordsPromise,
         requestedPath,
       ) => {
-        const records = await recordsPromise;
+        const archiveRecords = await archiveRecordsPromise;
         return [
-          ...records,
-          await this.loadRecord(requestedPath),
+          ...archiveRecords,
+          await this.loadArchiveRecord(requestedPath),
         ];
       },
       Promise.resolve([]),
     );
   }
 
-  private async loadDeepRecords(
-    records: Record[],
+  private async loadDeepArchiveRecords(
+    archiveRecords: ArchiveRecord[],
     basePath: string,
-  ): Promise<Record[]> {
+  ): Promise<ArchiveRecord[]> {
     // TODO: this method exists due to a limitation of the permanent SDK, which
-    // currently only returns shallow records.  We want deep records.
+    // currently only returns shallow archive records.  We want deep archive records.
     // See https://github.com/PermanentOrg/permanent-sdk/issues/73
-    const recordPaths = records.map(
-      (record) => `${basePath}/${record.fileSystemCompatibleName}`,
+    const archiveRecordPaths = archiveRecords.map(
+      (archiveRecord) => `${basePath}/${archiveRecord.fileSystemCompatibleName}`,
     );
-    return this.loadRecords(recordPaths);
+    return this.loadArchiveRecords(archiveRecordPaths);
   }
 
   private getClientConfiguration(): ClientConfiguration {
@@ -312,15 +312,15 @@ export class PermanentFileSystem {
   private async loadFolderFileEntries(requestedPath: string): Promise<FileEntry[]> {
     const childFolder = await this.loadFolder(requestedPath);
     const folderFileEntities = generateFileEntriesForFolders(childFolder.folders);
-    const recordFileEntities = generateFileEntriesForRecords(
-      await this.loadDeepRecords(
-        childFolder.records,
+    const archiveRecordFileEntities = generateFileEntriesForArchiveRecords(
+      await this.loadDeepArchiveRecords(
+        childFolder.archiveRecords,
         requestedPath,
       ),
     );
     return deduplicateFileEntries([
       ...folderFileEntities,
-      ...recordFileEntities,
+      ...archiveRecordFileEntities,
     ]);
   }
 }
