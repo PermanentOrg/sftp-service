@@ -1,10 +1,13 @@
+import fs from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
 import { v4 as uuidv4 } from 'uuid';
 import ssh2 from 'ssh2';
+import tmp from 'tmp';
 import { logger } from '../logger';
 import { generateFileEntry } from '../utils';
 import { PermanentFileSystem } from './PermanentFileSystem';
+import type { FileResult } from 'tmp';
 import type {
   Attributes,
   FileEntry,
@@ -18,12 +21,18 @@ const SFTP_STATUS_CODE = ssh2.utils.sftp.STATUS_CODE;
 
 const generateHandle = (): string => uuidv4();
 
+interface TemporaryFile extends FileResult {
+  path: string;
+}
+
 export class SftpSessionHandler {
   private readonly sftpConnection: SFTPWrapper;
 
   private readonly openDirectories: Map<string, FileEntry[]> = new Map();
 
   private readonly openFiles: Map<string, File> = new Map();
+
+  private readonly openTemporaryFiles = new Map<string, TemporaryFile>();
 
   private readonly permanentFileSystem: PermanentFileSystem;
 
@@ -43,7 +52,7 @@ export class SftpSessionHandler {
    */
   public openHandler = (
     reqId: number,
-    filename: string,
+    filePath: string,
     flags: number,
     attrs: Attributes,
   ): void => {
@@ -51,31 +60,39 @@ export class SftpSessionHandler {
       'Request: SFTP file open (SSH_FXP_OPEN)',
       {
         reqId,
-        filename,
+        filePath,
         flags,
         attrs,
       },
     );
-    const handle = generateHandle();
-    logger.debug(`Opening ${filename}: ${handle}`);
-    this.permanentFileSystem.loadFile(filename)
-      .then((file) => {
-        logger.debug('Contents:', file);
-        this.openFiles.set(handle, file);
-        logger.verbose('Response: Handle', { reqId, handle });
-        this.sftpConnection.handle(
+    this.permanentFileSystem.getItemType(filePath)
+      .then((fileType) => {
+        switch (fileType) {
+          case fs.constants.S_IFDIR:
+            logger.verbose(
+              'Response: Status (FILE_IS_A_DIRECTORY)',
+              {
+                reqId,
+                code: SFTP_STATUS_CODE.FILE_IS_A_DIRECTORY,
+              },
+            );
+            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FILE_IS_A_DIRECTORY);
+            break;
+          default: {
+            this.openExistingFileHandler(
+              reqId,
+              filePath,
+              flags,
+            );
+            break;
+          }
+        }
+      }).catch(() => {
+        this.openNewFileHandler(
           reqId,
-          Buffer.from(handle),
+          filePath,
+          flags,
         );
-      })
-      .catch((reason: unknown) => {
-        logger.warn('Failed to load file', { reqId, filename });
-        logger.warn(reason);
-        logger.verbose('Response: Status (FAILURE)', {
-          reqId,
-          code: SFTP_STATUS_CODE.FAILURE,
-        });
-        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
       });
   };
 
@@ -165,9 +182,61 @@ export class SftpSessionHandler {
    * Also: Reading and Writing
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.4
    */
-  // eslint-disable-next-line class-methods-use-this
-  public writeHandler = (): void => {
-    logger.error('UNIMPLEMENTED Request: SFTP write file (SSH_FXP_WRITE)');
+  public writeHandler = (
+    reqId: number,
+    handle: Buffer,
+    offset: number,
+    data: Buffer,
+  ): void => {
+    logger.verbose(
+      'Request: SFTP write file (SSH_FXP_WRITE)',
+      { reqId, handle, offset },
+    );
+    logger.silly(
+      'Request Data:',
+      { reqId, data },
+    );
+    const temporaryFile = this.openTemporaryFiles.get(handle.toString());
+    if (!temporaryFile) {
+      logger.debug('There is no open temporary file associated with this handle', { reqId, handle });
+      logger.verbose(
+        'Response: Status (FAILURE)',
+        {
+          reqId,
+          code: SFTP_STATUS_CODE.FAILURE,
+        },
+      );
+      this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+      return;
+    }
+    fs.write(
+      temporaryFile.fd,
+      data,
+      0,
+      (err, written, buffer) => {
+        if (err) {
+          logger.verbose(
+            'Response: Status (FAILURE)',
+            {
+              reqId,
+              code: SFTP_STATUS_CODE.FAILURE,
+            },
+          );
+          this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+          return;
+        }
+        logger.debug('Successful Write.', { reqId, handle, written });
+        logger.silly('Written Data:', { buffer });
+        logger.verbose(
+          'Response: Status (OK)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.OK,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
+      },
+    );
   };
 
   /**
@@ -184,6 +253,19 @@ export class SftpSessionHandler {
       'Request: SFTP read open file statistics (SSH_FXP_FSTAT)',
       { reqId, itemPath },
     );
+    const file = this.openFiles.get(itemPath.toString());
+    if (!file) {
+      logger.debug('There is no open file associated with this path', { reqId, itemPath });
+      logger.verbose(
+        'Response: Status (FAILURE)',
+        {
+          reqId,
+          code: SFTP_STATUS_CODE.FAILURE,
+        },
+      );
+      this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+      return;
+    }
     this.genericStatHandler(reqId, itemPath);
   };
 
@@ -209,6 +291,38 @@ export class SftpSessionHandler {
       'Request: SFTP close file (SSH_FXP_CLOSE)',
       { reqId, handle },
     );
+    const temporaryFile = this.openTemporaryFiles.get(handle.toString());
+    if (temporaryFile) {
+      fs.close(temporaryFile.fd);
+      const { size } = fs.statSync(temporaryFile.name);
+      this.permanentFileSystem.createFile(
+        temporaryFile.path,
+        fs.createReadStream(temporaryFile.name),
+        size,
+      ).then(() => {
+        temporaryFile.removeCallback();
+        this.openTemporaryFiles.delete(handle.toString());
+        logger.verbose(
+          'Response: Status (OK)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.OK,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
+      }).catch((err) => {
+        logger.verbose(err);
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+      });
+      return;
+    }
     this.openFiles.delete(handle.toString());
     logger.verbose(
       'Response: Status (OK)',
@@ -232,7 +346,7 @@ export class SftpSessionHandler {
       { reqId, dirPath },
     );
     const handle = generateHandle();
-    logger.debug(`Opening ${dirPath}:`, handle);
+    logger.debug(`Opening directory ${dirPath}:`, handle);
     this.permanentFileSystem.loadDirectory(dirPath)
       .then((fileEntries) => {
         logger.debug('Contents:', fileEntries);
@@ -396,9 +510,23 @@ export class SftpSessionHandler {
    * Also: Setting File Attributes
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.9
    */
-  // eslint-disable-next-line class-methods-use-this
-  public setStatHandler = (): void => {
-    logger.error('UNIMPLEMENTED Request: SFTP set file attributes (SSH_FXP_SETSTAT)');
+  public setStatHandler = (
+    reqId: number,
+    filePath: string,
+    attrs: Attributes,
+  ): void => {
+    logger.verbose(
+      'Request: SFTP set file attributes request (SSH_FXP_SETSTAT)',
+      { reqId, filePath, attrs },
+    );
+    logger.verbose(
+      'Response: Status (OK)',
+      {
+        reqId,
+        code: SFTP_STATUS_CODE.OK,
+      },
+    );
+    this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
   };
 
   /**
@@ -413,7 +541,7 @@ export class SftpSessionHandler {
     attrs: Attributes,
   ): void => {
     logger.verbose(
-      'Request: FTP create directory (SSH_FXP_MKDIR)',
+      'Request: SFTP create directory (SSH_FXP_MKDIR)',
       { reqId, dirPath, attrs },
     );
     this.permanentFileSystem.makeDirectory(dirPath)
@@ -479,6 +607,142 @@ export class SftpSessionHandler {
           },
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      });
+  };
+
+  private readonly openExistingFileHandler = (
+    reqId: number,
+    filePath: string,
+    flags: number,
+  ): void => {
+    const handle = generateHandle();
+    const flagsString = ssh2.utils.sftp.flagsToString(flags);
+    this.permanentFileSystem.loadFile(filePath)
+      .then((file) => {
+        // These flags are explained in the NodeJS fs documentation:
+        // https://nodejs.org/api/fs.html#file-system-flags
+        switch (flagsString) {
+          case 'r': // read
+            this.openFiles.set(handle, file);
+            logger.verbose(
+              'Response: Handle',
+              { reqId, handle },
+            );
+            this.sftpConnection.handle(
+              reqId,
+              Buffer.from(handle),
+            );
+            break;
+          // We do not currently allow anybody to edit an existing record in any way
+          case 'r+': // read and write
+          case 'w': // write
+          case 'w+': // write and read
+          case 'a': // append
+          case 'a+': // append and read
+            logger.verbose(
+              'Response: Status (PERMISSION_DENIED)',
+              {
+                reqId,
+                code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+              },
+            );
+            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.PERMISSION_DENIED);
+            break;
+          // These codes all require the file NOT to exist
+          case 'wx': // write (file must not exist)
+          case 'xw': // write (file must not exist)
+          case 'xw+': // write and read (file must not exist)
+          case 'ax': // append (file must not exist)
+          case 'xa': // append (file must not exist)
+          case 'ax+': // append and write (file must not exist)
+          case 'xa+': // append and write (file must not exist)
+          default:
+            logger.verbose(
+              'Response: Status (FILE_ALREADY_EXISTS)',
+              {
+                reqId,
+                code: SFTP_STATUS_CODE.FILE_ALREADY_EXISTS,
+              },
+            );
+            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FILE_ALREADY_EXISTS);
+            break;
+        }
+      })
+      .catch(() => {
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+      });
+  };
+
+  private readonly openNewFileHandler = (
+    reqId: number,
+    filePath: string,
+    flags: number,
+  ): void => {
+    const handle = generateHandle();
+    const flagsString = ssh2.utils.sftp.flagsToString(flags);
+    const parentPath = path.dirname(filePath);
+    this.permanentFileSystem.loadDirectory(parentPath)
+      .then(() => {
+        // These flags are explained in the NodeJS fs documentation:
+        // https://nodejs.org/api/fs.html#file-system-flags
+        switch (flagsString) {
+          case 'w': // write
+          case 'wx': // write (file must not exist)
+          case 'xw': // write (file must not exist)
+          case 'w+': // write and read
+          case 'xw+': // write and read (file must not exist)
+          case 'ax': // append (file must not exist)
+          case 'xa': // append (file must not exist)
+          case 'a+': // append and read
+          case 'ax+': // append and read (file must not exist)
+          case 'xa+': // append and read (file must not exist)
+          case 'a': // append
+          {
+            const temporaryFile = tmp.fileSync();
+            this.openTemporaryFiles.set(handle, {
+              ...temporaryFile,
+              path: filePath,
+            });
+            logger.verbose(
+              'Response: Handle',
+              { reqId, handle },
+            );
+            this.sftpConnection.handle(
+              reqId,
+              Buffer.from(handle),
+            );
+            break;
+          }
+          case 'r+': // read and write (error if doesn't exist)
+          case 'r': // read
+          default:
+            logger.verbose(
+              'Response: Status (NO_SUCH_FILE)',
+              {
+                reqId,
+                code: SFTP_STATUS_CODE.NO_SUCH_FILE,
+              },
+            );
+            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+            break;
+        }
+      })
+      .catch(() => {
+        logger.verbose(
+          'Response: Status (NO_SUCH_PATH)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.NO_SUCH_PATH,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_PATH);
       });
   };
 }

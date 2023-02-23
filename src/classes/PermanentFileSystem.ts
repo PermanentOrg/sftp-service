@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import {
   createFolder,
+  createArchiveRecord,
   getArchives,
   getArchiveFolders,
   getFolder,
@@ -18,6 +19,7 @@ import {
   getArchiveIdFromPath,
   getOriginalFileForArchiveRecord,
 } from '../utils';
+import type { Readable } from 'stream';
 import type {
   Archive,
   ClientConfiguration,
@@ -103,7 +105,7 @@ export class PermanentFileSystem {
     if (targetIsFolder) {
       return fs.constants.S_IFDIR;
     }
-    throw new Error('Item was not found');
+    throw new Error('This path does not exist');
   }
 
   public async getItemAttributes(itemPath: string): Promise<Attributes> {
@@ -166,6 +168,30 @@ export class PermanentFileSystem {
     );
   }
 
+  public async createFile(
+    requestedPath: string,
+    dataStream: Readable,
+    size: number,
+  ): Promise<void> {
+    const parentPath = path.dirname(requestedPath);
+    const archiveRecordName = path.basename(requestedPath);
+    const parentFolder = await this.loadFolder(parentPath);
+    await createArchiveRecord(
+      this.getClientConfiguration(),
+      dataStream,
+      {
+        contentType: 'application/octet-stream',
+        size,
+      },
+      {
+        displayName: archiveRecordName,
+        fileSystemCompatibleName: archiveRecordName,
+      },
+      parentFolder,
+    );
+    this.folderCache.delete(parentPath);
+  }
+
   public async loadFile(requestedPath: string): Promise<File> {
     if (!isItemPath(requestedPath)) {
       throw new Error('Invalid file path');
@@ -181,7 +207,7 @@ export class PermanentFileSystem {
     }
     const parentPath = path.dirname(requestedPath);
     const childName = path.basename(requestedPath);
-    const parentFolder = await this.loadFolder(parentPath);
+    const parentFolder = await this.loadFolder(parentPath, true);
     const archiveId = getArchiveIdFromPath(parentPath);
     const targetArchiveRecord = parentFolder.archiveRecords.find(
       (archiveRecord) => archiveRecord.fileSystemCompatibleName === childName,
@@ -261,14 +287,14 @@ export class PermanentFileSystem {
     return archiveFolders;
   }
 
-  private async loadFolder(requestedPath: string): Promise<Folder> {
+  private async loadFolder(requestedPath: string, overrideCache = false): Promise<Folder> {
     const cachedFolder = this.folderCache.get(requestedPath);
-    if (cachedFolder) {
+    if (cachedFolder && !overrideCache) {
       return cachedFolder;
     }
 
     if (!isItemPath(requestedPath)) {
-      throw new Error('The requested path cannot be a folder');
+      throw new Error('The requested path is not a folder');
     }
 
     const parentPath = path.dirname(requestedPath);
