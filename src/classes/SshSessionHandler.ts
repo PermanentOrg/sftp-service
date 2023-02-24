@@ -1,21 +1,27 @@
 import { logger } from '../logger';
 import { SftpSessionHandler } from './SftpSessionHandler';
+import type { AuthenticationSession } from './AuthenticationSession';
+import type { PermanentFileSystemManager } from './PermanentFileSystemManager';
 import type {
   Session,
   SFTPWrapper,
 } from 'ssh2';
 
 export class SshSessionHandler {
-  private readonly authToken: string;
+  private readonly permanentFileSystemManager: PermanentFileSystemManager;
+
+  private readonly authenticationSession: AuthenticationSession;
 
   private readonly session: Session;
 
   public constructor(
     session: Session,
-    authToken: string,
+    authenticationSession: AuthenticationSession,
+    permanentFileSystemManager: PermanentFileSystemManager,
   ) {
     this.session = session;
-    this.authToken = authToken;
+    this.authenticationSession = authenticationSession;
+    this.permanentFileSystemManager = permanentFileSystemManager;
   }
 
   /**
@@ -29,7 +35,8 @@ export class SshSessionHandler {
     const sftpConnection = accept();
     const sftpSessionHandler = new SftpSessionHandler(
       sftpConnection,
-      this.authToken,
+      this.authenticationSession,
+      this.permanentFileSystemManager,
     );
     sftpConnection.on('OPEN', sftpSessionHandler.openHandler);
     sftpConnection.on('READ', sftpSessionHandler.readHandler);

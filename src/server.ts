@@ -1,7 +1,10 @@
 import { readFileSync } from 'fs';
 import { Server } from 'ssh2';
 import { logger } from './logger';
-import { SshConnectionHandler } from './classes/SshConnectionHandler';
+import {
+  SshConnectionHandler,
+  PermanentFileSystemManager,
+} from './classes';
 import type {
   Connection,
   ServerConfig,
@@ -17,9 +20,11 @@ const serverConfig: ServerConfig = {
   debug: (message) => logger.silly(message),
 };
 
+const permanentFileSystemManager = new PermanentFileSystemManager();
+
 const connectionListener = (client: Connection): void => {
   logger.verbose('New connection');
-  const connectionHandler = new SshConnectionHandler();
+  const connectionHandler = new SshConnectionHandler(permanentFileSystemManager);
   client.on('authentication', connectionHandler.onAuthentication);
   client.on('close', connectionHandler.onClose);
   client.on('end', connectionHandler.onEnd);

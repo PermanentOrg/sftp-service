@@ -5,9 +5,16 @@ import type {
   AuthContext,
   Session,
 } from 'ssh2';
+import type { PermanentFileSystemManager } from './PermanentFileSystemManager';
 
 export class SshConnectionHandler {
+  private readonly permanentFileSystemManager: PermanentFileSystemManager;
+
   private authSession?: AuthenticationSession;
+
+  public constructor(permanentFileSystemManager: PermanentFileSystemManager) {
+    this.permanentFileSystemManager = permanentFileSystemManager;
+  }
 
   /**
    * See: Authentication Requests
@@ -105,9 +112,15 @@ export class SshConnectionHandler {
   ): void => {
     logger.verbose('SSH request for a new session');
     const session = accept();
+    if (this.authSession === undefined) {
+      logger.verbose('Closing SSH session immediately (no authentication context)');
+      session.close();
+      return;
+    }
     const sessionHandler = new SshSessionHandler(
       session,
-      this.authSession?.authToken ?? '',
+      this.authSession,
+      this.permanentFileSystemManager,
     );
     session.on('sftp', sessionHandler.onSftp);
     session.on('close', sessionHandler.onClose);
