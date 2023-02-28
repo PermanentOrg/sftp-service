@@ -15,7 +15,7 @@ enum FusionAuthStatusCode {
 export class AuthenticationSession {
   public authToken = '';
 
-  private readonly authContext;
+  public readonly authContext;
 
   private readonly fusionAuthClient;
 

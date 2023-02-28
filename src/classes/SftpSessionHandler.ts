@@ -6,7 +6,9 @@ import ssh2 from 'ssh2';
 import tmp from 'tmp';
 import { logger } from '../logger';
 import { generateFileEntry } from '../utils';
-import { PermanentFileSystem } from './PermanentFileSystem';
+import type { AuthenticationSession } from './AuthenticationSession';
+import type { PermanentFileSystem } from './PermanentFileSystem';
+import type { PermanentFileSystemManager } from './PermanentFileSystemManager';
 import type { FileResult } from 'tmp';
 import type {
   Attributes,
@@ -34,14 +36,18 @@ export class SftpSessionHandler {
 
   private readonly openTemporaryFiles = new Map<string, TemporaryFile>();
 
-  private readonly permanentFileSystem: PermanentFileSystem;
+  private readonly permanentFileSystemManager: PermanentFileSystemManager;
+
+  private readonly authenticationSession: AuthenticationSession;
 
   public constructor(
     sftpConnection: SFTPWrapper,
-    authToken: string,
+    authenticationSession: AuthenticationSession,
+    permanentFileSystemManager: PermanentFileSystemManager,
   ) {
     this.sftpConnection = sftpConnection;
-    this.permanentFileSystem = new PermanentFileSystem(authToken);
+    this.authenticationSession = authenticationSession;
+    this.permanentFileSystemManager = permanentFileSystemManager;
   }
 
   /**
@@ -65,7 +71,7 @@ export class SftpSessionHandler {
         attrs,
       },
     );
-    this.permanentFileSystem.getItemType(filePath)
+    this.getCurrentPermanentFileSystem().getItemType(filePath)
       .then((fileType) => {
         switch (fileType) {
           case fs.constants.S_IFDIR:
@@ -295,7 +301,7 @@ export class SftpSessionHandler {
     if (temporaryFile) {
       fs.close(temporaryFile.fd);
       const { size } = fs.statSync(temporaryFile.name);
-      this.permanentFileSystem.createFile(
+      this.getCurrentPermanentFileSystem().createFile(
         temporaryFile.path,
         fs.createReadStream(temporaryFile.name),
         size,
@@ -347,7 +353,7 @@ export class SftpSessionHandler {
     );
     const handle = generateHandle();
     logger.debug(`Opening directory ${dirPath}:`, handle);
-    this.permanentFileSystem.loadDirectory(dirPath)
+    this.getCurrentPermanentFileSystem().loadDirectory(dirPath)
       .then((fileEntries) => {
         logger.debug('Contents:', fileEntries);
         this.openDirectories.set(handle, fileEntries);
@@ -468,7 +474,7 @@ export class SftpSessionHandler {
       { reqId, relativePath },
     );
     const resolvedPath = path.resolve('/', relativePath);
-    this.permanentFileSystem.getItemAttributes(resolvedPath)
+    this.getCurrentPermanentFileSystem().getItemAttributes(resolvedPath)
       .then((attrs) => {
         const fileEntry = generateFileEntry(
           resolvedPath,
@@ -544,7 +550,7 @@ export class SftpSessionHandler {
       'Request: SFTP create directory (SSH_FXP_MKDIR)',
       { reqId, dirPath, attrs },
     );
-    this.permanentFileSystem.makeDirectory(dirPath)
+    this.getCurrentPermanentFileSystem().makeDirectory(dirPath)
       .then(() => {
         logger.verbose('Response: Status (OK)', {
           reqId,
@@ -587,7 +593,7 @@ export class SftpSessionHandler {
   };
 
   private readonly genericStatHandler = (reqId: number, itemPath: Buffer): void => {
-    this.permanentFileSystem.getItemAttributes(itemPath.toString())
+    this.getCurrentPermanentFileSystem().getItemAttributes(itemPath.toString())
       .then((attrs) => {
         logger.verbose(
           'Response: Attrs',
@@ -617,7 +623,7 @@ export class SftpSessionHandler {
   ): void => {
     const handle = generateHandle();
     const flagsString = ssh2.utils.sftp.flagsToString(flags);
-    this.permanentFileSystem.loadFile(filePath)
+    this.getCurrentPermanentFileSystem().loadFile(filePath)
       .then((file) => {
         // These flags are explained in the NodeJS fs documentation:
         // https://nodejs.org/api/fs.html#file-system-flags
@@ -688,7 +694,7 @@ export class SftpSessionHandler {
     const handle = generateHandle();
     const flagsString = ssh2.utils.sftp.flagsToString(flags);
     const parentPath = path.dirname(filePath);
-    this.permanentFileSystem.loadDirectory(parentPath)
+    this.getCurrentPermanentFileSystem().loadDirectory(parentPath)
       .then(() => {
         // These flags are explained in the NodeJS fs documentation:
         // https://nodejs.org/api/fs.html#file-system-flags
@@ -745,4 +751,12 @@ export class SftpSessionHandler {
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_PATH);
       });
   };
+
+  private getCurrentPermanentFileSystem(): PermanentFileSystem {
+    return this.permanentFileSystemManager
+      .getCurrentPermanentFileSystemForUser(
+        this.authenticationSession.authContext.username,
+        this.authenticationSession.authToken,
+      );
+  }
 }
