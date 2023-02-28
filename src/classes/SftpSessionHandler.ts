@@ -155,13 +155,43 @@ export class SftpSessionHandler {
       },
     })
       .then(async (response) => {
-        const data = await response.buffer();
-        logger.verbose('Response: Data', { reqId });
-        logger.silly('Sent data...', { data });
-        this.sftpConnection.data(
-          reqId,
-          data,
+        logger.silly(
+          'Fetch response status code...',
+          { statusCode: response.status },
         );
+        switch (response.status) {
+          case 206:
+          case 200: {
+            const data = await response.buffer();
+            logger.verbose('Response: Data', { reqId });
+            logger.silly('Sent data...', { data });
+            this.sftpConnection.data(
+              reqId,
+              data,
+            );
+            break;
+          }
+          case 403:
+            logger.verbose(
+              'Response: Status (PERMISSION_DENIED)',
+              {
+                reqId,
+                code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+              },
+            );
+            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.PERMISSION_DENIED);
+            break;
+          default:
+            logger.verbose(
+              'Response: Status (FAILURE)',
+              {
+                reqId,
+                code: SFTP_STATUS_CODE.FAILURE,
+              },
+            );
+            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+            break;
+        }
       })
       .catch((reason: unknown) => {
         logger.warn('Failed to read data', {
