@@ -25,16 +25,16 @@ const permanentFileSystemManager = new PermanentFileSystemManager();
 const connectionListener = (client: Connection): void => {
   logger.verbose('New connection');
   const connectionHandler = new SshConnectionHandler(permanentFileSystemManager);
-  client.on('authentication', connectionHandler.onAuthentication);
-  client.on('close', connectionHandler.onClose);
-  client.on('end', connectionHandler.onEnd);
-  client.on('error', connectionHandler.onError);
-  client.on('handshake', connectionHandler.onHandshake);
-  client.on('ready', connectionHandler.onReady);
-  client.on('rekey', connectionHandler.onRekey);
-  client.on('request', connectionHandler.onRequest);
-  client.on('session', connectionHandler.onSession);
-  client.on('tcpip', connectionHandler.onTcpip);
+  client.on('authentication', connectionHandler.onAuthentication.bind(connectionHandler));
+  client.on('close', connectionHandler.onClose.bind(connectionHandler));
+  client.on('end', connectionHandler.onEnd.bind(connectionHandler));
+  client.on('error', connectionHandler.onError.bind(connectionHandler));
+  client.on('handshake', connectionHandler.onHandshake.bind(connectionHandler));
+  client.on('ready', connectionHandler.onReady.bind(connectionHandler));
+  client.on('rekey', connectionHandler.onRekey.bind(connectionHandler));
+  client.on('request', connectionHandler.onRequest.bind(connectionHandler));
+  client.on('session', connectionHandler.onSession.bind(connectionHandler));
+  client.on('tcpip', connectionHandler.onTcpip.bind(connectionHandler));
 };
 
 const server = new Server(
