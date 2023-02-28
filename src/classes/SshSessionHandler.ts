@@ -28,9 +28,9 @@ export class SshSessionHandler {
    * See: Session Events (sftp)
    * https://github.com/mscdex/ssh2#session-events
    */
-  public onSftp = (
+  public onSftp(
     accept: () => SFTPWrapper,
-  ): void => {
+  ): void {
     logger.verbose('SFTP requested');
     const sftpConnection = accept();
     const sftpSessionHandler = new SftpSessionHandler(
@@ -38,36 +38,36 @@ export class SshSessionHandler {
       this.authenticationSession,
       this.permanentFileSystemManager,
     );
-    sftpConnection.on('OPEN', sftpSessionHandler.openHandler);
-    sftpConnection.on('READ', sftpSessionHandler.readHandler);
-    sftpConnection.on('WRITE', sftpSessionHandler.writeHandler);
-    sftpConnection.on('FSTAT', sftpSessionHandler.fstatHandler);
-    sftpConnection.on('FSETSTAT', sftpSessionHandler.fsetStatHandler);
-    sftpConnection.on('CLOSE', sftpSessionHandler.closeHandler);
-    sftpConnection.on('OPENDIR', sftpSessionHandler.openDirHandler);
-    sftpConnection.on('READDIR', sftpSessionHandler.readDirHandler);
-    sftpConnection.on('LSTAT', sftpSessionHandler.lstatHandler);
-    sftpConnection.on('STAT', sftpSessionHandler.statHandler);
-    sftpConnection.on('REMOVE', sftpSessionHandler.removeHandler);
-    sftpConnection.on('RMDIR', sftpSessionHandler.rmDirHandler);
-    sftpConnection.on('REALPATH', sftpSessionHandler.realPathHandler);
-    sftpConnection.on('READLINK', sftpSessionHandler.readLinkHandler);
-    sftpConnection.on('SETSTAT', sftpSessionHandler.setStatHandler);
-    sftpConnection.on('MKDIR', sftpSessionHandler.mkDirHandler);
-    sftpConnection.on('RENAME', sftpSessionHandler.renameHandler);
-    sftpConnection.on('SYMLINK', sftpSessionHandler.symLinkHandler);
-  };
+    sftpConnection.on('OPEN', sftpSessionHandler.openHandler.bind(sftpSessionHandler));
+    sftpConnection.on('READ', sftpSessionHandler.readHandler.bind(sftpSessionHandler));
+    sftpConnection.on('WRITE', sftpSessionHandler.writeHandler.bind(sftpSessionHandler));
+    sftpConnection.on('FSTAT', sftpSessionHandler.fstatHandler.bind(sftpSessionHandler));
+    sftpConnection.on('FSETSTAT', sftpSessionHandler.fsetStatHandler.bind(sftpSessionHandler));
+    sftpConnection.on('CLOSE', sftpSessionHandler.closeHandler.bind(sftpSessionHandler));
+    sftpConnection.on('OPENDIR', sftpSessionHandler.openDirHandler.bind(sftpSessionHandler));
+    sftpConnection.on('READDIR', sftpSessionHandler.readDirHandler.bind(sftpSessionHandler));
+    sftpConnection.on('LSTAT', sftpSessionHandler.lstatHandler.bind(sftpSessionHandler));
+    sftpConnection.on('STAT', sftpSessionHandler.statHandler.bind(sftpSessionHandler));
+    sftpConnection.on('REMOVE', sftpSessionHandler.removeHandler.bind(sftpSessionHandler));
+    sftpConnection.on('RMDIR', sftpSessionHandler.rmDirHandler.bind(sftpSessionHandler));
+    sftpConnection.on('REALPATH', sftpSessionHandler.realPathHandler.bind(sftpSessionHandler));
+    sftpConnection.on('READLINK', sftpSessionHandler.readLinkHandler.bind(sftpSessionHandler));
+    sftpConnection.on('SETSTAT', sftpSessionHandler.setStatHandler.bind(sftpSessionHandler));
+    sftpConnection.on('MKDIR', sftpSessionHandler.mkDirHandler.bind(sftpSessionHandler));
+    sftpConnection.on('RENAME', sftpSessionHandler.renameHandler.bind(sftpSessionHandler));
+    sftpConnection.on('SYMLINK', sftpSessionHandler.symLinkHandler.bind(sftpSessionHandler));
+  }
 
   /**
    * See: Session Events (close)
    * https://github.com/mscdex/ssh2#session-events
    */
   // eslint-disable-next-line class-methods-use-this
-  public onClose = (): void => {
+  public onClose(): void {
     logger.verbose('SSH session closed');
-  };
+  }
 
-  public onEof = (): void => {
+  public onEof(): void {
     // This addresses a bug in the ssh2 library where EOF is not properly
     // handled for sftp connections.
     // An upstream PR that would fix the behavior: https://github.com/mscdex/ssh2/pull/1111
@@ -81,5 +81,5 @@ export class SshSessionHandler {
     // !!BEWARE: THERE BE DRAGONS HERE!!
     // @ts-expect-error because `_channel` is private / isn't actually documented.
     this.session._channel.end(); // eslint-disable-line max-len, no-underscore-dangle, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  };
+  }
 }
