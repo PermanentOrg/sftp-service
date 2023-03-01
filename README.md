@@ -60,7 +60,7 @@ Run **`rclone config`** and answer the questions it asks:
 
 - At the **`y/g/n>`** prompt for how you'll enter your Permanent password, choose **`y`** for "Yes, type in my own password".
 
-  You will then be prompted to enter the password for your Permanent account.  
+  You will then be prompted to enter the password for your Permanent account.
 
   Note that this password will be stored in a local file, and it will be in lightly obscured form but _not_ securely encrypted.  If you'd rather not have the password stored locally that way, there are two solutions available:
 
@@ -74,9 +74,9 @@ Run **`rclone config`** and answer the questions it asks:
     - `key_pem>`
     - `key_file>`
     - `y/g/n>` for option `key_file_pass` -- just hit Enter for default `n`
-    - `pubkey_file>` 
+    - `pubkey_file>`
     - `key_use_agent>`
-    - `use_insecure_cipher>` 
+    - `use_insecure_cipher>`
     - `disable_hashcheck>`
     - `y/n>` for option `Edit advanced config?` -- just hit Enter for `n` (unless you're doing the `ask_password` option as described earlier)
 
