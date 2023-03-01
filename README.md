@@ -108,10 +108,34 @@ ask_password = true
 
 In the latter case, you could of course just set up the `rclone.conf` file manually yourself, and skip the `rclone config` questionnaire entirely.
 
-### Run `rclone copy` to fetch your data from Permanent.
+### Run `rclone` commands to send data to and from Permanent.
+
+In both uploading and downloading, we recommend using the `--create-empty-src-dirs` flag; otherwise `rclone` will ignore empty directories on the source side of an operation.
+
+You might also consider using one or both of `-v` (verbose) and `-P` (show an in-place updating progress meter) to see what `rclone` is doing.  See [rclone.org/flags](https://rclone.org/flags/) for a list of all global flags (that is, flags that are available to every subcommand).
+
+#### Downloading from Permanent:
+
+To fetch all of your archives, use command like this:
 
 ```
-rclone copy permanent:/ ./my-permanent-data
+     rclone copy --create-empty-src-dirs permanent:/ ./my-permanent-data
+```
+
+To fetch a particular archive, use command like the one below.  Note that you'll need the archive's number as well as its name -- the number goes in parentheses after the name, e.g., the "(12345)" below.  Right now, the only way find out an archive's number is to download all your archives and look for that number in parentheses among the names of the downloaded folders, or to ask a Permanent engineer if you happen to know one.  This is a known problem; see [issue #91](https://github.com/PermanentOrg/sftp-service/issues/91) for details.  Anyway, assuming you have found out the archive's number, you can fetch just that archive like so:
+
+```
+     rclone copy -v -P --create-empty-src-dirs "permanent-prod:/archives/Some Archive (12345)/My Files/" ./some-archive
+```
+
+See [rclone.org/commands/rclone_copy](https://rclone.org/commands/rclone_copy/) for other flags to the `copy` subcommand.
+
+#### Uploading to Permanent:
+
+To send data to Permanent, just reverse the order of operands: your local file tree is now the source and Permanent is the destination.  You'll also need to add the `--size-only` and `--sftp-set-modtime=false` flags (currently necessary because of [issue #80](https://github.com/PermanentOrg/sftp-service/issues/80)).  Here's an example command:
+
+```
+     rclone copy -v -P --create-empty-src-dirs --size-only --sftp-set-modtime=false ./some-archive "permanent-prod:/archives/Some Archive (12345)/My Files/"
 ```
 
 ### Troubleshooting rclone
@@ -123,8 +147,6 @@ rclone copy permanent:/ ./my-permanent-data
 - Empty directories are not copied down when cloning from Permanent.
 
   By default, rclone (over SFTP) does not copy empty directories down.  However, if you pass the `--create-empty-src-dirs` flag, empty directories will be included.  For example: `rclone copy --create-empty-src-dirs permanent:/ my-permanent-data`.
-
-  See [rclone.org/commands/rclone_copy](https://rclone.org/commands/rclone_copy/) for other flags to the `copy` subcommand, and see [rclone.org/flags](https://rclone.org/flags/) for global flags available to every subcommand.  Two global flags that we have found useful are `-v` (verbose) and `-P` (show an in-place updating progress meter).
 
 ## Contributing
 
