@@ -60,7 +60,7 @@ Run **`rclone config`** and answer the questions it asks:
 
 - At the **`y/g/n>`** prompt for how you'll enter your Permanent password, choose **`y`** for "Yes, type in my own password".
 
-  You will then be prompted to enter the password for your Permanent account.  
+  You will then be prompted to enter the password for your Permanent account.
 
   Note that this password will be stored in a local file, and it will be in lightly obscured form but _not_ securely encrypted.  If you'd rather not have the password stored locally that way, there are two solutions available:
 
@@ -74,9 +74,9 @@ Run **`rclone config`** and answer the questions it asks:
     - `key_pem>`
     - `key_file>`
     - `y/g/n>` for option `key_file_pass` -- just hit Enter for default `n`
-    - `pubkey_file>` 
+    - `pubkey_file>`
     - `key_use_agent>`
-    - `use_insecure_cipher>` 
+    - `use_insecure_cipher>`
     - `disable_hashcheck>`
     - `y/n>` for option `Edit advanced config?` -- just hit Enter for `n` (unless you're doing the `ask_password` option as described earlier)
 
@@ -119,7 +119,7 @@ You might also consider using one or both of `-v` (verbose) and `-P` (show an in
 To fetch all of your archives, use command like this:
 
 ```
-     rclone copy --create-empty-src-dirs permanent:/ ./my-permanent-data
+     rclone copy --create-empty-src-dirs --size-only permanent:/ ./my-permanent-data
 ```
 
 To fetch a particular archive, use command like the one below.  Note that you'll need the archive's number as well as its name -- the number goes in parentheses after the name, e.g., the "(12345)" below.  Right now, the only way find out an archive's number is to download all your archives and look for that number in parentheses among the names of the downloaded folders, or to ask a Permanent engineer if you happen to know one.  This is a known problem; see [issue #91](https://github.com/PermanentOrg/sftp-service/issues/91) for details.  Anyway, assuming you have found out the archive's number, you can fetch just that archive like so:
