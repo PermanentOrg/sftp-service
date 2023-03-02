@@ -16,7 +16,7 @@ import {
   generateFileEntry,
   generateFileEntriesForArchiveRecords,
   generateFileEntriesForFolders,
-  getArchiveIdFromPath,
+  getArchiveSlugFromPath,
   getOriginalFileForArchiveRecord,
 } from '../utils';
 import type { Readable } from 'stream';
@@ -208,7 +208,7 @@ export class PermanentFileSystem {
     const parentPath = path.dirname(requestedPath);
     const childName = path.basename(requestedPath);
     const parentFolder = await this.loadFolder(parentPath, true);
-    const archiveId = getArchiveIdFromPath(parentPath);
+    const archiveId = await this.loadArchiveIdFromPath(requestedPath);
     const targetArchiveRecord = parentFolder.archiveRecords.find(
       (archiveRecord) => archiveRecord.fileSystemCompatibleName === childName,
     );
@@ -274,6 +274,21 @@ export class PermanentFileSystem {
     return this.archivesCache;
   }
 
+  private async loadArchiveByArchiveSlug(slug: string): Promise<Archive> {
+    const archives = await this.loadArchives();
+    const archive = archives.find((candidate) => candidate.slug === slug);
+    if (archive === undefined) {
+      throw new Error('An archive with that slug could not be found');
+    }
+    return archive;
+  }
+
+  private async loadArchiveIdFromPath(itemPath: string): Promise<number> {
+    const archiveSlug = getArchiveSlugFromPath(itemPath);
+    const archive = await this.loadArchiveByArchiveSlug(archiveSlug);
+    return archive.id;
+  }
+
   private async loadArchiveFolders(archiveId: number): Promise<Folder[]> {
     const cachedArchiveFolders = this.archiveFoldersCache.get(archiveId);
     if (cachedArchiveFolders) {
@@ -299,7 +314,7 @@ export class PermanentFileSystem {
 
     const parentPath = path.dirname(requestedPath);
     const childName = path.basename(requestedPath);
-    const archiveId = getArchiveIdFromPath(parentPath);
+    const archiveId = await this.loadArchiveIdFromPath(parentPath);
     const childFolders = isArchivePath(parentPath)
       ? await this.loadArchiveFolders(archiveId)
       : (await this.loadFolder(parentPath)).folders;
@@ -321,13 +336,13 @@ export class PermanentFileSystem {
   private async loadArchiveFileEntries(): Promise<FileEntry[]> {
     const archives = await this.loadArchives();
     return archives.map((archive: Archive) => generateFileEntry(
-      `${archive.name} (${archive.id})`,
+      `${archive.name} (${archive.slug})`,
       generateDefaultAttributes(fs.constants.S_IFDIR),
     ));
   }
 
   private async loadArchiveFoldersFileEntries(archivePath: string): Promise<FileEntry[]> {
-    const archiveId = getArchiveIdFromPath(archivePath);
+    const archiveId = await this.loadArchiveIdFromPath(archivePath);
     const folders = await this.loadArchiveFolders(archiveId);
     return folders.map((archiveFolder) => generateFileEntry(
       `${archiveFolder.fileSystemCompatibleName}`,
