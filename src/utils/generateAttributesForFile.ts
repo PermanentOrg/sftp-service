@@ -12,7 +12,7 @@ export const generateAttributesForFile = (file?: File): Attributes => (
       gid: 0,
       size: file.size,
       atime: 0,
-      mtime: file.updatedAt.getTime(),
+      mtime: file.updatedAt.getTime() / 1000,
     }
     : generateDefaultAttributes(fs.constants.S_IFREG)
 );

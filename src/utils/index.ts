@@ -1,4 +1,5 @@
 export * from './deduplicateFileEntries';
+export * from './generateAttributesForArchive';
 export * from './generateAttributesForFile';
 export * from './generateAttributesForFolder';
 export * from './generateDefaultAttributes';

@@ -10,6 +10,7 @@ import {
 } from '@permanentorg/sdk';
 import {
   deduplicateFileEntries,
+  generateAttributesForArchive,
   generateAttributesForFile,
   generateAttributesForFolder,
   generateDefaultAttributes,
@@ -110,10 +111,15 @@ export class PermanentFileSystem {
 
   public async getItemAttributes(itemPath: string): Promise<Attributes> {
     if (isRootPath(itemPath)
-     || isArchiveCataloguePath(itemPath)
-     || isArchivePath(itemPath)) {
+     || isArchiveCataloguePath(itemPath)) {
       return generateDefaultAttributes(fs.constants.S_IFDIR);
     }
+
+    if (isArchivePath(itemPath)) {
+      const archive = await this.loadArchive(itemPath);
+      return generateAttributesForArchive(archive);
+    }
+
     const fileType = await this.getItemType(itemPath);
     switch (fileType) {
       case fs.constants.S_IFREG: {
@@ -302,6 +308,14 @@ export class PermanentFileSystem {
     return archiveFolders;
   }
 
+  private async loadArchive(requestedPath: string): Promise<Archive> {
+    if (!isArchivePath(requestedPath)) {
+      throw new Error('The requested path is not an archive');
+    }
+    const archiveSlug = getArchiveSlugFromPath(requestedPath);
+    return this.loadArchiveByArchiveSlug(archiveSlug);
+  }
+
   private async loadFolder(requestedPath: string, overrideCache = false): Promise<Folder> {
     const cachedFolder = this.folderCache.get(requestedPath);
     if (cachedFolder && !overrideCache) {
@@ -337,7 +351,7 @@ export class PermanentFileSystem {
     const archives = await this.loadArchives();
     return archives.map((archive: Archive) => generateFileEntry(
       `${archive.name} (${archive.slug})`,
-      generateDefaultAttributes(fs.constants.S_IFDIR),
+      generateAttributesForArchive(archive),
     ));
   }
 
@@ -346,7 +360,7 @@ export class PermanentFileSystem {
     const folders = await this.loadArchiveFolders(archiveId);
     return folders.map((archiveFolder) => generateFileEntry(
       `${archiveFolder.fileSystemCompatibleName}`,
-      generateDefaultAttributes(fs.constants.S_IFDIR),
+      generateAttributesForFolder(archiveFolder),
     ));
   }
 
