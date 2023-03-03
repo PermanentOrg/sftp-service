@@ -5,6 +5,6 @@ export * from './generateDefaultAttributes';
 export * from './generateFileEntriesForArchiveRecords';
 export * from './generateFileEntriesForFolders';
 export * from './generateFileEntry';
-export * from './getArchiveIdFromPath';
+export * from './getArchiveSlugFromPath';
 export * from './getLongname';
 export * from './getOriginalFileForArchiveRecord';
