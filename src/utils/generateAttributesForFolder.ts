@@ -9,5 +9,5 @@ export const generateAttributesForFolder = (folder: Folder): Attributes => ({
   gid: 0,
   size: folder.size,
   atime: 0,
-  mtime: folder.updatedAt.getTime(),
+  mtime: folder.updatedAt.getTime() / 1000,
 });
