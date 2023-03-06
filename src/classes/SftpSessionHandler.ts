@@ -6,6 +6,7 @@ import ssh2 from 'ssh2';
 import tmp from 'tmp';
 import { logger } from '../logger';
 import { generateFileEntry } from '../utils';
+import { IncompleteOriginalFileError } from '../errors';
 import type { AuthenticationSession } from './AuthenticationSession';
 import type { PermanentFileSystem } from './PermanentFileSystem';
 import type { PermanentFileSystemManager } from './PermanentFileSystemManager';
@@ -704,15 +705,26 @@ export class SftpSessionHandler {
             break;
         }
       })
-      .catch(() => {
-        logger.verbose(
-          'Response: Status (FAILURE)',
-          {
-            reqId,
-            code: SFTP_STATUS_CODE.FAILURE,
-          },
-        );
-        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+      .catch((error: unknown) => {
+        if (error instanceof IncompleteOriginalFileError) {
+          logger.verbose(
+            'Response: Status (LOCK_CONFLICT)',
+            {
+              reqId,
+              code: SFTP_STATUS_CODE.LOCK_CONFLICT,
+            },
+          );
+          this.sftpConnection.status(reqId, SFTP_STATUS_CODE.LOCK_CONFLICT);
+        } else {
+          logger.verbose(
+            'Response: Status (FAILURE)',
+            {
+              reqId,
+              code: SFTP_STATUS_CODE.FAILURE,
+            },
+          );
+          this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+        }
       });
   }
 

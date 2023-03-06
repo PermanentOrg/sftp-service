@@ -1,4 +1,8 @@
 import { DerivativeType } from '@permanentorg/sdk';
+import {
+  IncompleteOriginalFileError,
+  MissingOriginalFileError,
+} from '../errors';
 import type {
   File,
   ArchiveRecord,
@@ -9,7 +13,10 @@ export const getOriginalFileForArchiveRecord = (archiveRecord: ArchiveRecord): F
     (file) => file.derivativeType === DerivativeType.Original,
   );
   if (!originalFile) {
-    throw Error(`Permanent does not have an original file for Archive Record ${archiveRecord.id}`);
+    throw new MissingOriginalFileError();
+  }
+  if (originalFile.downloadUrl === '') {
+    throw new IncompleteOriginalFileError();
   }
   return originalFile;
 };
