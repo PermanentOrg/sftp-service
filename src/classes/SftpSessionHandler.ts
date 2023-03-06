@@ -676,13 +676,13 @@ export class SftpSessionHandler {
           case 'a': // append
           case 'a+': // append and read
             logger.verbose(
-              'Response: Status (PERMISSION_DENIED)',
+              'Response: Status (SSH_FX_WRITE_PROTECT)',
               {
                 reqId,
-                code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+                code: SFTP_STATUS_CODE.WRITE_PROTECT,
               },
             );
-            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.PERMISSION_DENIED);
+            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.WRITE_PROTECT);
             break;
           // These codes all require the file NOT to exist
           case 'wx': // write (file must not exist)
