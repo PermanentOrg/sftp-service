@@ -653,7 +653,7 @@ export class SftpSessionHandler {
   ): void {
     const handle = generateHandle();
     const flagsString = ssh2.utils.sftp.flagsToString(flags);
-    this.getCurrentPermanentFileSystem().loadFile(filePath)
+    this.getCurrentPermanentFileSystem().loadFile(filePath, true)
       .then((file) => {
         // These flags are explained in the NodeJS fs documentation:
         // https://nodejs.org/api/fs.html#file-system-flags
