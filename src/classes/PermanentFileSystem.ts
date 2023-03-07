@@ -123,11 +123,11 @@ export class PermanentFileSystem {
     const fileType = await this.getItemType(itemPath);
     switch (fileType) {
       case fs.constants.S_IFREG: {
-        const file = await this.loadFile(itemPath);
+        const file = await this.loadFile(itemPath, true);
         return generateAttributesForFile(file);
       }
       case fs.constants.S_IFDIR: {
-        const folder = await this.loadFolder(itemPath);
+        const folder = await this.loadFolder(itemPath, true);
         return generateAttributesForFolder(folder);
       }
       default:
@@ -146,7 +146,10 @@ export class PermanentFileSystem {
       return this.loadArchiveFoldersFileEntries(requestedPath);
     }
     if (isItemPath(requestedPath)) {
-      return this.loadFolderFileEntries(requestedPath);
+      return this.loadFolderFileEntries(
+        requestedPath,
+        true,
+      );
     }
     return [];
   }
@@ -198,17 +201,26 @@ export class PermanentFileSystem {
     this.folderCache.delete(parentPath);
   }
 
-  public async loadFile(requestedPath: string): Promise<File> {
+  public async loadFile(
+    requestedPath: string,
+    overrideCache = false,
+  ): Promise<File> {
     if (!isItemPath(requestedPath)) {
       throw new Error('Invalid file path');
     }
-    const archiveRecord = await this.loadArchiveRecord(requestedPath);
+    const archiveRecord = await this.loadArchiveRecord(
+      requestedPath,
+      overrideCache,
+    );
     return getOriginalFileForArchiveRecord(archiveRecord);
   }
 
-  private async loadArchiveRecord(requestedPath: string): Promise<ArchiveRecord> {
+  private async loadArchiveRecord(
+    requestedPath: string,
+    overrideCache = false,
+  ): Promise<ArchiveRecord> {
     const cachedArchiveRecord = this.archiveRecordCache.get(requestedPath);
-    if (cachedArchiveRecord) {
+    if (cachedArchiveRecord && !overrideCache) {
       return cachedArchiveRecord;
     }
     const parentPath = path.dirname(requestedPath);
@@ -316,7 +328,33 @@ export class PermanentFileSystem {
     return this.loadArchiveByArchiveSlug(archiveSlug);
   }
 
-  private async loadFolder(requestedPath: string, overrideCache = false): Promise<Folder> {
+  private async findFolderInParentDirectory(
+    parentPath: string,
+    folderName: string,
+    overrideParentCache = false,
+  ): Promise<Folder> {
+    const archiveId = await this.loadArchiveIdFromPath(parentPath);
+    const childFolders = isArchivePath(parentPath)
+      ? await this.loadArchiveFolders(archiveId)
+      : (await this.loadFolder(parentPath, overrideParentCache)).folders;
+    const targetFolder = childFolders.find(
+      (folder) => folder.fileSystemCompatibleName === folderName,
+    );
+
+    if (overrideParentCache && !targetFolder) {
+      throw new Error('The specified folder does not exist');
+    }
+    return targetFolder ?? this.findFolderInParentDirectory(
+      parentPath,
+      folderName,
+      true,
+    );
+  }
+
+  private async loadFolder(
+    requestedPath: string,
+    overrideCache = false,
+  ): Promise<Folder> {
     const cachedFolder = this.folderCache.get(requestedPath);
     if (cachedFolder && !overrideCache) {
       return cachedFolder;
@@ -329,15 +367,10 @@ export class PermanentFileSystem {
     const parentPath = path.dirname(requestedPath);
     const childName = path.basename(requestedPath);
     const archiveId = await this.loadArchiveIdFromPath(parentPath);
-    const childFolders = isArchivePath(parentPath)
-      ? await this.loadArchiveFolders(archiveId)
-      : (await this.loadFolder(parentPath)).folders;
-    const targetFolder = childFolders.find(
-      (folder) => folder.fileSystemCompatibleName === childName,
+    const targetFolder = await this.findFolderInParentDirectory(
+      parentPath,
+      childName,
     );
-    if (!targetFolder) {
-      throw new Error();
-    }
     const populatedTargetFolder = await getFolder(
       this.getClientConfiguration(),
       targetFolder.id,
@@ -364,8 +397,14 @@ export class PermanentFileSystem {
     ));
   }
 
-  private async loadFolderFileEntries(requestedPath: string): Promise<FileEntry[]> {
-    const childFolder = await this.loadFolder(requestedPath);
+  private async loadFolderFileEntries(
+    requestedPath: string,
+    overrideCache = false,
+  ): Promise<FileEntry[]> {
+    const childFolder = await this.loadFolder(
+      requestedPath,
+      overrideCache,
+    );
     const folderFileEntities = generateFileEntriesForFolders(childFolder.folders);
     const archiveRecordFileEntities = generateFileEntriesForArchiveRecords(
       await this.loadDeepArchiveRecords(
