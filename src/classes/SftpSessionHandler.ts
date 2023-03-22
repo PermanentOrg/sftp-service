@@ -329,7 +329,6 @@ export class SftpSessionHandler {
     );
     const temporaryFile = this.openTemporaryFiles.get(handle.toString());
     if (temporaryFile) {
-      fs.close(temporaryFile.fd);
       const { size } = fs.statSync(temporaryFile.name);
       this.getCurrentPermanentFileSystem().createFile(
         temporaryFile.path,
