@@ -83,7 +83,10 @@ export class PermanentFileSystem {
     ];
   }
 
-  public async getItemType(itemPath: string): Promise<number> {
+  public async getItemType(
+    itemPath: string,
+    overrideParentCache = false,
+  ): Promise<number> {
     if (isRootPath(itemPath)
      || isArchiveCataloguePath(itemPath)
      || isArchivePath(itemPath)
@@ -93,7 +96,10 @@ export class PermanentFileSystem {
     }
     const parentPath = path.dirname(itemPath);
     const childName = path.basename(itemPath);
-    const parentFolder = await this.loadFolder(parentPath);
+    const parentFolder = await this.loadFolder(
+      parentPath,
+      overrideParentCache,
+    );
     const targetIsFile = parentFolder.archiveRecords.some(
       (archiveRecord) => archiveRecord.fileSystemCompatibleName === childName,
     );
@@ -106,7 +112,13 @@ export class PermanentFileSystem {
     if (targetIsFolder) {
       return fs.constants.S_IFDIR;
     }
-    throw new Error('This path does not exist');
+    if (!overrideParentCache) {
+      return this.getItemType(
+        itemPath,
+        true,
+      );
+    }
+    throw new Error(`This path does not exist ${itemPath}`);
   }
 
   public async getItemAttributes(itemPath: string): Promise<Attributes> {
@@ -167,7 +179,6 @@ export class PermanentFileSystem {
     const parentPath = path.dirname(requestedPath);
     const childName = path.basename(requestedPath);
     const parentFolder = await this.loadFolder(parentPath);
-    this.folderCache.delete(parentPath);
     return createFolder(
       this.getClientConfiguration(),
       {
@@ -198,7 +209,6 @@ export class PermanentFileSystem {
       },
       parentFolder,
     );
-    this.folderCache.delete(parentPath);
   }
 
   public async loadFile(
@@ -255,17 +265,14 @@ export class PermanentFileSystem {
     }
     const parentPath = path.dirname(requestedPath);
     const childName = path.basename(requestedPath);
-    const parentFolder = await this.loadFolder(parentPath, true);
     const archiveId = await this.loadArchiveIdFromPath(requestedPath);
-    const targetArchiveRecord = parentFolder.archiveRecords.find(
-      (archiveRecord) => archiveRecord.fileSystemCompatibleName === childName,
+    const archiveRecord = await this.findArchiveRecordInParentDirectory(
+      parentPath,
+      childName,
     );
-    if (!targetArchiveRecord) {
-      throw new Error('This file does not exist');
-    }
     const populatedArchiveRecord = await getArchiveRecord(
       this.getClientConfiguration(),
-      targetArchiveRecord.id,
+      archiveRecord.id,
       archiveId,
     );
     this.archiveRecordCache.set(requestedPath, populatedArchiveRecord);
@@ -377,6 +384,36 @@ export class PermanentFileSystem {
     return targetFolder ?? this.findFolderInParentDirectory(
       parentPath,
       folderName,
+      true,
+    );
+  }
+
+  private async findArchiveRecordInParentDirectory(
+    parentPath: string,
+    archiveRecordName: string,
+    overrideParentCache = false,
+  ): Promise<ArchiveRecord> {
+    const parentFolder = await this.loadFolder(
+      parentPath,
+      overrideParentCache,
+    );
+    const targetArchiveRecord = parentFolder.archiveRecords.find(
+      (folder) => folder.fileSystemCompatibleName === archiveRecordName,
+    );
+
+    if (targetArchiveRecord) {
+      return targetArchiveRecord;
+    }
+    if (overrideParentCache) {
+      throw new Error('The specified archive record does not exist');
+    }
+    // At this point we know that the lookup failed but ALSO that we may have been using a cached
+    // version of the parent directory when checking for the child (`overrideParentCache` is false).
+    // It's possible the archiveRecord does actually exist; we just need to force a load of
+    // the parent, which is what this recursive call demands (by setting the override to true).
+    return this.findArchiveRecordInParentDirectory(
+      parentPath,
+      archiveRecordName,
       true,
     );
   }
