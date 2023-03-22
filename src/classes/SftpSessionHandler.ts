@@ -24,7 +24,7 @@ const SFTP_STATUS_CODE = ssh2.utils.sftp.STATUS_CODE;
 const generateHandle = (): string => uuidv4();
 
 interface TemporaryFile extends FileResult {
-  path: string;
+  virtualPath: string;
 }
 
 export class SftpSessionHandler {
@@ -118,7 +118,7 @@ export class SftpSessionHandler {
       'Request: SFTP read file (SSH_FXP_READ)',
       {
         reqId,
-        handle,
+        handle: handle.toString(),
         offset,
         length,
       },
@@ -226,7 +226,11 @@ export class SftpSessionHandler {
   ): void {
     logger.verbose(
       'Request: SFTP write file (SSH_FXP_WRITE)',
-      { reqId, handle, offset },
+      {
+        reqId,
+        handle: handle.toString(),
+        offset,
+      },
     );
     logger.silly(
       'Request Data:',
@@ -256,6 +260,7 @@ export class SftpSessionHandler {
             {
               reqId,
               code: SFTP_STATUS_CODE.FAILURE,
+              path: temporaryFile.virtualPath,
             },
           );
           this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
@@ -268,6 +273,7 @@ export class SftpSessionHandler {
           {
             reqId,
             code: SFTP_STATUS_CODE.OK,
+            path: temporaryFile.virtualPath,
           },
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
@@ -325,13 +331,16 @@ export class SftpSessionHandler {
   public closeHandler(reqId: number, handle: Buffer): void {
     logger.verbose(
       'Request: SFTP close file (SSH_FXP_CLOSE)',
-      { reqId, handle },
+      {
+        reqId,
+        handle: handle.toString(),
+      },
     );
     const temporaryFile = this.openTemporaryFiles.get(handle.toString());
     if (temporaryFile) {
       const { size } = fs.statSync(temporaryFile.name);
       this.getCurrentPermanentFileSystem().createFile(
-        temporaryFile.path,
+        temporaryFile.virtualPath,
         fs.createReadStream(temporaryFile.name),
         size,
       ).then(() => {
@@ -342,6 +351,7 @@ export class SftpSessionHandler {
           {
             reqId,
             code: SFTP_STATUS_CODE.OK,
+            path: temporaryFile.virtualPath,
           },
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
@@ -352,6 +362,7 @@ export class SftpSessionHandler {
           {
             reqId,
             code: SFTP_STATUS_CODE.FAILURE,
+            path: temporaryFile.virtualPath,
           },
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
@@ -386,7 +397,14 @@ export class SftpSessionHandler {
       .then((fileEntries) => {
         logger.debug('Contents:', fileEntries);
         this.openDirectories.set(handle, fileEntries);
-        logger.verbose('Response: Handle', { reqId, handle });
+        logger.verbose(
+          'Response: Handle',
+          {
+            reqId,
+            handle,
+            path: dirPath,
+          },
+        );
         this.sftpConnection.handle(
           reqId,
           Buffer.from(handle),
@@ -400,6 +418,7 @@ export class SftpSessionHandler {
           {
             reqId,
             code: SFTP_STATUS_CODE.FAILURE,
+            path: dirPath,
           },
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
@@ -415,7 +434,10 @@ export class SftpSessionHandler {
   public readDirHandler(reqId: number, handle: Buffer): void {
     logger.verbose(
       'Request: SFTP read directory (SSH_FXP_READDIR)',
-      { reqId, handle },
+      {
+        reqId,
+        handle: handle.toString(),
+      },
     );
     const names = this.openDirectories.get(handle.toString()) ?? [];
     if (names.length !== 0) {
@@ -574,13 +596,18 @@ export class SftpSessionHandler {
   ): void {
     logger.verbose(
       'Request: SFTP set file attributes request (SSH_FXP_SETSTAT)',
-      { reqId, filePath, attrs },
+      {
+        reqId,
+        path: filePath,
+        attrs,
+      },
     );
     logger.verbose(
       'Response: Status (OK)',
       {
         reqId,
         code: SFTP_STATUS_CODE.OK,
+        path: filePath,
       },
     );
     this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
@@ -599,13 +626,18 @@ export class SftpSessionHandler {
   ): void {
     logger.verbose(
       'Request: SFTP create directory (SSH_FXP_MKDIR)',
-      { reqId, dirPath, attrs },
+      {
+        reqId,
+        path: dirPath,
+        attrs,
+      },
     );
     this.getCurrentPermanentFileSystem().makeDirectory(dirPath)
       .then(() => {
         logger.verbose('Response: Status (OK)', {
           reqId,
           code: SFTP_STATUS_CODE.OK,
+          path: dirPath,
         });
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
       })
@@ -615,6 +647,7 @@ export class SftpSessionHandler {
           {
             reqId,
             code: SFTP_STATUS_CODE.FAILURE,
+            path: dirPath,
           },
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
@@ -648,7 +681,11 @@ export class SftpSessionHandler {
       .then((attrs) => {
         logger.verbose(
           'Response: Attrs',
-          { reqId, attrs },
+          {
+            reqId,
+            attrs,
+            path: itemPath.toString(),
+          },
         );
         this.sftpConnection.attrs(
           reqId,
@@ -661,6 +698,7 @@ export class SftpSessionHandler {
           {
             reqId,
             code: SFTP_STATUS_CODE.NO_SUCH_FILE,
+            path: itemPath.toString(),
           },
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
@@ -683,7 +721,11 @@ export class SftpSessionHandler {
             this.openFiles.set(handle, file);
             logger.verbose(
               'Response: Handle',
-              { reqId, handle },
+              {
+                reqId,
+                handle,
+                path: filePath,
+              },
             );
             this.sftpConnection.handle(
               reqId,
@@ -701,6 +743,7 @@ export class SftpSessionHandler {
               {
                 reqId,
                 code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+                path: filePath,
               },
             );
             this.sftpConnection.status(reqId, SFTP_STATUS_CODE.PERMISSION_DENIED);
@@ -719,6 +762,7 @@ export class SftpSessionHandler {
               {
                 reqId,
                 code: SFTP_STATUS_CODE.FILE_ALREADY_EXISTS,
+                path: filePath,
               },
             );
             this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FILE_ALREADY_EXISTS);
@@ -731,6 +775,7 @@ export class SftpSessionHandler {
           {
             reqId,
             code: SFTP_STATUS_CODE.FAILURE,
+            path: filePath,
           },
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
@@ -765,11 +810,15 @@ export class SftpSessionHandler {
             const temporaryFile = tmp.fileSync();
             this.openTemporaryFiles.set(handle, {
               ...temporaryFile,
-              path: filePath,
+              virtualPath: filePath,
             });
             logger.verbose(
               'Response: Handle',
-              { reqId, handle },
+              {
+                reqId,
+                handle,
+                path: filePath,
+              },
             );
             this.sftpConnection.handle(
               reqId,
@@ -785,6 +834,7 @@ export class SftpSessionHandler {
               {
                 reqId,
                 code: SFTP_STATUS_CODE.NO_SUCH_FILE,
+                path: filePath,
               },
             );
             this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
@@ -797,6 +847,7 @@ export class SftpSessionHandler {
           {
             reqId,
             code: SFTP_STATUS_CODE.NO_SUCH_PATH,
+            path: filePath,
           },
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_PATH);
