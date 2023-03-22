@@ -338,35 +338,52 @@ export class SftpSessionHandler {
     );
     const temporaryFile = this.openTemporaryFiles.get(handle.toString());
     if (temporaryFile) {
-      const { size } = fs.statSync(temporaryFile.name);
-      this.getCurrentPermanentFileSystem().createFile(
-        temporaryFile.virtualPath,
-        fs.createReadStream(temporaryFile.name),
-        size,
-      ).then(() => {
-        temporaryFile.removeCallback();
-        this.openTemporaryFiles.delete(handle.toString());
-        logger.verbose(
-          'Response: Status (OK)',
-          {
-            reqId,
-            code: SFTP_STATUS_CODE.OK,
-            path: temporaryFile.virtualPath,
-          },
-        );
-        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
-      }).catch((err) => {
-        logger.verbose(err);
-        logger.verbose(
-          'Response: Status (FAILURE)',
-          {
-            reqId,
-            code: SFTP_STATUS_CODE.FAILURE,
-            path: temporaryFile.virtualPath,
-          },
-        );
-        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
-      });
+      fs.stat(
+        temporaryFile.name,
+        (statError, stats) => {
+          if (statError) {
+            logger.verbose(
+              'Response: Status (FAILURE)',
+              {
+                reqId,
+                code: SFTP_STATUS_CODE.FAILURE,
+                path: temporaryFile.virtualPath,
+              },
+            );
+            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+            return;
+          }
+          const { size } = stats;
+          this.getCurrentPermanentFileSystem().createFile(
+            temporaryFile.virtualPath,
+            fs.createReadStream(temporaryFile.name),
+            size,
+          ).then(() => {
+            temporaryFile.removeCallback();
+            this.openTemporaryFiles.delete(handle.toString());
+            logger.verbose(
+              'Response: Status (OK)',
+              {
+                reqId,
+                code: SFTP_STATUS_CODE.OK,
+                path: temporaryFile.virtualPath,
+              },
+            );
+            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
+          }).catch((err) => {
+            logger.verbose(err);
+            logger.verbose(
+              'Response: Status (FAILURE)',
+              {
+                reqId,
+                code: SFTP_STATUS_CODE.FAILURE,
+                path: temporaryFile.virtualPath,
+              },
+            );
+            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+          });
+        },
+      );
       return;
     }
     this.openFiles.delete(handle.toString());
@@ -807,23 +824,40 @@ export class SftpSessionHandler {
           case 'xa+': // append and read (file must not exist)
           case 'a': // append
           {
-            const temporaryFile = tmp.fileSync();
-            this.openTemporaryFiles.set(handle, {
-              ...temporaryFile,
-              virtualPath: filePath,
-            });
-            logger.verbose(
-              'Response: Handle',
-              {
+            tmp.file((err, name, fd, removeCallback) => {
+              if (err) {
+                logger.verbose(
+                  'Response: Status (FAILURE)',
+                  {
+                    reqId,
+                    code: SFTP_STATUS_CODE.FAILURE,
+                  },
+                );
+                this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+                return;
+              }
+              const temporaryFile = {
+                name,
+                fd,
+                removeCallback,
+              };
+              this.openTemporaryFiles.set(handle, {
+                ...temporaryFile,
+                virtualPath: filePath,
+              });
+              logger.verbose(
+                'Response: Handle',
+                {
+                  reqId,
+                  handle,
+                  path: filePath,
+                },
+              );
+              this.sftpConnection.handle(
                 reqId,
-                handle,
-                path: filePath,
-              },
-            );
-            this.sftpConnection.handle(
-              reqId,
-              Buffer.from(handle),
-            );
+                Buffer.from(handle),
+              );
+            });
             break;
           }
           case 'r+': // read and write (error if doesn't exist)
