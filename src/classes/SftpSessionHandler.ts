@@ -476,9 +476,20 @@ export class SftpSessionHandler {
    * Also: Removing and Renaming Files
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.5
    */
-  // eslint-disable-next-line class-methods-use-this
-  public removeHandler(): void {
+  public removeHandler(reqId: number, filePath: string): void {
+    logger.verbose(
+      'Request: SFTP remove file (SSH_FXP_REMOVE)',
+      { reqId, filePath },
+    );
     logger.error('UNIMPLEMENTED Request: SFTP remove file (SSH_FXP_REMOVE)');
+    logger.verbose(
+      'Response: Status (FAILURE)',
+      {
+        reqId,
+        code: SFTP_STATUS_CODE.FAILURE,
+      },
+    );
+    this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
   }
 
   /**
@@ -487,9 +498,20 @@ export class SftpSessionHandler {
    * Also: Creating and Deleting Directories
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.6
    */
-  // eslint-disable-next-line class-methods-use-this
-  public rmDirHandler(): void {
+  public rmDirHandler(reqId: number, directoryPath: string): void {
+    logger.verbose(
+      'Request: SFTP remove directory path (SSH_FXP_RMDIR)',
+      { reqId, directoryPath },
+    );
     logger.error('UNIMPLEMENTED Request: SFTP remove directory (SSH_FXP_RMDIR)');
+    logger.verbose(
+      'Response: Status (FAILURE)',
+      {
+        reqId,
+        code: SFTP_STATUS_CODE.FAILURE,
+      },
+    );
+    this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
   }
 
   /**
