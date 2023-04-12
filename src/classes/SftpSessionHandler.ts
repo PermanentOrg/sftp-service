@@ -541,15 +541,30 @@ export class SftpSessionHandler {
       'Request: SFTP remove directory path (SSH_FXP_RMDIR)',
       { reqId, directoryPath },
     );
-    logger.error('UNIMPLEMENTED Request: SFTP remove directory (SSH_FXP_RMDIR)');
-    logger.verbose(
-      'Response: Status (FAILURE)',
-      {
-        reqId,
-        code: SFTP_STATUS_CODE.FAILURE,
-      },
-    );
-    this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+
+    this.getCurrentPermanentFileSystem().deleteDirectory(directoryPath)
+      .then(() => {
+        logger.verbose(
+          'Response: Status (OK)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.OK,
+            path: directoryPath,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
+      })
+      .catch(() => {
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+            path: directoryPath,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+      });
   }
 
   /**
