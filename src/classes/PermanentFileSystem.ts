@@ -3,6 +3,7 @@ import fs from 'fs';
 import {
   createFolder,
   createArchiveRecord,
+  deleteArchiveRecord,
   deleteFolder,
   getArchives,
   getArchiveFolders,
@@ -236,6 +237,28 @@ export class PermanentFileSystem {
         fileSystemCompatibleName: archiveRecordName,
       },
       parentFolder,
+    );
+  }
+
+  public async deleteFile(requestedPath: string): Promise<void> {
+    const account = await getAuthenticatedAccount(
+      this.getClientConfiguration(),
+    );
+    if (!account.isSftpDeletionEnabled) {
+      throw new Error('You must enable SFTP deletion directly in your account settings.');
+    }
+
+    if (!isItemPath(requestedPath)) {
+      throw new Error('Invalid file path');
+    }
+
+    const archiveRecord = await this.loadArchiveRecord(
+      requestedPath,
+    );
+
+    await deleteArchiveRecord(
+      this.getClientConfiguration(),
+      archiveRecord.id,
     );
   }
 
