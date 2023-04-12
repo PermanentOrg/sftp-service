@@ -8,6 +8,7 @@ import {
   getArchiveFolders,
   getFolder,
   getArchiveRecord,
+  getAuthenticatedAccount,
 } from '@permanentorg/sdk';
 import {
   deduplicateFileEntries,
@@ -190,6 +191,13 @@ export class PermanentFileSystem {
   }
 
   public async deleteDirectory(requestedPath: string): Promise<void> {
+    const account = await getAuthenticatedAccount(
+      this.getClientConfiguration(),
+    );
+    if (!account.isSftpDeletionEnabled) {
+      throw new Error('You must enable SFTP deletion directly in your account settings.');
+    }
+
     if (isRootPath(requestedPath)) {
       throw new Error('You cannot delete the root level folder.');
     }
