@@ -3,6 +3,7 @@ import fs from 'fs';
 import {
   createFolder,
   createArchiveRecord,
+  deleteFolder,
   getArchives,
   getArchiveFolders,
   getFolder,
@@ -185,6 +186,25 @@ export class PermanentFileSystem {
         name: childName,
       },
       parentFolder,
+    );
+  }
+
+  public async deleteDirectory(requestedPath: string): Promise<void> {
+    if (isRootPath(requestedPath)) {
+      throw new Error('You cannot delete the root level folder.');
+    }
+    if (isArchiveCataloguePath(requestedPath)) {
+      throw new Error('You cannot the archive catalogue.');
+    }
+    if (isArchivePath(requestedPath)) {
+      throw new Error('You cannot delete archives via SFTP.');
+    }
+
+    const folder = await this.loadFolder(requestedPath);
+
+    await deleteFolder(
+      this.getClientConfiguration(),
+      folder.id,
     );
   }
 
