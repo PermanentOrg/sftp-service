@@ -519,15 +519,30 @@ export class SftpSessionHandler {
       'Request: SFTP remove file (SSH_FXP_REMOVE)',
       { reqId, filePath },
     );
-    logger.error('UNIMPLEMENTED Request: SFTP remove file (SSH_FXP_REMOVE)');
-    logger.verbose(
-      'Response: Status (FAILURE)',
-      {
-        reqId,
-        code: SFTP_STATUS_CODE.FAILURE,
-      },
-    );
-    this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+
+    this.getCurrentPermanentFileSystem().deleteFile(filePath)
+      .then(() => {
+        logger.verbose(
+          'Response: Status (OK)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.OK,
+            path: filePath,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
+      })
+      .catch(() => {
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+            path: filePath,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+      });
   }
 
   /**
