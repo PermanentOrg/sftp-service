@@ -76,13 +76,13 @@ export class SftpSessionHandler {
         switch (fileType) {
           case fs.constants.S_IFDIR:
             logger.verbose(
-              'Response: Status (FILE_IS_A_DIRECTORY)',
+              'Response: Status (NO_SUCH_FILE)',
               {
                 reqId,
-                code: SFTP_STATUS_CODE.FILE_IS_A_DIRECTORY,
+                code: SFTP_STATUS_CODE.NO_SUCH_FILE,
               },
             );
-            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FILE_IS_A_DIRECTORY);
+            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
             break;
           default: {
             this.openExistingFileHandler(
@@ -805,14 +805,14 @@ export class SftpSessionHandler {
           case 'xa+': // append and write (file must not exist)
           default:
             logger.verbose(
-              'Response: Status (FILE_ALREADY_EXISTS)',
+              'Response: Status (FAILURE)',
               {
                 reqId,
-                code: SFTP_STATUS_CODE.FILE_ALREADY_EXISTS,
+                code: SFTP_STATUS_CODE.FAILURE,
                 path: filePath,
               },
             );
-            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FILE_ALREADY_EXISTS);
+            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
             break;
         }
       })
@@ -907,14 +907,14 @@ export class SftpSessionHandler {
       })
       .catch(() => {
         logger.verbose(
-          'Response: Status (NO_SUCH_PATH)',
+          'Response: Status (NO_SUCH_FILE)',
           {
             reqId,
-            code: SFTP_STATUS_CODE.NO_SUCH_PATH,
+            code: SFTP_STATUS_CODE.NO_SUCH_FILE,
             path: filePath,
           },
         );
-        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_PATH);
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
       });
   }
 
