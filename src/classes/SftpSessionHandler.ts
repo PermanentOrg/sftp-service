@@ -679,7 +679,7 @@ export class SftpSessionHandler {
         attrs,
       },
     );
-    this.getCurrentPermanentFileSystem().makeDirectory(dirPath)
+    this.getCurrentPermanentFileSystem().createDirectory(dirPath)
       .then(() => {
         logger.verbose('Response: Status (OK)', {
           reqId,

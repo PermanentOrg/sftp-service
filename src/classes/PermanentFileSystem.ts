@@ -169,7 +169,7 @@ export class PermanentFileSystem {
     return [];
   }
 
-  public async makeDirectory(requestedPath: string): Promise<Folder> {
+  public async createDirectory(requestedPath: string): Promise<Folder> {
     if (isRootPath(requestedPath)) {
       throw new Error('You cannot create new root level folders via SFTP.');
     }
