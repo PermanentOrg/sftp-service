@@ -30,9 +30,9 @@ interface TemporaryFile extends FileResult {
 export class SftpSessionHandler {
   private readonly sftpConnection: SFTPWrapper;
 
-  private readonly openDirectories: Map<string, FileEntry[]> = new Map();
+  private readonly openDirectories = new Map<string, FileEntry[]>();
 
-  private readonly openFiles: Map<string, File> = new Map();
+  private readonly openFiles = new Map<string, File>();
 
   private readonly openTemporaryFiles = new Map<string, TemporaryFile>();
 
