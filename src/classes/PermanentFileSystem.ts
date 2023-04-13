@@ -203,7 +203,7 @@ export class PermanentFileSystem {
       throw new Error('You cannot delete the root level folder.');
     }
     if (isArchiveCataloguePath(requestedPath)) {
-      throw new Error('You cannot the archive catalogue.');
+      throw new Error('You cannot delete the archive catalogue.');
     }
     if (isArchivePath(requestedPath)) {
       throw new Error('You cannot delete archives via SFTP.');
