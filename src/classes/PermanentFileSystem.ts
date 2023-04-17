@@ -12,6 +12,13 @@ import {
   getAuthenticatedAccount,
 } from '@permanentorg/sdk';
 import {
+  FileStillProcessingError,
+  InvalidOperationForPathError,
+  NotFoundError,
+  OperationNotAllowedError,
+  ResourceDoesNotExistError,
+} from '../errors';
+import {
   deduplicateFileEntries,
   generateAttributesForArchive,
   generateAttributesForFile,
@@ -121,7 +128,7 @@ export class PermanentFileSystem {
         true,
       );
     }
-    throw new Error(`This path does not exist ${itemPath}`);
+    throw new NotFoundError(`This path does not exist ${itemPath}`);
   }
 
   public async getItemAttributes(itemPath: string): Promise<Attributes> {
@@ -146,7 +153,7 @@ export class PermanentFileSystem {
         return generateAttributesForFolder(folder);
       }
       default:
-        throw new Error('The specified path is neither a file nor a directory.');
+        throw new NotFoundError('The specified path is neither a file nor a directory.');
     }
   }
 
@@ -171,13 +178,13 @@ export class PermanentFileSystem {
 
   public async createDirectory(requestedPath: string): Promise<Folder> {
     if (isRootPath(requestedPath)) {
-      throw new Error('You cannot create new root level folders via SFTP.');
+      throw new InvalidOperationForPathError('You cannot create new root level folders via SFTP.');
     }
     if (isArchiveCataloguePath(requestedPath)) {
-      throw new Error('You cannot create new archives via SFTP.');
+      throw new InvalidOperationForPathError('You cannot create new archives via SFTP.');
     }
     if (isArchivePath(requestedPath)) {
-      throw new Error('You cannot create new folders at the root level of an archive via SFTP.');
+      throw new InvalidOperationForPathError('You cannot create new folders at the root level of an archive via SFTP.');
     }
     const parentPath = path.dirname(requestedPath);
     const childName = path.basename(requestedPath);
@@ -196,17 +203,17 @@ export class PermanentFileSystem {
       this.getClientConfiguration(),
     );
     if (!account.isSftpDeletionEnabled) {
-      throw new Error('You must enable SFTP deletion directly in your account settings.');
+      throw new OperationNotAllowedError('You must enable SFTP deletion directly in your account settings.');
     }
 
     if (isRootPath(requestedPath)) {
-      throw new Error('You cannot delete the root level folder.');
+      throw new InvalidOperationForPathError('You cannot delete the root level folder.');
     }
     if (isArchiveCataloguePath(requestedPath)) {
-      throw new Error('You cannot delete the archive catalogue.');
+      throw new InvalidOperationForPathError('You cannot delete the archive catalogue.');
     }
     if (isArchivePath(requestedPath)) {
-      throw new Error('You cannot delete archives via SFTP.');
+      throw new InvalidOperationForPathError('You cannot delete archives via SFTP.');
     }
 
     const folder = await this.loadFolder(requestedPath);
@@ -245,11 +252,11 @@ export class PermanentFileSystem {
       this.getClientConfiguration(),
     );
     if (!account.isSftpDeletionEnabled) {
-      throw new Error('You must enable SFTP deletion directly in your account settings.');
+      throw new OperationNotAllowedError('You must enable SFTP deletion directly in your account settings.');
     }
 
     if (!isItemPath(requestedPath)) {
-      throw new Error('Invalid file path');
+      throw new InvalidOperationForPathError('Invalid file path');
     }
 
     const archiveRecord = await this.loadArchiveRecord(
@@ -267,7 +274,7 @@ export class PermanentFileSystem {
     overrideCache = false,
   ): Promise<File> {
     if (!isItemPath(requestedPath)) {
-      throw new Error('Invalid file path');
+      throw new InvalidOperationForPathError('Invalid file path');
     }
     await this.waitForPopulatedOriginalFile(requestedPath);
     const archiveRecord = await this.loadArchiveRecord(
@@ -298,7 +305,7 @@ export class PermanentFileSystem {
     try {
       const originalFile = getOriginalFileForArchiveRecord(archiveRecord);
       if (originalFile.downloadUrl === '') {
-        throw new Error('The original file is incomplete');
+        throw new FileStillProcessingError('The original file is incomplete');
       }
       return;
     } catch {
@@ -384,7 +391,7 @@ export class PermanentFileSystem {
     const archives = await this.loadArchives();
     const archive = archives.find((candidate) => candidate.slug === slug);
     if (archive === undefined) {
-      throw new Error('An archive with that slug could not be found');
+      throw new ResourceDoesNotExistError('An archive with that slug could not be found');
     }
     return archive;
   }
@@ -410,7 +417,7 @@ export class PermanentFileSystem {
 
   private async loadArchive(requestedPath: string): Promise<Archive> {
     if (!isArchivePath(requestedPath)) {
-      throw new Error('The requested path is not an archive');
+      throw new InvalidOperationForPathError('The requested path is not an archive');
     }
     const archiveSlug = getArchiveSlugFromPath(requestedPath);
     return this.loadArchiveByArchiveSlug(archiveSlug);
@@ -430,7 +437,7 @@ export class PermanentFileSystem {
     );
 
     if (overrideParentCache && !targetFolder) {
-      throw new Error('The specified folder does not exist');
+      throw new ResourceDoesNotExistError('The specified folder does not exist');
     }
     return targetFolder ?? this.findFolderInParentDirectory(
       parentPath,
@@ -456,7 +463,7 @@ export class PermanentFileSystem {
       return targetArchiveRecord;
     }
     if (overrideParentCache) {
-      throw new Error('The specified archive record does not exist');
+      throw new ResourceDoesNotExistError('The specified archive record does not exist');
     }
     // At this point we know that the lookup failed but ALSO that we may have been using a cached
     // version of the parent directory when checking for the child (`overrideParentCache` is false).
@@ -479,7 +486,7 @@ export class PermanentFileSystem {
     }
 
     if (!isItemPath(requestedPath)) {
-      throw new Error('The requested path is not a folder');
+      throw new InvalidOperationForPathError('The requested path is not a folder');
     }
 
     const parentPath = path.dirname(requestedPath);
