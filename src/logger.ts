@@ -18,7 +18,10 @@ const template = ({
   const meta = Object.keys(rest).length > 0 ? ` ${JSON.stringify(rest)}` : '';
   const stacktrace = typeof stack === 'string' ? `\n${stack}` : '';
   const timestamp = new Date().toLocaleString();
-  return `${timestamp} ${level}: ${message}${meta}${stacktrace}`;
+  const sanitizedMessage = typeof message === 'string'
+    ? message
+    : '';
+  return `${timestamp} ${level}: ${sanitizedMessage}${meta}${stacktrace}`;
 };
 
 const debugLogger = createLogger({
