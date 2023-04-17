@@ -34,6 +34,8 @@ export class SftpSessionHandler {
 
   private readonly openFiles = new Map<string, File>();
 
+  private readonly openFilePaths = new Map<string, string>();
+
   private readonly openTemporaryFiles = new Map<string, TemporaryFile>();
 
   private readonly permanentFileSystemManager: PermanentFileSystemManager;
@@ -289,15 +291,16 @@ export class SftpSessionHandler {
    */
   public fstatHandler(
     reqId: number,
-    itemPath: Buffer,
+    handle: Buffer,
   ): void {
     logger.verbose(
       'Request: SFTP read open file statistics (SSH_FXP_FSTAT)',
-      { reqId, itemPath },
+      { reqId, handle },
     );
-    const file = this.openFiles.get(itemPath.toString());
-    if (!file) {
-      logger.debug('There is no open file associated with this path', { reqId, itemPath });
+    const file = this.openFiles.get(handle.toString());
+    const filePath = this.openFilePaths.get(handle.toString());
+    if (!file || filePath === undefined) {
+      logger.debug('There is no open file associated with this handle', { reqId, handle });
       logger.verbose(
         'Response: Status (FAILURE)',
         {
@@ -308,7 +311,7 @@ export class SftpSessionHandler {
       this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
       return;
     }
-    this.genericStatHandler(reqId, itemPath);
+    this.genericStatHandler(reqId, filePath);
   }
 
   /**
@@ -387,6 +390,7 @@ export class SftpSessionHandler {
       return;
     }
     this.openFiles.delete(handle.toString());
+    this.openFilePaths.delete(handle.toString());
     logger.verbose(
       'Response: Status (OK)',
       {
@@ -482,7 +486,7 @@ export class SftpSessionHandler {
    */
   public lstatHandler(
     reqId: number,
-    itemPath: Buffer,
+    itemPath: string,
   ): void {
     logger.verbose(
       'Request: SFTP read file statistics without following symbolic links (SSH_FXP_LSTAT)',
@@ -499,7 +503,7 @@ export class SftpSessionHandler {
    */
   public statHandler(
     reqId: number,
-    itemPath: Buffer,
+    itemPath: string,
   ): void {
     logger.verbose(
       'Request: SFTP read file statistics following symbolic links (SSH_FXP_STAT)',
@@ -723,8 +727,8 @@ export class SftpSessionHandler {
     logger.error('UNIMPLEMENTED Request: SFTP create symlink (SSH_FXP_SYMLINK)');
   }
 
-  private genericStatHandler(reqId: number, itemPath: Buffer): void {
-    this.getCurrentPermanentFileSystem().getItemAttributes(itemPath.toString())
+  private genericStatHandler(reqId: number, itemPath: string): void {
+    this.getCurrentPermanentFileSystem().getItemAttributes(itemPath)
       .then((attrs) => {
         logger.verbose(
           'Response: Attrs',
@@ -745,7 +749,7 @@ export class SftpSessionHandler {
           {
             reqId,
             code: SFTP_STATUS_CODE.NO_SUCH_FILE,
-            path: itemPath.toString(),
+            path: itemPath,
           },
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
@@ -766,6 +770,7 @@ export class SftpSessionHandler {
         switch (flagsString) {
           case 'r': // read
             this.openFiles.set(handle, file);
+            this.openFilePaths.set(handle, filePath);
             logger.verbose(
               'Response: Handle',
               {
