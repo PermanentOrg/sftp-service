@@ -317,9 +317,18 @@ export class SftpSessionHandler {
    * Also: Setting File Attributes
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.9
    */
-  // eslint-disable-next-line class-methods-use-this
-  public fsetStatHandler(): void {
+  public fsetStatHandler(reqId: number, handle: Buffer, attrs: Attributes): void {
     logger.error('UNIMPLEMENTED Request: SFTP write open file statistics (SSH_FXP_FSETSTAT)');
+    logger.verbose(
+      'Response: Status (FAILURE)',
+      {
+        reqId,
+        code: SFTP_STATUS_CODE.FAILURE,
+        handle,
+        attrs,
+      },
+    );
+    this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
   }
 
   /**
@@ -625,9 +634,17 @@ export class SftpSessionHandler {
    * Also: Dealing with Symbolic Links
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.10
    */
-  // eslint-disable-next-line class-methods-use-this
-  public readLinkHandler(): void {
+  public readLinkHandler(reqId: number, linkPath: string): void {
     logger.error('UNIMPLEMENTED Request: SFTP read link (SSH_FXP_READLINK)');
+    logger.verbose(
+      'Response: Status (FAILURE)',
+      {
+        reqId,
+        code: SFTP_STATUS_CODE.FAILURE,
+        linkPath,
+      },
+    );
+    this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
   }
 
   /**
@@ -707,9 +724,17 @@ export class SftpSessionHandler {
    * Also: Removing and Renaming FIles
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.5
    */
-  // eslint-disable-next-line class-methods-use-this
-  public renameHandler(): void {
+  public renameHandler(reqId: number, itemPath: string): void {
     logger.error('UNIMPLEMENTED Request: SFTP file rename (SSH_FXP_RENAME)');
+    logger.verbose(
+      'Response: Status (FAILURE)',
+      {
+        reqId,
+        code: SFTP_STATUS_CODE.FAILURE,
+        itemPath,
+      },
+    );
+    this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
   }
 
   /**
@@ -718,9 +743,18 @@ export class SftpSessionHandler {
    * Also: Dealing with Symbolic links
    * https://datatracker.ietf.org/doc/html/draft-ietf-secsh-filexfer-02#section-6.10
    */
-  // eslint-disable-next-line class-methods-use-this
-  public symLinkHandler(): void {
+  public symLinkHandler(reqId: number, linkPath: string, targetPath: string): void {
     logger.error('UNIMPLEMENTED Request: SFTP create symlink (SSH_FXP_SYMLINK)');
+    logger.verbose(
+      'Response: Status (FAILURE)',
+      {
+        reqId,
+        code: SFTP_STATUS_CODE.FAILURE,
+        linkPath,
+        targetPath,
+      },
+    );
+    this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
   }
 
   private genericStatHandler(reqId: number, itemPath: Buffer): void {
