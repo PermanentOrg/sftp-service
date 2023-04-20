@@ -7,6 +7,10 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "node-fetch"
+        update-types: ["version-update:semver-major"]
+
   - package-ecosystem: "github-actions"
     directory: ".github/workflows"
     schedule:
