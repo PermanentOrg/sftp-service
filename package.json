@@ -36,7 +36,7 @@
     "@babel/cli": "^7.21.5",
     "@babel/core": "^7.21.5",
     "@babel/node": "^7.20.7",
-    "@babel/preset-env": "^7.21.4",
+    "@babel/preset-env": "^7.21.5",
     "@babel/preset-typescript": "^7.21.4",
     "@tsconfig/node16": "^1.0.4",
     "@types/node-fetch": "^2.6.3",
