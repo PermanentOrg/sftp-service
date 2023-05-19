@@ -3,13 +3,13 @@ import path from 'path';
 import fetch from 'node-fetch';
 import { v4 as uuidv4 } from 'uuid';
 import ssh2 from 'ssh2';
-import tmp from 'tmp';
 import { logger } from '../logger';
 import { generateFileEntry } from '../utils';
+import { NotFoundError } from '../errors';
+import { TemporaryFile } from './TemporaryFile';
 import type { AuthenticationSession } from './AuthenticationSession';
 import type { PermanentFileSystem } from './PermanentFileSystem';
 import type { PermanentFileSystemManager } from './PermanentFileSystemManager';
-import type { FileResult } from 'tmp';
 import type {
   Attributes,
   FileEntry,
@@ -22,10 +22,6 @@ import type {
 const SFTP_STATUS_CODE = ssh2.utils.sftp.STATUS_CODE;
 
 const generateHandle = (): string => uuidv4();
-
-interface TemporaryFile extends FileResult {
-  virtualPath: string;
-}
 
 export class SftpSessionHandler {
   private readonly sftpConnection: SFTPWrapper;
@@ -240,7 +236,7 @@ export class SftpSessionHandler {
     );
     const temporaryFile = this.openTemporaryFiles.get(handle.toString());
     if (!temporaryFile) {
-      logger.debug('There is no open temporary file associated with this handle', { reqId, handle });
+      logger.debug('There is no open file associated with this handle', { reqId, handle });
       logger.verbose(
         'Response: Status (FAILURE)',
         {
@@ -251,36 +247,31 @@ export class SftpSessionHandler {
       this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
       return;
     }
-    fs.write(
-      temporaryFile.fd,
-      data,
-      0,
-      (err, written, buffer) => {
-        if (err) {
-          logger.verbose(
-            'Response: Status (FAILURE)',
-            {
-              reqId,
-              code: SFTP_STATUS_CODE.FAILURE,
-              path: temporaryFile.virtualPath,
-            },
-          );
-          this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
-          return;
-        }
-        logger.debug('Successful Write.', { reqId, handle, written });
-        logger.silly('Written Data:', { buffer });
+    temporaryFile.append(data)
+      .then(() => {
+        logger.debug('Successful Write.', { reqId, handle });
+        logger.silly('Written Data:', { data });
         logger.verbose(
           'Response: Status (OK)',
           {
             reqId,
             code: SFTP_STATUS_CODE.OK,
-            path: temporaryFile.virtualPath,
+            path: temporaryFile.permanentFileSystemPath,
           },
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
-      },
-    );
+      })
+      .catch(() => {
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+            path: temporaryFile.permanentFileSystemPath,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+      });
   }
 
   /**
@@ -350,52 +341,35 @@ export class SftpSessionHandler {
     );
     const temporaryFile = this.openTemporaryFiles.get(handle.toString());
     if (temporaryFile) {
-      fs.stat(
-        temporaryFile.name,
-        (statError, stats) => {
-          if (statError) {
-            logger.verbose(
-              'Response: Status (FAILURE)',
-              {
-                reqId,
-                code: SFTP_STATUS_CODE.FAILURE,
-                path: temporaryFile.virtualPath,
-              },
-            );
-            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
-            return;
-          }
-          const { size } = stats;
-          this.getCurrentPermanentFileSystem().createFile(
-            temporaryFile.virtualPath,
-            fs.createReadStream(temporaryFile.name),
-            size,
+      temporaryFile.close()
+        .then(async () => {
+          await this.getCurrentPermanentFileSystem().createFile(
+            temporaryFile,
           ).then(() => {
-            temporaryFile.removeCallback();
             this.openTemporaryFiles.delete(handle.toString());
             logger.verbose(
               'Response: Status (OK)',
               {
                 reqId,
                 code: SFTP_STATUS_CODE.OK,
-                path: temporaryFile.virtualPath,
+                path: temporaryFile.permanentFileSystemPath,
               },
             );
             this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
-          }).catch((err) => {
-            logger.verbose(err);
-            logger.verbose(
-              'Response: Status (FAILURE)',
-              {
-                reqId,
-                code: SFTP_STATUS_CODE.FAILURE,
-                path: temporaryFile.virtualPath,
-              },
-            );
-            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
           });
-        },
-      );
+        })
+        .catch((e) => {
+          logger.debug(e);
+          logger.verbose(
+            'Response: Status (FAILURE)',
+            {
+              reqId,
+              code: SFTP_STATUS_CODE.FAILURE,
+              path: temporaryFile.permanentFileSystemPath,
+            },
+          );
+          this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+        });
       return;
     }
     this.openFiles.delete(handle.toString());
@@ -893,40 +867,38 @@ export class SftpSessionHandler {
           case 'xa+': // append and read (file must not exist)
           case 'a': // append
           {
-            tmp.file((err, name, fd, removeCallback) => {
-              if (err) {
+            const temporaryFile = new TemporaryFile(filePath);
+            temporaryFile.open()
+              .then(() => {
+                this.openTemporaryFiles.set(
+                  handle,
+                  temporaryFile,
+                );
+                logger.verbose(
+                  'Response: Handle',
+                  {
+                    reqId,
+                    handle,
+                    path: filePath,
+                  },
+                );
+                this.sftpConnection.handle(
+                  reqId,
+                  Buffer.from(handle),
+                );
+              })
+              .catch((e) => {
+                logger.debug(e);
                 logger.verbose(
                   'Response: Status (FAILURE)',
                   {
                     reqId,
                     code: SFTP_STATUS_CODE.FAILURE,
+                    path: filePath,
                   },
                 );
                 this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
-                return;
-              }
-              const temporaryFile = {
-                name,
-                fd,
-                removeCallback,
-              };
-              this.openTemporaryFiles.set(handle, {
-                ...temporaryFile,
-                virtualPath: filePath,
               });
-              logger.verbose(
-                'Response: Handle',
-                {
-                  reqId,
-                  handle,
-                  path: filePath,
-                },
-              );
-              this.sftpConnection.handle(
-                reqId,
-                Buffer.from(handle),
-              );
-            });
             break;
           }
           case 'r+': // read and write (error if doesn't exist)
@@ -944,16 +916,29 @@ export class SftpSessionHandler {
             break;
         }
       })
-      .catch(() => {
-        logger.verbose(
-          'Response: Status (NO_SUCH_FILE)',
-          {
-            reqId,
-            code: SFTP_STATUS_CODE.NO_SUCH_FILE,
-            path: filePath,
-          },
-        );
-        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      .catch((e) => {
+        if (e instanceof NotFoundError) {
+          logger.verbose(
+            'Response: Status (NO_SUCH_FILE)',
+            {
+              reqId,
+              code: SFTP_STATUS_CODE.NO_SUCH_FILE,
+              path: filePath,
+            },
+          );
+          this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+        } else {
+          logger.debug(e);
+          logger.verbose(
+            'Response: Status (FAILURE)',
+            {
+              reqId,
+              code: SFTP_STATUS_CODE.FAILURE,
+              path: filePath,
+            },
+          );
+          this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+        }
       });
   }
 

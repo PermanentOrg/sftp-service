@@ -30,7 +30,6 @@ import {
   getArchiveSlugFromPath,
   getOriginalFileForArchiveRecord,
 } from '../utils';
-import type { Readable } from 'stream';
 import type {
   Archive,
   ClientConfiguration,
@@ -42,6 +41,7 @@ import type {
   Attributes,
   FileEntry,
 } from 'ssh2';
+import type { TemporaryFile } from './TemporaryFile';
 
 const isRootPath = (requestedPath: string): boolean => (
   requestedPath === '/'
@@ -225,19 +225,17 @@ export class PermanentFileSystem {
   }
 
   public async createFile(
-    requestedPath: string,
-    dataStream: Readable,
-    size: number,
+    temporaryFile: TemporaryFile,
   ): Promise<void> {
-    const parentPath = path.dirname(requestedPath);
-    const archiveRecordName = path.basename(requestedPath);
+    const parentPath = path.dirname(temporaryFile.permanentFileSystemPath);
+    const archiveRecordName = path.basename(temporaryFile.permanentFileSystemPath);
     const parentFolder = await this.loadFolder(parentPath);
     await createArchiveRecord(
       this.getClientConfiguration(),
-      dataStream,
+      temporaryFile.url,
       {
         contentType: 'application/octet-stream',
-        size,
+        size: temporaryFile.size,
       },
       {
         displayName: archiveRecordName,

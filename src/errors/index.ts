@@ -3,3 +3,4 @@ export * from './InvalidOperationForPathError';
 export * from './NotFoundError';
 export * from './OperationNotAllowedError';
 export * from './ResourceDoesNotExistError';
+export * from './SystemConfigurationError';
