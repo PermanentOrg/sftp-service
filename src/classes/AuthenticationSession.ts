@@ -15,9 +15,15 @@ enum FusionAuthStatusCode {
 export class AuthenticationSession {
   public authToken = '';
 
+  public refreshToken = '';
+
   public readonly authContext;
 
+  private authTokenExpiresAt = 0;
+
   private readonly fusionAuthClient;
+
+  private readonly fusionAuthAppId = process.env.FUSION_AUTH_APP_ID ?? '';
 
   private twoFactorId = '';
 
@@ -30,6 +36,32 @@ export class AuthenticationSession {
 
   public invokeAuthenticationFlow(): void {
     this.promptForPassword();
+  }
+
+  public obtainNewAuthTokenUsingRefreshToken(): void {
+    this.fusionAuthClient.exchangeRefreshTokenForAccessToken(this.refreshToken, '', '', '', '')
+      .then((clientResponse) => {
+        this.authToken = clientResponse.response.access_token ?? '';
+      })
+      .catch((clientResponse: unknown) => {
+        const message = isPartialClientResponse(clientResponse)
+          ? clientResponse.exception.message
+          : '';
+        logger.warn(`Error obtaining refresh token : ${message}`);
+        this.authContext.reject();
+      });
+  }
+
+  public tokenExpired(): boolean {
+    const expirationDate = new Date(this.authTokenExpiresAt);
+    return expirationDate <= new Date();
+  }
+
+  public tokenWouldExpireSoon(minutes = 5): boolean {
+    const expirationDate = new Date(this.authTokenExpiresAt);
+    const currentTime = new Date();
+    const timeDifferenceMinutes = (expirationDate.getTime() - currentTime.getTime()) / (1000 * 60);
+    return timeDifferenceMinutes <= minutes;
   }
 
   private promptForPassword(): void {
@@ -46,6 +78,7 @@ export class AuthenticationSession {
 
   private processPasswordResponse([password]: string[]): void {
     this.fusionAuthClient.login({
+      applicationId: this.fusionAuthAppId,
       loginId: this.authContext.username,
       password,
     }).then((clientResponse) => {
@@ -57,6 +90,8 @@ export class AuthenticationSession {
               username: this.authContext.username,
             });
             this.authToken = clientResponse.response.token;
+            this.authTokenExpiresAt = clientResponse.response.tokenExpirationInstant ?? 0;
+            this.refreshToken = clientResponse.response.refreshToken ?? '';
             this.authContext.accept();
             return;
           }

@@ -1070,6 +1070,12 @@ export class SftpSessionHandler {
   }
 
   private getCurrentPermanentFileSystem(): PermanentFileSystem {
+    if (
+      this.authenticationSession.tokenExpired()
+      || this.authenticationSession.tokenWouldExpireSoon()
+    ) {
+      this.authenticationSession.obtainNewAuthTokenUsingRefreshToken();
+    }
     return this.permanentFileSystemManager
       .getCurrentPermanentFileSystemForUser(
         this.authenticationSession.authContext.username,
