@@ -2,6 +2,7 @@ import { logger } from '../logger';
 import {
   getFusionAuthClient,
   isPartialClientResponse,
+  FusionAuthApiClient,
 } from '../fusionAuth';
 import type { KeyboardAuthContext } from 'ssh2';
 import type { TwoFactorMethod } from '@fusionauth/typescript-client';
@@ -19,6 +20,8 @@ export class AuthenticationSession {
 
   private readonly fusionAuthClient;
 
+  private readonly FusionAuthApiClient;
+
   private twoFactorId = '';
 
   private twoFactorMethods: TwoFactorMethod[] = [];
@@ -26,6 +29,7 @@ export class AuthenticationSession {
   public constructor(authContext: KeyboardAuthContext) {
     this.authContext = authContext;
     this.fusionAuthClient = getFusionAuthClient();
+    this.FusionAuthApiClient = new FusionAuthApiClient();
   }
 
   public invokeAuthenticationFlow(): void {
@@ -45,10 +49,10 @@ export class AuthenticationSession {
   }
 
   private processPasswordResponse([password]: string[]): void {
-    this.fusionAuthClient.login({
-      loginId: this.authContext.username,
-      password,
-    }).then((clientResponse) => {
+    this.FusionAuthApiClient.login(
+      this.authContext.username,
+      password
+    ).then((clientResponse) => {
       switch (clientResponse.statusCode) {
         case FusionAuthStatusCode.Success:
         case FusionAuthStatusCode.SuccessButUnregisteredInApp:
@@ -56,6 +60,7 @@ export class AuthenticationSession {
             logger.verbose('Successful password authentication attempt.', {
               username: this.authContext.username,
             });
+            console.log(clientResponse);
             this.authToken = clientResponse.response.token;
             this.authContext.accept();
             return;
