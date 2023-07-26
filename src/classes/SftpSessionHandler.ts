@@ -95,7 +95,8 @@ export class SftpSessionHandler {
             break;
           }
         }
-      }).catch(() => {
+      }).catch((err: unknown) => {
+        logger.debug(err);
         this.openNewFileHandler(
           reqId,
           filePath,
@@ -195,14 +196,14 @@ export class SftpSessionHandler {
             break;
         }
       })
-      .catch((reason: unknown) => {
+      .catch((err: unknown) => {
         logger.warn('Failed to read data', {
           reqId,
           handle,
           offset,
           length,
         });
-        logger.warn(reason);
+        logger.debug(err);
         logger.verbose(
           'Response: Status (FAILURE)',
           {
@@ -383,7 +384,7 @@ export class SftpSessionHandler {
             );
             this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
           }).catch((err) => {
-            logger.verbose(err);
+            logger.debug(err);
             logger.verbose(
               'Response: Status (FAILURE)',
               {
@@ -545,7 +546,8 @@ export class SftpSessionHandler {
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        logger.debug(err);
         logger.verbose(
           'Response: Status (FAILURE)',
           {
@@ -582,7 +584,8 @@ export class SftpSessionHandler {
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        logger.debug(err);
         logger.verbose(
           'Response: Status (FAILURE)',
           {
@@ -620,7 +623,8 @@ export class SftpSessionHandler {
         );
         this.sftpConnection.name(reqId, names);
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        logger.debug(err);
         logger.verbose(
           'Response: Status (EOF)',
           {
@@ -709,7 +713,8 @@ export class SftpSessionHandler {
         });
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        logger.debug(err);
         logger.verbose(
           'Response: Status (FAILURE)',
           {
@@ -777,7 +782,8 @@ export class SftpSessionHandler {
           attrs,
         );
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        logger.debug(err);
         logger.verbose(
           'Response: Status (NO_SUCH_FILE)',
           {
@@ -855,7 +861,8 @@ export class SftpSessionHandler {
             break;
         }
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        logger.debug(err);
         logger.verbose(
           'Response: Status (FAILURE)',
           {
@@ -944,7 +951,8 @@ export class SftpSessionHandler {
             break;
         }
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        logger.debug(err);
         logger.verbose(
           'Response: Status (NO_SUCH_FILE)',
           {
