@@ -252,6 +252,24 @@ export class SftpSessionHandler {
       this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
       return;
     }
+
+    if (offset + data.length > 5368709120) { // 5 GB
+      logger.verbose(
+        'Response: Status (FAILURE)',
+        {
+          reqId,
+          code: SFTP_STATUS_CODE.FAILURE,
+          path: temporaryFile.virtualPath,
+        },
+      );
+      this.sftpConnection.status(
+        reqId,
+        SFTP_STATUS_CODE.FAILURE,
+        'You cannot upload files larger then 5 GB.',
+      );
+      return;
+    }
+
     fs.write(
       temporaryFile.fd,
       data,
