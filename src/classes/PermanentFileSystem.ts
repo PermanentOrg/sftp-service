@@ -10,6 +10,7 @@ import {
   getFolder,
   getArchiveRecord,
   getAuthenticatedAccount,
+  uploadFile,
 } from '@permanentorg/sdk';
 import {
   FileStillProcessingError,
@@ -232,17 +233,26 @@ export class PermanentFileSystem {
     const parentPath = path.dirname(requestedPath);
     const archiveRecordName = path.basename(requestedPath);
     const parentFolder = await this.loadFolder(parentPath);
-    await createArchiveRecord(
+    const fileFragment = {
+      contentType: 'application/octet-stream',
+      size,
+    };
+    const archiveRecordfragment = {
+      displayName: archiveRecordName,
+      fileSystemCompatibleName: archiveRecordName,
+    };
+    const s3Url = await uploadFile(
       this.getClientConfiguration(),
       dataStream,
-      {
-        contentType: 'application/octet-stream',
-        size,
-      },
-      {
-        displayName: archiveRecordName,
-        fileSystemCompatibleName: archiveRecordName,
-      },
+      fileFragment,
+      archiveRecordfragment,
+      parentFolder,
+    );
+    await createArchiveRecord(
+      this.getClientConfiguration(),
+      s3Url,
+      fileFragment,
+      archiveRecordfragment,
       parentFolder,
     );
   }
