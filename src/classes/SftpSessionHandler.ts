@@ -256,6 +256,8 @@ export class SftpSessionHandler {
       temporaryFile.fd,
       data,
       0,
+      data.length,
+      offset,
       (err, written, buffer) => {
         if (err) {
           logger.verbose(
