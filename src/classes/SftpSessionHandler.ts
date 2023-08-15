@@ -136,7 +136,11 @@ export class SftpSessionHandler {
           code: SFTP_STATUS_CODE.FAILURE,
         },
       );
-      this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+      this.sftpConnection.status(
+        reqId,
+        SFTP_STATUS_CODE.FAILURE,
+        'There is no open file associated with this handle.',
+      );
       return;
     }
 
@@ -182,7 +186,11 @@ export class SftpSessionHandler {
                 code: SFTP_STATUS_CODE.PERMISSION_DENIED,
               },
             );
-            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.PERMISSION_DENIED);
+            this.sftpConnection.status(
+              reqId,
+              SFTP_STATUS_CODE.PERMISSION_DENIED,
+              'Received 403 (Forbidden) response when attempting to access the download URL associated with this file.',
+            );
             break;
           default:
             logger.verbose(
@@ -192,7 +200,11 @@ export class SftpSessionHandler {
                 code: SFTP_STATUS_CODE.FAILURE,
               },
             );
-            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+            this.sftpConnection.status(
+              reqId,
+              SFTP_STATUS_CODE.FAILURE,
+              `Received an unhandled response type (${response.status}) when attempting to access the download URL associated with this file.`,
+            );
             break;
         }
       })
@@ -211,7 +223,11 @@ export class SftpSessionHandler {
             code: SFTP_STATUS_CODE.FAILURE,
           },
         );
-        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+        this.sftpConnection.status(
+          reqId,
+          SFTP_STATUS_CODE.FAILURE,
+          'An error occurred when attempting to fetch the download URL associated with this file.',
+        );
       });
   }
 
@@ -249,7 +265,11 @@ export class SftpSessionHandler {
           code: SFTP_STATUS_CODE.FAILURE,
         },
       );
-      this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+      this.sftpConnection.status(
+        reqId,
+        SFTP_STATUS_CODE.FAILURE,
+        'There is no file associated with this handle.',
+      );
       return;
     }
     fs.write(
@@ -266,7 +286,11 @@ export class SftpSessionHandler {
               path: temporaryFile.virtualPath,
             },
           );
-          this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+          this.sftpConnection.status(
+            reqId,
+            SFTP_STATUS_CODE.FAILURE,
+            'An error occurred when attempting to write to the file associated with this handle.',
+          );
           return;
         }
         logger.debug('Successful Write.', { reqId, handle, written });
@@ -309,7 +333,11 @@ export class SftpSessionHandler {
           code: SFTP_STATUS_CODE.FAILURE,
         },
       );
-      this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+      this.sftpConnection.status(
+        reqId,
+        SFTP_STATUS_CODE.FAILURE,
+        'There is no open file associated with this handle.',
+      );
       return;
     }
     this.genericStatHandler(reqId, filePath);
@@ -332,7 +360,11 @@ export class SftpSessionHandler {
         attrs,
       },
     );
-    this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+    this.sftpConnection.status(
+      reqId,
+      SFTP_STATUS_CODE.FAILURE,
+      'Setting file attributes is not supported by Permanent.org.',
+    );
   }
 
   /**
@@ -363,7 +395,11 @@ export class SftpSessionHandler {
                 path: temporaryFile.virtualPath,
               },
             );
-            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+            this.sftpConnection.status(
+              reqId,
+              SFTP_STATUS_CODE.FAILURE,
+              'An error occurred when attempting to load the file statistics for the file associated with this handle.',
+            );
             return;
           }
           const { size } = stats;
@@ -393,7 +429,11 @@ export class SftpSessionHandler {
                 path: temporaryFile.virtualPath,
               },
             );
-            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+            this.sftpConnection.status(
+              reqId,
+              SFTP_STATUS_CODE.FAILURE,
+              'An error occurred when attempting to register this file on Permanent.org.',
+            );
           });
         },
       );
@@ -452,7 +492,11 @@ export class SftpSessionHandler {
             path: dirPath,
           },
         );
-        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+        this.sftpConnection.status(
+          reqId,
+          SFTP_STATUS_CODE.FAILURE,
+          'An error occurred when attempting to load this directory from Permanent.org.',
+        );
       });
   }
 
@@ -556,7 +600,11 @@ export class SftpSessionHandler {
             path: filePath,
           },
         );
-        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+        this.sftpConnection.status(
+          reqId,
+          SFTP_STATUS_CODE.FAILURE,
+          'An error occurred when attempting to delete this file on Permanent.org.',
+        );
       });
   }
 
@@ -594,7 +642,11 @@ export class SftpSessionHandler {
             path: directoryPath,
           },
         );
-        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+        this.sftpConnection.status(
+          reqId,
+          SFTP_STATUS_CODE.FAILURE,
+          'An error occurred when attempting to delete this directory on Permanent.org.',
+        );
       });
   }
 
@@ -652,7 +704,11 @@ export class SftpSessionHandler {
         linkPath,
       },
     );
-    this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+    this.sftpConnection.status(
+      reqId,
+      SFTP_STATUS_CODE.FAILURE,
+      'Symlinks are not supported by Permanent.org.',
+    );
   }
 
   /**
@@ -723,7 +779,11 @@ export class SftpSessionHandler {
             path: dirPath,
           },
         );
-        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+        this.sftpConnection.status(
+          reqId,
+          SFTP_STATUS_CODE.FAILURE,
+          'An error occurred when attempting to create this directory on Permanent.org.',
+        );
       });
   }
 
@@ -743,7 +803,11 @@ export class SftpSessionHandler {
         itemPath,
       },
     );
-    this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+    this.sftpConnection.status(
+      reqId,
+      SFTP_STATUS_CODE.FAILURE,
+      'Renaming is not supported by this sftp service.',
+    );
   }
 
   /**
@@ -763,7 +827,11 @@ export class SftpSessionHandler {
         targetPath,
       },
     );
-    this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+    this.sftpConnection.status(
+      reqId,
+      SFTP_STATUS_CODE.FAILURE,
+      'Symlinks are not supported by Permanent.org.',
+    );
   }
 
   private genericStatHandler(reqId: number, itemPath: string): void {
@@ -838,7 +906,11 @@ export class SftpSessionHandler {
                 path: filePath,
               },
             );
-            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.PERMISSION_DENIED);
+            this.sftpConnection.status(
+              reqId,
+              SFTP_STATUS_CODE.PERMISSION_DENIED,
+              'This file already exists on Permanent.org. Editing exiting files is not supported.',
+            );
             break;
           // These codes all require the file NOT to exist
           case 'wx': // write (file must not exist)
@@ -857,7 +929,11 @@ export class SftpSessionHandler {
                 path: filePath,
               },
             );
-            this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+            this.sftpConnection.status(
+              reqId,
+              SFTP_STATUS_CODE.FAILURE,
+              `This file already exists on Permanent.org, but the specified write mode (${flagsString ?? 'null'}) requires the file to not exist.`,
+            );
             break;
         }
       })
@@ -871,7 +947,11 @@ export class SftpSessionHandler {
             path: filePath,
           },
         );
-        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+        this.sftpConnection.status(
+          reqId,
+          SFTP_STATUS_CODE.FAILURE,
+          'An error occurred when attempting to load this file from Permanent.org.',
+        );
       });
   }
 
@@ -909,7 +989,11 @@ export class SftpSessionHandler {
                     code: SFTP_STATUS_CODE.FAILURE,
                   },
                 );
-                this.sftpConnection.status(reqId, SFTP_STATUS_CODE.FAILURE);
+                this.sftpConnection.status(
+                  reqId,
+                  SFTP_STATUS_CODE.FAILURE,
+                  'An error occurred when attempting to create the file in temporary storage.',
+                );
                 return;
               }
               const temporaryFile = {
