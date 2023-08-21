@@ -8,6 +8,8 @@ export const getFusionAuthClient = (): FusionAuthClient => new FusionAuthClient(
 export interface PartialClientResponse {
   exception: {
     message: string;
+    error?: string;
+    error_description?: string;
   };
 }
 

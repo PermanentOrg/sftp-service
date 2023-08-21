@@ -12,8 +12,22 @@ export class SshConnectionHandler {
 
   private authSession?: AuthenticationSession;
 
-  public constructor(permanentFileSystemManager: PermanentFileSystemManager) {
+  private fusionAuthSftpAppId = '';
+
+  private fusionAuthSftpClientId = '';
+
+  private fusionAuthSftpClientSecret = '';
+
+  public constructor(
+    permanentFileSystemManager: PermanentFileSystemManager,
+    fusionAuthSftpAppId: string,
+    fusionAuthSftpClientId: string,
+    fusionAuthSftpClientSecret: string,
+  ) {
     this.permanentFileSystemManager = permanentFileSystemManager;
+    this.fusionAuthSftpAppId = fusionAuthSftpAppId;
+    this.fusionAuthSftpClientId = fusionAuthSftpClientId;
+    this.fusionAuthSftpClientSecret = fusionAuthSftpClientSecret;
   }
 
   /**
@@ -21,13 +35,18 @@ export class SshConnectionHandler {
    * https://datatracker.ietf.org/doc/html/rfc4252#section-5
    */
   public onAuthentication(authContext: AuthContext): void {
-    logger.verbose('SSH authentication request recieved.', {
+    logger.verbose('SSH authentication request received.', {
       username: authContext.username,
       method: authContext.method,
     });
     switch (authContext.method) {
       case 'keyboard-interactive': {
-        const authenticationSession = new AuthenticationSession(authContext);
+        const authenticationSession = new AuthenticationSession(
+          authContext,
+          this.fusionAuthSftpAppId,
+          this.fusionAuthSftpClientId,
+          this.fusionAuthSftpClientSecret,
+        );
         authenticationSession.invokeAuthenticationFlow();
         this.authSession = authenticationSession;
         return;
