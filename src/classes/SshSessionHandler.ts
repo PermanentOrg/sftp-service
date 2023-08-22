@@ -62,7 +62,7 @@ export class SshSessionHandler {
    * See: Session Events (close)
    * https://github.com/mscdex/ssh2#session-events
    */
-  // eslint-disable-next-line class-methods-use-this
+  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/class-methods-use-this
   public onClose(): void {
     logger.verbose('SSH session closed');
   }
