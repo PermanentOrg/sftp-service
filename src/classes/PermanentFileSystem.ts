@@ -317,7 +317,6 @@ export class PermanentFileSystem {
       if (originalFile.downloadUrl === '') {
         throw new FileStillProcessingError('The original file is incomplete');
       }
-      return;
     } catch {
       await this.waitForPopulatedOriginalFile(requestedPath, attemptNumber + 1);
     }
