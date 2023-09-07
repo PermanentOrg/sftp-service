@@ -19,6 +19,7 @@ import {
   OperationNotAllowedError,
   ResourceDoesNotExistError,
 } from '../errors';
+import { logger } from '../logger';
 import {
   deduplicateFileEntries,
   generateAttributesForArchive,
@@ -298,9 +299,22 @@ export class PermanentFileSystem {
     requestedPath: string,
     attemptNumber = 0,
   ): Promise<void> {
+    logger.verbose(
+      'Waiting for populated original file',
+      {
+        requestedPath,
+        attemptNumber,
+      },
+    );
     if (attemptNumber >= 9) {
       // Since we're using 2^attempts the 8th attempt would mean we've
       // waited around 8 about minutes (plus the time before it).
+      logger.verbose(
+        'Too many attempts at getting original file',
+        {
+          attemptNumber,
+        },
+      );
       return;
     }
     await new Promise<void>((resolve) => {
@@ -315,6 +329,12 @@ export class PermanentFileSystem {
     try {
       const originalFile = getOriginalFileForArchiveRecord(archiveRecord);
       if (originalFile.downloadUrl === '') {
+        logger.verbose(
+          'Missing download url',
+          {
+            originalFile,
+          },
+        );
         throw new FileStillProcessingError('The original file is incomplete');
       }
       return;

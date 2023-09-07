@@ -21,7 +21,7 @@ export class SshConnectionHandler {
    * https://datatracker.ietf.org/doc/html/rfc4252#section-5
    */
   public onAuthentication(authContext: AuthContext): void {
-    logger.verbose('SSH authentication request recieved.', {
+    logger.verbose('SSH authentication request received.', {
       username: authContext.username,
       method: authContext.method,
     });
