@@ -122,10 +122,10 @@ To fetch all of your archives, use command like this:
      rclone copy --create-empty-src-dirs --size-only permanent:/ ./my-permanent-data
 ```
 
-To fetch a particular archive, use command like the one below.  Note that you'll need the archive's number as well as its name -- the number goes in parentheses after the name, e.g., the "(12345)" below.  Right now, the only way find out an archive's number is to download all your archives and look for that number in parentheses among the names of the downloaded folders, or to ask a Permanent engineer if you happen to know one.  This is a known problem; see [issue #91](https://github.com/PermanentOrg/sftp-service/issues/91) for details.  Anyway, assuming you have found out the archive's number, you can fetch just that archive like so:
+To fetch a particular archive, use a command like the one below.  Note that you'll need the archive's slug as well as its name -- the slug goes in parentheses after the name, e.g., the "(asdf-0000)" below.  Once you have the slug, you can fetch just that archive like so:
 
 ```
-     rclone copy -v -P --create-empty-src-dirs "permanent-prod:/archives/Some Archive (12345)/My Files/" ./some-archive
+     rclone copy -v -P --create-empty-src-dirs "permanent:archives/Some Archive (asdf-0000)/My Files/" ./some-archive
 ```
 
 See [rclone.org/commands/rclone_copy](https://rclone.org/commands/rclone_copy/) for other flags to the `copy` subcommand.
