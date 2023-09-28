@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs';
 import { Server } from 'ssh2';
+import { requireEnv } from 'require-env-variable';
 import { logger } from './logger';
 import {
   SshConnectionHandler,
@@ -10,10 +11,21 @@ import type {
   ServerConfig,
 } from 'ssh2';
 
+const {
+  SSH_HOST_KEY_PATH,
+  FUSION_AUTH_SFTP_APP_ID,
+  FUSION_AUTH_SFTP_CLIENT_ID,
+  FUSION_AUTH_SFTP_CLIENT_SECRET,
+} = requireEnv(
+  'SSH_HOST_KEY_PATH',
+  'FUSION_AUTH_SFTP_APP_ID',
+  'FUSION_AUTH_SFTP_CLIENT_ID',
+  'FUSION_AUTH_SFTP_CLIENT_SECRET',
+);
+
 const hostKeys = [];
-if (typeof process.env.SSH_HOST_KEY_PATH === 'string') {
-  hostKeys.push(readFileSync(process.env.SSH_HOST_KEY_PATH));
-}
+
+hostKeys.push(readFileSync(SSH_HOST_KEY_PATH));
 
 const serverConfig: ServerConfig = {
   hostKeys,
@@ -24,7 +36,12 @@ const permanentFileSystemManager = new PermanentFileSystemManager();
 
 const connectionListener = (client: Connection): void => {
   logger.verbose('New connection');
-  const connectionHandler = new SshConnectionHandler(permanentFileSystemManager);
+  const connectionHandler = new SshConnectionHandler(
+    permanentFileSystemManager,
+    FUSION_AUTH_SFTP_APP_ID,
+    FUSION_AUTH_SFTP_CLIENT_ID,
+    FUSION_AUTH_SFTP_CLIENT_SECRET,
+  );
   client.on('authentication', connectionHandler.onAuthentication.bind(connectionHandler));
   client.on('close', connectionHandler.onClose.bind(connectionHandler));
   client.on('end', connectionHandler.onEnd.bind(connectionHandler));
