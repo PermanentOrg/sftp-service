@@ -132,10 +132,10 @@ See [rclone.org/commands/rclone_copy](https://rclone.org/commands/rclone_copy/) 
 
 #### Uploading to Permanent:
 
-To send data to Permanent, just reverse the order of operands: your local file tree is now the source and Permanent is the destination.  You'll also need to add the `--size-only` and `--sftp-set-modtime=false` flags (currently necessary because of [issue #80](https://github.com/PermanentOrg/sftp-service/issues/80)).  Here's an example command:
+To send data to Permanent, just reverse the order of operands: your local file tree is now the source and Permanent is the destination.  You'll also need to add the `--size-only` and `--sftp-set-modtime=false` flags (currently necessary because of [issue #80](https://github.com/PermanentOrg/sftp-service/issues/80)). On the newest versions of rclone, you will also have to pass in the `--inplace` flag to upload properly (this is related to [issue #164](https://github.com/PermanentOrg/sftp-service/issues/164)).  Here's an example command:
 
 ```
-     rclone copy -v -P --create-empty-src-dirs --size-only --sftp-set-modtime=false ./some-archive "permanent-prod:/archives/Some Archive (12345)/My Files/"
+     rclone copy -v -P --create-empty-src-dirs --inplace --size-only --sftp-set-modtime=false ./some-archive "permanent-prod:/archives/Some Archive (12345)/My Files/"
 ```
 
 ### Troubleshooting rclone
