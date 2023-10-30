@@ -61,7 +61,7 @@
     "dotenv": "^16.3.1",
     "logform": "^2.6.0",
     "node-fetch": "^2.7.0",
-    "require-env-variable": "^4.0.1",
+    "require-env-variable": "^4.0.2",
     "ssh2": "^1.14.0",
     "tmp": "^0.2.1",
     "uuid": "^9.0.1",
