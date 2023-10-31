@@ -142,7 +142,7 @@ To send data to Permanent, just reverse the order of operands: your local file t
 
 - MFA / 2FA authentication prevents rclone from working.
 
-  Because rclone does not support multi-factor authentication, you must turn off MFA in your Permanent account before transferring data with rclone.  (Note thaht there might be other SFTP clients that can handle MFA; this documentation is only about rclone.)
+  Because rclone does not support multi-factor authentication, you must turn off MFA in your Permanent account before transferring data with rclone.  (Note that there might be other SFTP clients that can handle MFA; this documentation is only about rclone.)
 
 - Empty directories are not copied down when cloning from Permanent.
 
