@@ -138,6 +138,37 @@ To send data to Permanent, just reverse the order of operands: your local file t
      rclone copy -v -P --create-empty-src-dirs --inplace --size-only --sftp-set-modtime=false ./some-archive "permanent-prod:/archives/Some Archive (12345)/My Files/"
 ```
 
+### Using `sync` instead of `copy`
+
+The above examples use `rclone copy`, which copies files from source
+to destination but never removes anything from the destination.
+
+If you replace `copy` with
+[sync](https://rclone.org/commands/rclone_sync/), rclone will
+*synchronize* the source to the destination.  That is, it will update
+the destination to look like the source, deleting files from the
+destination side when those files are absent in the source.
+
+See
+[rclone.org/commands/rclone_sync](https://rclone.org/commands/rclone_sync/).
+
+### Supported rclone commands
+
+Permanent officially supports these four `rclone` commands:
+
+* [rclone ls](https://rclone.org/commands/rclone_ls/)
+* [rclone copy](https://rclone.org/commands/rclone_copy/)
+* [rclone sync](https://rclone.org/commands/rclone_sync/)
+* [rclone delete](https://rclone.org/commands/rclone_delete/)
+
+Since `rclone` offers [many commands](https://rclone.org/commands/),
+there may be some beyond the four listed above that turn out to also
+work in practice.  If there is a command that you feel should be among
+those officially supported, please let us know, either at our [regular
+contact form](https://www.permanent.org/contact-us/) or, if you feel
+comfortable doing so, by [filing an
+issue](https://github.com/PermanentOrg/sftp-service/issues/new).
+
 ### Troubleshooting rclone
 
 - MFA / 2FA authentication prevents rclone from working.
