@@ -43,6 +43,7 @@ import type {
   Attributes,
   FileEntry,
 } from 'ssh2';
+import type { AuthTokenManager } from './AuthTokenManager';
 
 const isRootPath = (requestedPath: string): boolean => (
   requestedPath === '/'
@@ -79,10 +80,10 @@ export class PermanentFileSystem {
 
   private archivesCache?: Archive[];
 
-  private readonly authToken;
+  private readonly authTokenManager;
 
-  public constructor(authToken: string) {
-    this.authToken = authToken;
+  public constructor(authTokenManager: AuthTokenManager) {
+    this.authTokenManager = authTokenManager;
   }
 
   private static loadRootFileEntries(): FileEntry[] {
@@ -191,7 +192,7 @@ export class PermanentFileSystem {
     const childName = path.basename(requestedPath);
     const parentFolder = await this.loadFolder(parentPath);
     return createFolder(
-      this.getClientConfiguration(),
+      await this.getClientConfiguration(),
       {
         name: childName,
       },
@@ -201,7 +202,7 @@ export class PermanentFileSystem {
 
   public async deleteDirectory(requestedPath: string): Promise<void> {
     const account = await getAuthenticatedAccount(
-      this.getClientConfiguration(),
+      await this.getClientConfiguration(),
     );
     if (!account.isSftpDeletionEnabled) {
       throw new OperationNotAllowedError('You must enable SFTP deletion directly in your account settings.');
@@ -220,7 +221,7 @@ export class PermanentFileSystem {
     const folder = await this.loadFolder(requestedPath);
 
     await deleteFolder(
-      this.getClientConfiguration(),
+      await this.getClientConfiguration(),
       folder.id,
     );
   }
@@ -242,14 +243,14 @@ export class PermanentFileSystem {
       fileSystemCompatibleName: archiveRecordName,
     };
     const s3Url = await uploadFile(
-      this.getClientConfiguration(),
+      await this.getClientConfiguration(),
       dataStream,
       fileFragment,
       archiveRecordfragment,
       parentFolder,
     );
     await createArchiveRecord(
-      this.getClientConfiguration(),
+      await this.getClientConfiguration(),
       s3Url,
       fileFragment,
       archiveRecordfragment,
@@ -259,7 +260,7 @@ export class PermanentFileSystem {
 
   public async deleteFile(requestedPath: string): Promise<void> {
     const account = await getAuthenticatedAccount(
-      this.getClientConfiguration(),
+      await this.getClientConfiguration(),
     );
     if (!account.isSftpDeletionEnabled) {
       throw new OperationNotAllowedError('You must enable SFTP deletion directly in your account settings.');
@@ -274,7 +275,7 @@ export class PermanentFileSystem {
     );
 
     await deleteArchiveRecord(
-      this.getClientConfiguration(),
+      await this.getClientConfiguration(),
       archiveRecord.id,
     );
   }
@@ -338,7 +339,7 @@ export class PermanentFileSystem {
       childName,
     );
     const populatedArchiveRecord = await getArchiveRecord(
-      this.getClientConfiguration(),
+      await this.getClientConfiguration(),
       archiveRecord.id,
       archiveId,
     );
@@ -380,9 +381,10 @@ export class PermanentFileSystem {
     return this.loadArchiveRecords(archiveRecordPaths);
   }
 
-  private getClientConfiguration(): ClientConfiguration {
+  private async getClientConfiguration(): Promise<ClientConfiguration> {
+    const authToken = await this.authTokenManager.getAuthToken();
     return {
-      bearerToken: this.authToken,
+      bearerToken: authToken,
       baseUrl: process.env.PERMANENT_API_BASE_PATH,
     };
   }
@@ -390,7 +392,7 @@ export class PermanentFileSystem {
   private async loadArchives(): Promise<Archive[]> {
     if (!this.archivesCache) {
       this.archivesCache = await getArchives(
-        this.getClientConfiguration(),
+        await this.getClientConfiguration(),
       );
     }
     return this.archivesCache;
@@ -417,7 +419,7 @@ export class PermanentFileSystem {
       return cachedArchiveFolders;
     }
     const archiveFolders = await getArchiveFolders(
-      this.getClientConfiguration(),
+      await this.getClientConfiguration(),
       archiveId,
     );
     this.archiveFoldersCache.set(archiveId, archiveFolders);
@@ -506,7 +508,7 @@ export class PermanentFileSystem {
       childName,
     );
     const populatedTargetFolder = await getFolder(
-      this.getClientConfiguration(),
+      await this.getClientConfiguration(),
       targetFolder.id,
       archiveId,
     );
