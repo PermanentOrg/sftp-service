@@ -8,7 +8,7 @@ import { generateFileEntry } from '../utils';
 import { MissingTemporaryFileError } from '../errors';
 import { PermanentFileSystem } from './PermanentFileSystem';
 import { TemporaryFileManager } from './TemporaryFileManager';
-import type { AuthenticationSession } from './AuthenticationSession';
+import type { AuthTokenManager } from './AuthTokenManager';
 import type { PermanentFileSystemManager } from './PermanentFileSystemManager';
 import type { TemporaryFile } from './TemporaryFileManager';
 import type {
@@ -61,15 +61,15 @@ export class SftpSessionHandler {
 
   private readonly permanentFileSystemManager: PermanentFileSystemManager;
 
-  private readonly authenticationSession: AuthenticationSession;
+  private readonly authTokenManager: AuthTokenManager;
 
   public constructor(
     sftpConnection: SFTPWrapper,
-    authenticationSession: AuthenticationSession,
+    authTokenManager: AuthTokenManager,
     permanentFileSystemManager: PermanentFileSystemManager,
   ) {
     this.sftpConnection = sftpConnection;
-    this.authenticationSession = authenticationSession;
+    this.authTokenManager = authTokenManager;
     this.permanentFileSystemManager = permanentFileSystemManager;
   }
 
@@ -1364,8 +1364,8 @@ export class SftpSessionHandler {
   private async getCurrentPermanentFileSystem(): Promise<PermanentFileSystem> {
     return this.permanentFileSystemManager
       .getCurrentPermanentFileSystemForUser(
-        this.authenticationSession.authContext.username,
-        await this.authenticationSession.getAuthToken(),
+        this.authTokenManager.username,
+        await this.authTokenManager.getAuthToken(),
       );
   }
 }
