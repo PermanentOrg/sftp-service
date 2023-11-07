@@ -205,17 +205,29 @@ export class AuthenticationSession {
     }).then((clientResponse) => {
       switch (clientResponse.statusCode) {
         case FusionAuthStatusCode.Success:
-        case FusionAuthStatusCode.SuccessButUnregisteredInApp:
-          if (clientResponse.response.token !== undefined) {
-            logger.verbose('Successful 2FA authentication attempt.', {
-              username: this.authContext.username,
-            });
-            this.authToken = clientResponse.response.token;
+          logger.verbose('Successful 2FA authentication attempt.', {
+            username: this.authContext.username,
+          });
+          if (clientResponse.response.refreshToken) {
+            this.successHandler(clientResponse.response.refreshToken);
             this.authContext.accept();
-            return;
+          } else {
+            logger.warn('No refresh token in response :', clientResponse.response);
+            this.authContext.reject();
           }
-          this.authContext.reject();
           return;
+        case FusionAuthStatusCode.SuccessButUnregisteredInApp: {
+          const userId = clientResponse.response.user?.id ?? '';
+          this.registerUserInApp(userId)
+            .then(() => {
+              this.processTwoFactorCodeResponse([twoFactorCode]);
+            })
+            .catch((error) => {
+              logger.warn('Error during registration and authentication:', error);
+              this.authContext.reject();
+            });
+          return;
+        }
         default:
           logger.verbose('Failed 2FA authentication attempt.', {
             username: this.authContext.username,
