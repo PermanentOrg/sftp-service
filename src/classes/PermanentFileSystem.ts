@@ -238,7 +238,7 @@ export class PermanentFileSystem {
       contentType: 'application/octet-stream',
       size,
     };
-    const archiveRecordfragment = {
+    const archiveRecordFragment = {
       displayName: archiveRecordName,
       fileSystemCompatibleName: archiveRecordName,
     };
@@ -246,14 +246,14 @@ export class PermanentFileSystem {
       await this.getClientConfiguration(),
       dataStream,
       fileFragment,
-      archiveRecordfragment,
+      archiveRecordFragment,
       parentFolder,
     );
     await createArchiveRecord(
       await this.getClientConfiguration(),
       s3Url,
       fileFragment,
-      archiveRecordfragment,
+      archiveRecordFragment,
       parentFolder,
     );
   }
