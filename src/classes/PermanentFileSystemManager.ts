@@ -1,5 +1,6 @@
 import { logger } from '../logger';
 import { PermanentFileSystem } from './PermanentFileSystem';
+import type { AuthTokenManager } from './AuthTokenManager';
 
 export class PermanentFileSystemManager {
   private readonly permanentFileSystems = new Map<string, PermanentFileSystem>();
@@ -8,7 +9,7 @@ export class PermanentFileSystemManager {
 
   public getCurrentPermanentFileSystemForUser(
     user: string,
-    authToken: string,
+    authTokenManager: AuthTokenManager,
   ): PermanentFileSystem {
     logger.silly('Get permanent file system for user', { user });
     this.resetDeletionTimeout(user);
@@ -16,7 +17,7 @@ export class PermanentFileSystemManager {
     if (existingFileSystem !== undefined) {
       return existingFileSystem;
     }
-    const permanentFileSystem = new PermanentFileSystem(authToken);
+    const permanentFileSystem = new PermanentFileSystem(authTokenManager);
     this.permanentFileSystems.set(
       user,
       permanentFileSystem,

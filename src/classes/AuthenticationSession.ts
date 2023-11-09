@@ -3,7 +3,6 @@ import {
   getFusionAuthClient,
   isPartialClientResponse,
 } from '../fusionAuth';
-import { AuthTokenRefreshError } from '../errors/AuthTokenRefreshError';
 import type { KeyboardAuthContext } from 'ssh2';
 import type { TwoFactorMethod } from '@fusionauth/typescript-client';
 
@@ -13,106 +12,34 @@ enum FusionAuthStatusCode {
   SuccessNeedsTwoFactorAuth = 242,
 }
 
+type SuccessHandler = (refreshToken: string) => void;
+
 export class AuthenticationSession {
-  private authToken = '';
-
-  public refreshToken = '';
-
-  public readonly authContext;
-
-  private authTokenExpiresAt = new Date();
+  private readonly authContext;
 
   private readonly fusionAuthClient;
+
+  private readonly successHandler: SuccessHandler;
 
   private twoFactorId = '';
 
   private twoFactorMethods: TwoFactorMethod[] = [];
 
-  private fusionAuthAppId = '';
-
   private fusionAuthClientId = '';
-
-  private fusionAuthClientSecret = '';
 
   public constructor(
     authContext: KeyboardAuthContext,
-    fusionAuthAppId: string,
     fusionAuthClientId: string,
-    fusionAuthClientSecret: string,
+    successHandler: SuccessHandler,
   ) {
     this.authContext = authContext;
-    this.fusionAuthAppId = fusionAuthAppId;
     this.fusionAuthClientId = fusionAuthClientId;
-    this.fusionAuthClientSecret = fusionAuthClientSecret;
     this.fusionAuthClient = getFusionAuthClient();
+    this.successHandler = successHandler;
   }
 
   public invokeAuthenticationFlow(): void {
     this.promptForPassword();
-  }
-
-  public async getAuthToken() {
-    if (this.tokenWouldExpireSoon()) {
-      await this.getAuthTokenUsingRefreshToken();
-    }
-    return this.authToken;
-  }
-
-  private async getAuthTokenUsingRefreshToken(): Promise<void> {
-    let clientResponse;
-    try {
-      /**
-       * Fusion auth sdk wrongly mandates last two params (scope, user_code)
-       * hence the need to pass two empty strings here.
-       * See: https://github.com/FusionAuth/fusionauth-typescript-client/issues/42
-       */
-      clientResponse = await this.fusionAuthClient.exchangeRefreshTokenForAccessToken(
-        this.refreshToken,
-        this.fusionAuthClientId,
-        this.fusionAuthClientSecret,
-        '',
-        '',
-      );
-    } catch (error: unknown) {
-      let message: string;
-      if (isPartialClientResponse(error)) {
-        message = error.exception.message;
-      } else {
-        message = error instanceof Error ? error.message : JSON.stringify(error);
-      }
-      logger.verbose(`Error obtaining refresh token: ${message}`);
-      throw new AuthTokenRefreshError(`Error obtaining refresh token: ${message}`);
-    }
-
-    if (!clientResponse.response.access_token) {
-      logger.warn('No access token in response:', clientResponse.response);
-      throw new AuthTokenRefreshError('Response does not contain access_token');
-    }
-
-    if (!clientResponse.response.expires_in) {
-      logger.warn('Response lacks token TTL (expires_in):', clientResponse.response);
-      throw new AuthTokenRefreshError('Response lacks token TTL (expires_in)');
-    }
-
-    /**
-     * The exchange refresh token for access token endpoint does not return a timestamp,
-     * it returns expires_in in seconds.
-     * So we need to create the timestamp to be consistent with what is first
-     * returned upon initial authentication
-     */
-    this.authToken = clientResponse.response.access_token;
-    this.authTokenExpiresAt = new Date(
-      Date.now() + (clientResponse.response.expires_in * 1000),
-    );
-    logger.debug('New access token obtained:', clientResponse.response);
-  }
-
-  private tokenWouldExpireSoon(expirationThresholdInSeconds = 300): boolean {
-    const currentTime = new Date();
-    const remainingTokenLife = (
-      (this.authTokenExpiresAt.getTime() - currentTime.getTime()) / 1000
-    );
-    return remainingTokenLife <= expirationThresholdInSeconds;
   }
 
   private promptForPassword(): void {
@@ -129,29 +56,20 @@ export class AuthenticationSession {
 
   private processPasswordResponse([password]: string[]): void {
     this.fusionAuthClient.login({
-      applicationId: this.fusionAuthAppId,
+      applicationId: this.fusionAuthClientId,
       loginId: this.authContext.username,
       password,
     }).then((clientResponse) => {
       switch (clientResponse.statusCode) {
         case FusionAuthStatusCode.Success: {
-          if (clientResponse.response.token !== undefined) {
-            logger.verbose('Successful password authentication attempt.', {
-              username: this.authContext.username,
-            });
-            this.authToken = clientResponse.response.token;
-            if (clientResponse.response.refreshToken) {
-              this.refreshToken = clientResponse.response.refreshToken;
-              this.authTokenExpiresAt = new Date(
-                clientResponse.response.tokenExpirationInstant ?? 0,
-              );
-            } else {
-              logger.warn('No refresh token in response :', clientResponse.response);
-              this.authContext.reject();
-            }
+          logger.verbose('Successful password authentication attempt.', {
+            username: this.authContext.username,
+          });
+          if (clientResponse.response.refreshToken) {
+            this.successHandler(clientResponse.response.refreshToken);
             this.authContext.accept();
           } else {
-            logger.warn('No auth token in response', clientResponse.response);
+            logger.warn('No refresh token in response :', clientResponse.response);
             this.authContext.reject();
           }
           return;
@@ -159,7 +77,9 @@ export class AuthenticationSession {
         case FusionAuthStatusCode.SuccessButUnregisteredInApp: {
           const userId: string = clientResponse.response.user?.id ?? '';
           this.registerUserInApp(userId)
-            .then(() => { this.processPasswordResponse([password]); })
+            .then(() => {
+              this.processPasswordResponse([password]);
+            })
             .catch((error) => {
               logger.warn('Error during registration and authentication:', error);
               this.authContext.reject();
@@ -203,7 +123,7 @@ export class AuthenticationSession {
     try {
       const clientResponse = await this.fusionAuthClient.register(userId, {
         registration: {
-          applicationId: this.fusionAuthAppId,
+          applicationId: this.fusionAuthClientId,
         },
       });
 
@@ -285,17 +205,29 @@ export class AuthenticationSession {
     }).then((clientResponse) => {
       switch (clientResponse.statusCode) {
         case FusionAuthStatusCode.Success:
-        case FusionAuthStatusCode.SuccessButUnregisteredInApp:
-          if (clientResponse.response.token !== undefined) {
-            logger.verbose('Successful 2FA authentication attempt.', {
-              username: this.authContext.username,
-            });
-            this.authToken = clientResponse.response.token;
+          logger.verbose('Successful 2FA authentication attempt.', {
+            username: this.authContext.username,
+          });
+          if (clientResponse.response.refreshToken) {
+            this.successHandler(clientResponse.response.refreshToken);
             this.authContext.accept();
-            return;
+          } else {
+            logger.warn('No refresh token in response :', clientResponse.response);
+            this.authContext.reject();
           }
-          this.authContext.reject();
           return;
+        case FusionAuthStatusCode.SuccessButUnregisteredInApp: {
+          const userId = clientResponse.response.user?.id ?? '';
+          this.registerUserInApp(userId)
+            .then(() => {
+              this.processTwoFactorCodeResponse([twoFactorCode]);
+            })
+            .catch((error) => {
+              logger.warn('Error during registration and authentication:', error);
+              this.authContext.reject();
+            });
+          return;
+        }
         default:
           logger.verbose('Failed 2FA authentication attempt.', {
             username: this.authContext.username,

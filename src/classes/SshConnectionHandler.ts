@@ -1,6 +1,7 @@
 import { logger } from '../logger';
 import { AuthenticationSession } from './AuthenticationSession';
 import { SshSessionHandler } from './SshSessionHandler';
+import { AuthTokenManager } from './AuthTokenManager';
 import type {
   AuthContext,
   Session,
@@ -10,9 +11,7 @@ import type { PermanentFileSystemManager } from './PermanentFileSystemManager';
 export class SshConnectionHandler {
   private readonly permanentFileSystemManager: PermanentFileSystemManager;
 
-  private authSession?: AuthenticationSession;
-
-  private fusionAuthSftpAppId = '';
+  private authTokenManager?: AuthTokenManager;
 
   private fusionAuthSftpClientId = '';
 
@@ -20,12 +19,10 @@ export class SshConnectionHandler {
 
   public constructor(
     permanentFileSystemManager: PermanentFileSystemManager,
-    fusionAuthSftpAppId: string,
     fusionAuthSftpClientId: string,
     fusionAuthSftpClientSecret: string,
   ) {
     this.permanentFileSystemManager = permanentFileSystemManager;
-    this.fusionAuthSftpAppId = fusionAuthSftpAppId;
     this.fusionAuthSftpClientId = fusionAuthSftpClientId;
     this.fusionAuthSftpClientSecret = fusionAuthSftpClientSecret;
   }
@@ -43,12 +40,17 @@ export class SshConnectionHandler {
       case 'keyboard-interactive': {
         const authenticationSession = new AuthenticationSession(
           authContext,
-          this.fusionAuthSftpAppId,
           this.fusionAuthSftpClientId,
-          this.fusionAuthSftpClientSecret,
+          (refreshToken) => {
+            this.authTokenManager = new AuthTokenManager(
+              authContext.username,
+              refreshToken,
+              this.fusionAuthSftpClientId,
+              this.fusionAuthSftpClientSecret,
+            );
+          },
         );
         authenticationSession.invokeAuthenticationFlow();
-        this.authSession = authenticationSession;
         return;
       }
       case 'none':
@@ -131,14 +133,14 @@ export class SshConnectionHandler {
   ): void {
     logger.verbose('SSH request for a new session');
     const session = accept();
-    if (this.authSession === undefined) {
+    if (this.authTokenManager === undefined) {
       logger.verbose('Closing SSH session immediately (no authentication context)');
       session.close();
       return;
     }
     const sessionHandler = new SshSessionHandler(
       session,
-      this.authSession,
+      this.authTokenManager,
       this.permanentFileSystemManager,
     );
     session.on('sftp', sessionHandler.onSftp.bind(sessionHandler));

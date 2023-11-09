@@ -13,12 +13,13 @@ import type {
 
 const {
   SSH_HOST_KEY_PATH,
-  FUSION_AUTH_SFTP_APP_ID,
   FUSION_AUTH_SFTP_CLIENT_ID,
   FUSION_AUTH_SFTP_CLIENT_SECRET,
 } = requireEnv(
+  'FUSION_AUTH_HOST',
+  'FUSION_AUTH_KEY',
+  'PERMANENT_API_BASE_PATH',
   'SSH_HOST_KEY_PATH',
-  'FUSION_AUTH_SFTP_APP_ID',
   'FUSION_AUTH_SFTP_CLIENT_ID',
   'FUSION_AUTH_SFTP_CLIENT_SECRET',
 );
@@ -38,7 +39,6 @@ const connectionListener = (client: Connection): void => {
   logger.verbose('New connection');
   const connectionHandler = new SshConnectionHandler(
     permanentFileSystemManager,
-    FUSION_AUTH_SFTP_APP_ID,
     FUSION_AUTH_SFTP_CLIENT_ID,
     FUSION_AUTH_SFTP_CLIENT_SECRET,
   );
