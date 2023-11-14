@@ -344,6 +344,38 @@ export class PermanentFileSystem {
     }
   }
 
+  public folderPathExistsInCache(itemPath: string): boolean {
+    if (this.folderCache.has(itemPath)) {
+      return true;
+    }
+    const parentPath = path.dirname(itemPath);
+    const folderName = path.basename(itemPath);
+    const parentFolder = this.folderCache.get(parentPath);
+    if (!parentFolder) {
+      return false;
+    }
+    const foundFolder = parentFolder.folders.find(
+      (folder) => folder.fileSystemCompatibleName === folderName,
+    );
+    return foundFolder !== undefined;
+  }
+
+  public archiveRecordPathExistsInCache(itemPath: string): boolean {
+    if (this.archiveRecordCache.has(itemPath)) {
+      return true;
+    }
+    const parentPath = path.dirname(itemPath);
+    const archiveRecordName = path.basename(itemPath);
+    const parentFolder = this.folderCache.get(parentPath);
+    if (!parentFolder) {
+      return false;
+    }
+    const foundArchiveRecord = parentFolder.archiveRecords.find(
+      (folder) => folder.fileSystemCompatibleName === archiveRecordName,
+    );
+    return foundArchiveRecord !== undefined;
+  }
+
   private async loadArchiveRecord(
     requestedPath: string,
     overrideCache = false,
