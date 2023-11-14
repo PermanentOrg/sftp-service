@@ -178,7 +178,7 @@ export class PermanentFileSystem {
     return [];
   }
 
-  public async createDirectory(requestedPath: string): Promise<Folder> {
+  public async createDirectory(requestedPath: string): Promise<void> {
     if (isRootPath(requestedPath)) {
       throw new InvalidOperationForPathError('You cannot create new root level folders via SFTP.');
     }
@@ -191,13 +191,15 @@ export class PermanentFileSystem {
     const parentPath = path.dirname(requestedPath);
     const childName = path.basename(requestedPath);
     const parentFolder = await this.loadFolder(parentPath);
-    return createFolder(
+    const newFolder = await createFolder(
       await this.getClientConfiguration(),
       {
         name: childName,
       },
       parentFolder,
     );
+    parentFolder.folders.push(newFolder);
+    this.folderCache.set(parentPath, parentFolder);
   }
 
   public async deleteDirectory(requestedPath: string): Promise<void> {
@@ -238,7 +240,7 @@ export class PermanentFileSystem {
       contentType: 'application/octet-stream',
       size,
     };
-    const archiveRecordfragment = {
+    const archiveRecordFragment = {
       displayName: archiveRecordName,
       fileSystemCompatibleName: archiveRecordName,
     };
@@ -246,16 +248,18 @@ export class PermanentFileSystem {
       await this.getClientConfiguration(),
       dataStream,
       fileFragment,
-      archiveRecordfragment,
+      archiveRecordFragment,
       parentFolder,
     );
-    await createArchiveRecord(
+    const newArchiveRecord = await createArchiveRecord(
       await this.getClientConfiguration(),
       s3Url,
       fileFragment,
-      archiveRecordfragment,
+      archiveRecordFragment,
       parentFolder,
     );
+    parentFolder.archiveRecords.push(newArchiveRecord);
+    this.folderCache.set(parentPath, parentFolder);
   }
 
   public async deleteFile(requestedPath: string): Promise<void> {
