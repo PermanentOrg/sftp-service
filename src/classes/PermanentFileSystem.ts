@@ -147,11 +147,11 @@ export class PermanentFileSystem {
     const fileType = await this.getItemType(itemPath);
     switch (fileType) {
       case fs.constants.S_IFREG: {
-        const file = await this.loadFile(itemPath, true);
+        const file = await this.loadFile(itemPath);
         return generateAttributesForFile(file);
       }
       case fs.constants.S_IFDIR: {
-        const folder = await this.loadFolder(itemPath, true);
+        const folder = await this.loadFolder(itemPath);
         return generateAttributesForFolder(folder);
       }
       default:
@@ -170,10 +170,7 @@ export class PermanentFileSystem {
       return this.loadArchiveFoldersFileEntries(requestedPath);
     }
     if (isItemPath(requestedPath)) {
-      return this.loadFolderFileEntries(
-        requestedPath,
-        true,
-      );
+      return this.loadFolderFileEntries(requestedPath);
     }
     return [];
   }
