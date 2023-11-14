@@ -199,7 +199,7 @@ export class PermanentFileSystem {
       parentFolder,
     );
     parentFolder.folders.push(newFolder);
-    this.folderCache.set(parentPath, parentFolder);
+    await this.updateFolderInCache(parentPath, parentFolder);
   }
 
   public async deleteDirectory(requestedPath: string): Promise<void> {
@@ -259,7 +259,7 @@ export class PermanentFileSystem {
       parentFolder,
     );
     parentFolder.archiveRecords.push(newArchiveRecord);
-    this.folderCache.set(parentPath, parentFolder);
+    await this.updateFolderInCache(parentPath, parentFolder);
   }
 
   public async deleteFile(requestedPath: string): Promise<void> {
@@ -324,6 +324,23 @@ export class PermanentFileSystem {
       }
     } catch {
       await this.waitForPopulatedOriginalFile(requestedPath, attemptNumber + 1);
+    }
+  }
+
+  private async updateFolderInCache(
+    folderPath: string,
+    folder: Folder,
+  ): Promise<void> {
+    if (isArchiveChildFolderPath(folderPath)) {
+      const archiveId = await this.loadArchiveIdFromPath(folderPath);
+      const archiveFolders = await this.loadArchiveFolders(archiveId);
+      const targetIndex = archiveFolders.findIndex((candidateFolder) => (
+        candidateFolder.name === folder.name
+      ));
+      archiveFolders[targetIndex] = folder;
+      this.archiveFoldersCache.set(archiveId, archiveFolders);
+    } else {
+      this.folderCache.set(folderPath, folder);
     }
   }
 
