@@ -200,6 +200,7 @@ export class PermanentFileSystem {
     );
     parentFolder.folders.push(newFolder);
     await this.updateFolderInCache(parentPath, parentFolder);
+    await this.updateFolderInCache(requestedPath, newFolder);
   }
 
   public async deleteDirectory(requestedPath: string): Promise<void> {
@@ -259,6 +260,7 @@ export class PermanentFileSystem {
       parentFolder,
     );
     parentFolder.archiveRecords.push(newArchiveRecord);
+    this.archiveRecordCache.set(requestedPath, newArchiveRecord);
     await this.updateFolderInCache(parentPath, parentFolder);
   }
 
