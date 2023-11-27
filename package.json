@@ -52,7 +52,7 @@
     "eslint-plugin-sort-exports": "^0.8.0",
     "jest": "^29.7.0",
     "nodemon": "^3.0.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.3.2"
   },
   "dependencies": {
     "@fusionauth/typescript-client": "^1.48.0",
