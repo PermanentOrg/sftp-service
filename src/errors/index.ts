@@ -1,4 +1,3 @@
-export * from './FileStillProcessingError';
 export * from './InvalidOperationForPathError';
 export * from './MissingTemporaryFileError';
 export * from './NotFoundError';

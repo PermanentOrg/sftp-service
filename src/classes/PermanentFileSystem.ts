@@ -13,7 +13,6 @@ import {
   uploadFile,
 } from '@permanentorg/sdk';
 import {
-  FileStillProcessingError,
   InvalidOperationForPathError,
   NotFoundError,
   OperationNotAllowedError,
@@ -290,40 +289,11 @@ export class PermanentFileSystem {
     if (!isItemPath(requestedPath)) {
       throw new InvalidOperationForPathError('Invalid file path');
     }
-    await this.waitForPopulatedOriginalFile(requestedPath);
     const archiveRecord = await this.loadArchiveRecord(
       requestedPath,
       overrideCache,
     );
     return getOriginalFileForArchiveRecord(archiveRecord);
-  }
-
-  public async waitForPopulatedOriginalFile(
-    requestedPath: string,
-    attemptNumber = 0,
-  ): Promise<void> {
-    if (attemptNumber >= 9) {
-      // Since we're using 2^attempts the 8th attempt would mean we've
-      // waited around 8 about minutes (plus the time before it).
-      return;
-    }
-    await new Promise<void>((resolve) => {
-      setTimeout(
-        () => {
-          resolve();
-        },
-        (2 ** attemptNumber) * 1000,
-      );
-    });
-    const archiveRecord = await this.loadArchiveRecord(requestedPath, true);
-    try {
-      const originalFile = getOriginalFileForArchiveRecord(archiveRecord);
-      if (originalFile.downloadUrl === '') {
-        throw new FileStillProcessingError('The original file is incomplete');
-      }
-    } catch {
-      await this.waitForPopulatedOriginalFile(requestedPath, attemptNumber + 1);
-    }
   }
 
   private async updateFolderInCache(
