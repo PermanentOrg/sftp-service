@@ -61,7 +61,7 @@ export class AuthenticationSession {
       password,
     }).then((clientResponse) => {
       switch (clientResponse.statusCode) {
-        case FusionAuthStatusCode.Success: {
+        case FusionAuthStatusCode.Success.valueOf(): {
           logger.verbose('Successful password authentication attempt.', {
             username: this.authContext.username,
           });
@@ -74,7 +74,7 @@ export class AuthenticationSession {
           }
           return;
         }
-        case FusionAuthStatusCode.SuccessButUnregisteredInApp: {
+        case FusionAuthStatusCode.SuccessButUnregisteredInApp.valueOf(): {
           const userId: string = clientResponse.response.user?.id ?? '';
           this.registerUserInApp(userId)
             .then(() => {
@@ -86,7 +86,7 @@ export class AuthenticationSession {
             });
           return;
         }
-        case FusionAuthStatusCode.SuccessNeedsTwoFactorAuth: {
+        case FusionAuthStatusCode.SuccessNeedsTwoFactorAuth.valueOf(): {
           if (clientResponse.response.twoFactorId !== undefined) {
             logger.verbose('Successful password authentication attempt; MFA required.', {
               username: this.authContext.username,
@@ -128,7 +128,7 @@ export class AuthenticationSession {
       });
 
       switch (clientResponse.statusCode) {
-        case FusionAuthStatusCode.Success:
+        case FusionAuthStatusCode.Success.valueOf():
           logger.verbose('User registered successfully after authentication.', {
             userId,
           });
@@ -204,7 +204,7 @@ export class AuthenticationSession {
       code: twoFactorCode,
     }).then((clientResponse) => {
       switch (clientResponse.statusCode) {
-        case FusionAuthStatusCode.Success:
+        case FusionAuthStatusCode.Success.valueOf():
           logger.verbose('Successful 2FA authentication attempt.', {
             username: this.authContext.username,
           });
@@ -216,7 +216,7 @@ export class AuthenticationSession {
             this.authContext.reject();
           }
           return;
-        case FusionAuthStatusCode.SuccessButUnregisteredInApp: {
+        case FusionAuthStatusCode.SuccessButUnregisteredInApp.valueOf(): {
           const userId = clientResponse.response.user?.id ?? '';
           this.registerUserInApp(userId)
             .then(() => {
