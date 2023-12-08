@@ -73,18 +73,20 @@ Run **`rclone config`** and answer the questions it asks:
 - For the remaining options, just choose the default by pressing Enter:
     - `key_pem>`
     - `key_file>`
-    - `y/g/n>` for option `key_file_pass` -- just hit Enter for default `n`
+    - `y/g/n>` for option `key_file_pass` (just hit Enter for default `n`)
     - `pubkey_file>`
     - `key_use_agent>`
     - `use_insecure_cipher>`
     - `disable_hashcheck>`
-    - `y/n>` for option `Edit advanced config?` -- just hit Enter for `n` (unless you're doing the `ask_password` option as described earlier)
+    - `ssh>` (accept default here too unless you need to do fancy things with your SSH config)
+
+- At the **`Edit advanced config?`** prompt, likewise just hit Enter for `n`, unless you're doing the `ask_password` option mentioned earlier.
 
 - At the **`y/e/d>`** prompt, when rclone shows you your completed configuration, hit Enter (same as `y`) to keep the new configuration.
 
 - At the **`e/n/d/r/c/s/q>`** prompt at the very end, hit **`q`** to quit out of configuration.
 
-The configuration for your Permanent remote is now stored, most likely in your `rclone.conf` file.  The location of this file can differ from system to system (on some Linux-based systems it's in `~/.config/rclone/rclone.conf`), but rclone knows where to find it.
+The configuration for your Permanent remote is now stored, most likely in your `rclone.conf` file.  The location of this file differs from system to system (on some Linux-based systems it's in `~/.config/rclone/rclone.conf`), but rclone knows where to find it.
 
 If you chose to have your password stored in the config file, then your `rclone.conf` now contains a block like this:
 
@@ -122,20 +124,43 @@ To fetch all of your archives, use command like this:
      rclone copy --create-empty-src-dirs --size-only permanent:/ ./my-permanent-data
 ```
 
-To fetch a particular archive, use command like the one below.  Note that you'll need the archive's number as well as its name -- the number goes in parentheses after the name, e.g., the "(12345)" below.  Right now, the only way find out an archive's number is to download all your archives and look for that number in parentheses among the names of the downloaded folders, or to ask a Permanent engineer if you happen to know one.  This is a known problem; see [issue #91](https://github.com/PermanentOrg/sftp-service/issues/91) for details.  Anyway, assuming you have found out the archive's number, you can fetch just that archive like so:
+To fetch a particular archive, use command like the one below.  Note that you'll need the archive's number as well as its name.   The number is a special identifier that goes in parentheses after the name.  Note that archive number can contain letters and a hyphen as well as digits -- for example, the "(09g7-0000)" in the sample command below.  Right now, the only way find out an archive's number is to download all your archives and look for that number in parentheses among the names of the downloaded folders, or to ask a Permanent.org staff member.  This is a known problem; see [issue #91](https://github.com/PermanentOrg/sftp-service/issues/91) for details.  Anyway, assuming you have found out the archive's number, you can fetch just that archive like so:
 
 ```
-     rclone copy -v -P --create-empty-src-dirs "permanent-prod:/archives/Some Archive (12345)/My Files/" ./some-archive
+     rclone copy -v -P --create-empty-src-dirs "permanent-prod:/archives/Some Archive (09g7-0000)/My Files/" ./some-folder
 ```
 
 See [rclone.org/commands/rclone_copy](https://rclone.org/commands/rclone_copy/) for other flags to the `copy` subcommand.
 
 #### Uploading to Permanent:
 
-To send data to Permanent, just reverse the order of operands: your local file tree is now the source and Permanent is the destination.  You'll also need to add the `--size-only` and `--sftp-set-modtime=false` flags (currently necessary because of [issue #80](https://github.com/PermanentOrg/sftp-service/issues/80)). On the newest versions of rclone, you will also have to pass in the `--inplace` flag to upload properly (this is related to [issue #164](https://github.com/PermanentOrg/sftp-service/issues/164)).  Here's an example command:
+To send data to Permanent, just reverse the order of operands: your local file tree is now the source and Permanent is the destination.  You'll also need to add the `--size-only` and `--sftp-set-modtime=false` flags (currently necessary because of [issue #80](https://github.com/PermanentOrg/sftp-service/issues/80)).  In rclone version 1.63 and higher, you will also have to pass in the `--inplace` flag to upload properly.  (This is related to [issue #164](https://github.com/PermanentOrg/sftp-service/issues/164); see also [rclone issue #3770](https://github.com/rclone/rclone/issues/3770) for a detailed explanation of why the `--inplace` flag was added to rclone in the first place.)
+
+Here's an example command to upload data to Permanent:
 
 ```
-     rclone copy -v -P --create-empty-src-dirs --inplace --size-only --sftp-set-modtime=false ./some-archive "permanent-prod:/archives/Some Archive (12345)/My Files/"
+     rclone copy -v -P --create-empty-src-dirs --inplace --size-only --sftp-set-modtime=false ./some-folder "permanent-prod:/archives/Some Archive (09g7-0000)/My Files/"
+```
+
+Remember that the *contents* of `./some-folder` will be uploaded to the destination -- that is, everything *under* `./some-folder` will be placed directly into the named archive path.  No encapsulating subdirectory named `some-folder` will be created on the destination side.  (Of course, if you upload a local file instead of a local folder, everything works as expected; we just happened to use a folder in this example.)
+
+If what you want is to copy a local folder up to a Permanent archive and have it appear there *as a new folder*, then you should do that in two steps:
+
+1. First create the destination folder.
+2. Then copy everything into it.
+
+You could do the first step in the Permanent web interface.  You could also do it with `rclone mkdir`...
+
+```
+     rclone mkdir -v -P "permanent-prod:/archives/Some Archive (09g7-0000)/My Files/some-folder"
+```
+
+...just note that `rclone mkdir` will only be able to create subfolders within an existing archive folder.  You can't use it to create new archives, nor to create new top-level folders within an archive.  (This is why `rclone mkdir` is not an officially-supported rclone command at Permanent.  However, using it as in the above example should work, because you're creating a subfolder within an already-existing folder in an archive.)
+
+Anyway, once you've created the destination folder, now you can copy the contents of a local folder into it:
+
+```
+     rclone copy -v -P --create-empty-src-dirs --inplace --size-only --sftp-set-modtime=false ./some-folder "permanent-prod:/archives/Some Archive (09g7-0000)/My Files/some-folder"
 ```
 
 ### Using `sync` instead of `copy`
