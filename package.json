@@ -57,7 +57,7 @@
   "dependencies": {
     "@fusionauth/typescript-client": "^1.48.0",
     "@permanentorg/sdk": "0.6.0",
-    "@sentry/node": "^7.91.0",
+    "@sentry/node": "^7.92.0",
     "dotenv": "^16.3.1",
     "logform": "^2.6.0",
     "node-fetch": "^2.7.0",
