@@ -550,7 +550,7 @@ export class PermanentFileSystem {
     const archiveId = await this.loadArchiveIdFromPath(archivePath);
     const folders = await this.loadArchiveFolders(archiveId);
     return folders.map((archiveFolder) => generateFileEntry(
-      `${archiveFolder.fileSystemCompatibleName}`,
+      archiveFolder.fileSystemCompatibleName,
       generateAttributesForFolder(archiveFolder),
     ));
   }
