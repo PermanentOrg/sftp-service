@@ -8,7 +8,7 @@ export const generateFileEntriesForFolders = (
   folders: Folder[],
 ): FileEntry[] => folders.map(
   (folder) => generateFileEntry(
-    `${folder.fileSystemCompatibleName}`,
+    folder.fileSystemCompatibleName,
     generateDefaultAttributes(fs.constants.S_IFDIR),
   ),
 );
