@@ -63,7 +63,7 @@
     "node-fetch": "^2.7.0",
     "require-env-variable": "^4.0.2",
     "ssh2": "^1.15.0",
-    "tmp": "^0.2.1",
+    "tmp": "^0.2.3",
     "uuid": "^9.0.1",
     "winston": "^3.11.0"
   }
