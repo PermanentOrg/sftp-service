@@ -80,7 +80,7 @@ export class AuthenticationSession {
             .then(() => {
               this.processPasswordResponse([password]);
             })
-            .catch((error) => {
+            .catch((error: unknown) => {
               logger.warn('Error during registration and authentication:', error);
               this.authContext.reject();
             });
@@ -107,7 +107,7 @@ export class AuthenticationSession {
           this.authContext.reject();
         }
       }
-    }).catch((error) => {
+    }).catch((error: unknown) => {
       let message: string;
       if (isPartialClientResponse(error)) {
         message = error.exception.message;
@@ -146,7 +146,7 @@ export class AuthenticationSession {
 
   private promptForTwoFactorMethod(): void {
     const promptOptions = this.twoFactorMethods.map(
-      (method, index) => `[${index + 1}] ${method.method ?? ''}`,
+      (method, index) => `[${String(index + 1)}] ${method.method ?? ''}`,
     );
     this.authContext.prompt(
       [{
@@ -222,7 +222,7 @@ export class AuthenticationSession {
             .then(() => {
               this.processTwoFactorCodeResponse([twoFactorCode]);
             })
-            .catch((error) => {
+            .catch((error: unknown) => {
               logger.warn('Error during registration and authentication:', error);
               this.authContext.reject();
             });
@@ -236,7 +236,7 @@ export class AuthenticationSession {
           });
           this.authContext.reject();
       }
-    }).catch((error) => {
+    }).catch((error: unknown) => {
       let message: string;
       if (isPartialClientResponse(error)) {
         message = error.exception.message;
