@@ -19,5 +19,5 @@ const listenOptions: ListenOptions = {
 
 server.listen(
   listenOptions,
-  () => logger.info(`Listening for SSH requests on ${listenOptions.host ?? ''}:${listenOptions.port ?? ''}`),
+  () => logger.info(`Listening for SSH requests on ${listenOptions.host ?? ''}:${String(listenOptions.port)}`),
 );

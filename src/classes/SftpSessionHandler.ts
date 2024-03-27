@@ -147,7 +147,7 @@ export class SftpSessionHandler {
         this.sftpConnection.status(
           reqId,
           SFTP_STATUS_CODE.FAILURE,
-          `Unsupported flag value: ${flags} (${flagsString}).`,
+          `Unsupported flag value: ${String(flags)}.`,
         );
     }
   }
@@ -220,7 +220,7 @@ export class SftpSessionHandler {
 
     fetch(file.downloadUrl, {
       headers: {
-        Range: `bytes=${offset}-${offset + length - 1}`,
+        Range: `bytes=${String(offset)}-${String(offset + length - 1)}`,
       },
     })
       .then(async (response) => {
@@ -265,7 +265,7 @@ export class SftpSessionHandler {
             this.sftpConnection.status(
               reqId,
               SFTP_STATUS_CODE.FAILURE,
-              `Received an unhandled response type (${response.status}) when attempting to access the download URL associated with this file.`,
+              `Received an unhandled response type (${String(response.status)}) when attempting to access the download URL associated with this file.`,
             );
             break;
         }
@@ -402,7 +402,7 @@ export class SftpSessionHandler {
           this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
         },
       );
-    }).catch((err) => {
+    }).catch((err: unknown) => {
       if (err instanceof MissingTemporaryFileError) {
         logger.debug('There is no open temporary file associated with this handle', { reqId, handle });
         logger.verbose(
@@ -1196,7 +1196,7 @@ export class SftpSessionHandler {
           reqId,
           Buffer.from(handle),
         );
-      }).catch((err) => {
+      }).catch((err: unknown) => {
         logger.debug(err);
         logger.verbose(
           'Response: Status (FAILURE)',
@@ -1211,7 +1211,7 @@ export class SftpSessionHandler {
           'An error occurred when attempting to create the file in temporary storage.',
         );
       });
-    }).catch((err) => {
+    }).catch((err: unknown) => {
       if (err instanceof ResourceDoesNotExistError) {
         logger.verbose(
           'Response: Status (FAILURE)',
@@ -1295,7 +1295,7 @@ export class SftpSessionHandler {
           'This path does not point to an existing resource, so it cannot be opened.',
         );
       }
-    })().catch((err) => {
+    })().catch((err: unknown) => {
       logger.debug(err);
       logger.verbose(
         'Response: Status (FAILURE)',

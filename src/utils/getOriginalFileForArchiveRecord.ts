@@ -9,7 +9,7 @@ export const getOriginalFileForArchiveRecord = (archiveRecord: ArchiveRecord): F
     (file) => file.derivativeType === DerivativeType.Original,
   );
   if (!originalFile) {
-    throw Error(`Permanent does not have an original file for Archive Record ${archiveRecord.id}`);
+    throw Error(`Permanent does not have an original file for Archive Record ${String(archiveRecord.id)}`);
   }
   return originalFile;
 };

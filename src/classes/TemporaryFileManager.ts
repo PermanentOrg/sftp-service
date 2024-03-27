@@ -74,7 +74,7 @@ export class TemporaryFileManager {
       () => {
         logger.info(`Deleting the temporary file associated with ${virtualPath} via cleanup timeout.`);
         this.deleteTemporaryFile(virtualPath)
-          .catch((err) => {
+          .catch((err:unknown) => {
             if (err instanceof MissingTemporaryFileError) {
               logger.info(`The temporary file associated with "${virtualPath}" does not exist.`);
               return;
