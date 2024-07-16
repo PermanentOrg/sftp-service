@@ -59,7 +59,7 @@
     "@permanentorg/sdk": "0.7.0",
     "@sentry/node": "^8.17.0",
     "dotenv": "^16.4.5",
-    "logform": "^2.6.0",
+    "logform": "^2.6.1",
     "node-fetch": "^2.7.0",
     "require-env-variable": "^4.0.2",
     "ssh2": "^1.15.0",
