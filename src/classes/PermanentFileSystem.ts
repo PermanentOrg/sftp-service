@@ -190,9 +190,11 @@ export class PermanentFileSystem {
     const newFolder = await createFolder(
       await this.getClientConfiguration(),
       {
-        name: childName,
+        folder: {
+          name: childName,
+        },
+        parentFolder,
       },
-      parentFolder,
     );
     parentFolder.folders.push(newFolder);
     await this.updateFolderInCache(parentPath, parentFolder);
@@ -221,7 +223,9 @@ export class PermanentFileSystem {
 
     await deleteFolder(
       await this.getClientConfiguration(),
-      folder.id,
+      {
+        folderId: folder.id,
+      },
     );
   }
 
@@ -243,17 +247,21 @@ export class PermanentFileSystem {
     };
     const s3Url = await uploadFile(
       await this.getClientConfiguration(),
-      dataStream,
-      fileFragment,
-      archiveRecordFragment,
-      parentFolder,
+      {
+        fileData: dataStream,
+        file: fileFragment,
+        item: archiveRecordFragment,
+        parentFolder,
+      },
     );
     const newArchiveRecord = await createArchiveRecord(
       await this.getClientConfiguration(),
-      s3Url,
-      fileFragment,
-      archiveRecordFragment,
-      parentFolder,
+      {
+        s3Url,
+        file: fileFragment,
+        item: archiveRecordFragment,
+        parentFolder,
+      },
     );
     parentFolder.archiveRecords.push(newArchiveRecord);
     this.archiveRecordCache.set(requestedPath, newArchiveRecord);
@@ -278,7 +286,9 @@ export class PermanentFileSystem {
 
     await deleteArchiveRecord(
       await this.getClientConfiguration(),
-      archiveRecord.id,
+      {
+        archiveRecordId: archiveRecord.id,
+      },
     );
   }
 
@@ -362,8 +372,10 @@ export class PermanentFileSystem {
     );
     const populatedArchiveRecord = await getArchiveRecord(
       await this.getClientConfiguration(),
-      archiveRecord.id,
-      archiveId,
+      {
+        archiveRecordId: archiveRecord.id,
+        archiveId,
+      },
     );
     this.archiveRecordCache.set(requestedPath, populatedArchiveRecord);
     return populatedArchiveRecord;
@@ -442,7 +454,9 @@ export class PermanentFileSystem {
     }
     const archiveFolders = await getArchiveFolders(
       await this.getClientConfiguration(),
-      archiveId,
+      {
+        archiveId,
+      },
     );
     this.archiveFoldersCache.set(archiveId, archiveFolders);
     return archiveFolders;
@@ -531,8 +545,10 @@ export class PermanentFileSystem {
     );
     const populatedTargetFolder = await getFolder(
       await this.getClientConfiguration(),
-      targetFolder.id,
-      archiveId,
+      {
+        folderId: targetFolder.id,
+        archiveId,
+      },
     );
     this.folderCache.set(requestedPath, populatedTargetFolder);
     return populatedTargetFolder;
