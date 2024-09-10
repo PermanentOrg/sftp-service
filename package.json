@@ -55,7 +55,7 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "@fusionauth/typescript-client": "^1.52.0",
+    "@fusionauth/typescript-client": "^1.53.0",
     "@permanentorg/sdk": "0.7.0",
     "@sentry/node": "^8.29.0",
     "dotenv": "^16.4.5",
