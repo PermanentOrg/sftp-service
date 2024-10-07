@@ -37,7 +37,7 @@
     "@babel/core": "^7.25.2",
     "@babel/node": "^7.25.0",
     "@babel/preset-env": "^7.25.4",
-    "@babel/preset-typescript": "^7.24.7",
+    "@babel/preset-typescript": "^7.25.7",
     "@tsconfig/node18": "^18.2.4",
     "@types/node-fetch": "^2.6.4",
     "@types/ssh2": "^1.15.1",
