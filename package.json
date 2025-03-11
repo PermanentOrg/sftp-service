@@ -29,7 +29,7 @@
     "url": "https://github.com/PermanentOrg/sftp-service/issues"
   },
   "engines": {
-    "node": ">=18.0"
+    "node": ">=22.0"
   },
   "private": true,
   "devDependencies": {
@@ -38,7 +38,7 @@
     "@babel/node": "^7.26.0",
     "@babel/preset-env": "^7.26.9",
     "@babel/preset-typescript": "^7.26.0",
-    "@tsconfig/node18": "^18.2.4",
+    "@tsconfig/node22": "^22.0.0",
     "@types/node-fetch": "^2.6.4",
     "@types/ssh2": "^1.15.4",
     "@types/tmp": "^0.2.6",
