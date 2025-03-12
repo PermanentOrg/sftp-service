@@ -420,6 +420,7 @@ export class PermanentFileSystem {
     return {
       bearerToken: authToken,
       baseUrl: process.env.PERMANENT_API_BASE_PATH,
+      stelaBaseUrl: process.env.PERMANENT_STELA_BASE_PATH,
     };
   }
 
