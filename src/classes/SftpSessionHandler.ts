@@ -1238,27 +1238,14 @@ export class SftpSessionHandler {
     const handle = generateHandle();
 
     (async () => {
-      try {
-        await permanentFileSystem.loadDirectory(filePath);
-        logger.verbose(
-          'Response: Status (FAILURE)',
-          {
-            reqId,
-            code: SFTP_STATUS_CODE.FAILURE,
-          },
-        );
+      const itemType = await permanentFileSystem.getItemType(filePath);
+      if (itemType === fs.constants.S_IFDIR) {
         this.sftpConnection.status(
           reqId,
           SFTP_STATUS_CODE.FAILURE,
           'This path is a folder, so it cannot be opened as a file.',
         );
         return;
-      } catch (err) {
-        if (err instanceof ResourceDoesNotExistError) {
-          // This is what we want -- the folder shouldn't exist.
-        } else {
-          throw err;
-        }
       }
 
       try {
