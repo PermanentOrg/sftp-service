@@ -194,6 +194,7 @@ export class PermanentFileSystem {
           name: childName,
         },
         parentFolder,
+        failOnDuplicateName: true,
       },
     );
     parentFolder.folders.push(newFolder);
@@ -261,6 +262,7 @@ export class PermanentFileSystem {
         file: fileFragment,
         item: archiveRecordFragment,
         parentFolder,
+        failOnDuplicateName: true,
       },
     );
     parentFolder.archiveRecords.push(newArchiveRecord);
@@ -420,6 +422,7 @@ export class PermanentFileSystem {
     return {
       bearerToken: authToken,
       baseUrl: process.env.PERMANENT_API_BASE_PATH,
+      stelaBaseUrl: process.env.STELA_API_BASE_PATH,
     };
   }
 
@@ -538,7 +541,6 @@ export class PermanentFileSystem {
 
     const parentPath = path.dirname(requestedPath);
     const childName = path.basename(requestedPath);
-    const archiveId = await this.loadArchiveIdFromPath(parentPath);
     const targetFolder = await this.findFolderInParentDirectory(
       parentPath,
       childName,
@@ -547,7 +549,6 @@ export class PermanentFileSystem {
       await this.getClientConfiguration(),
       {
         folderId: targetFolder.id,
-        archiveId,
       },
     );
     this.folderCache.set(requestedPath, populatedTargetFolder);
