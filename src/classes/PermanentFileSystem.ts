@@ -8,7 +8,6 @@ import {
   getArchives,
   getArchiveFolders,
   getFolder,
-  getArchiveRecord,
   getAuthenticatedAccount,
   uploadFile,
 } from '@permanentorg/sdk';
@@ -367,54 +366,12 @@ export class PermanentFileSystem {
     }
     const parentPath = path.dirname(requestedPath);
     const childName = path.basename(requestedPath);
-    const archiveId = await this.loadArchiveIdFromPath(requestedPath);
-    const archiveRecord = await this.findArchiveRecordInParentDirectory(
+    const populatedArchiveRecord = await this.findArchiveRecordInParentDirectory(
       parentPath,
       childName,
     );
-    const populatedArchiveRecord = await getArchiveRecord(
-      await this.getClientConfiguration(),
-      {
-        archiveRecordId: archiveRecord.id,
-        archiveId,
-      },
-    );
     this.archiveRecordCache.set(requestedPath, populatedArchiveRecord);
     return populatedArchiveRecord;
-  }
-
-  private async loadArchiveRecords(requestedPaths: string[]): Promise<ArchiveRecord[]> {
-    // See https://github.com/PermanentOrg/permanent-sdk/issues/73
-    // This implementation is intentionally sequential even though using
-    // requestedPaths.map would allow us to run all of the lookups in parallel.
-    // This decision is because I'm worried about crushing the Permanent server
-    // if a given folder had a huge number of archive records.
-    return requestedPaths.reduce<Promise<ArchiveRecord[]>>(
-      async (
-        archiveRecordsPromise,
-        requestedPath,
-      ) => {
-        const archiveRecords = await archiveRecordsPromise;
-        return [
-          ...archiveRecords,
-          await this.loadArchiveRecord(requestedPath),
-        ];
-      },
-      Promise.resolve([]),
-    );
-  }
-
-  private async loadDeepArchiveRecords(
-    archiveRecords: ArchiveRecord[],
-    basePath: string,
-  ): Promise<ArchiveRecord[]> {
-    // TODO: this method exists due to a limitation of the permanent SDK, which
-    // currently only returns shallow archive records.  We want deep archive records.
-    // See https://github.com/PermanentOrg/permanent-sdk/issues/73
-    const archiveRecordPaths = archiveRecords.map(
-      (archiveRecord) => `${basePath}/${archiveRecord.fileSystemCompatibleName}`,
-    );
-    return this.loadArchiveRecords(archiveRecordPaths);
   }
 
   private async getClientConfiguration(): Promise<ClientConfiguration> {
@@ -582,10 +539,7 @@ export class PermanentFileSystem {
     );
     const folderFileEntities = generateFileEntriesForFolders(childFolder.folders);
     const archiveRecordFileEntities = generateFileEntriesForArchiveRecords(
-      await this.loadDeepArchiveRecords(
-        childFolder.archiveRecords,
-        requestedPath,
-      ),
+      childFolder.archiveRecords,
     );
     return deduplicateFileEntries([
       ...folderFileEntities,
