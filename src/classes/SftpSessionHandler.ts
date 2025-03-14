@@ -698,7 +698,6 @@ export class SftpSessionHandler {
     logger.debug(`Opening directory ${dirPath}:`, handle);
     const permanentFileSystem = this.getCurrentPermanentFileSystem();
     permanentFileSystem.loadDirectory(dirPath).then((fileEntries) => {
-      logger.debug('Contents:', fileEntries);
       const directoryResource = {
         virtualFilePath: dirPath,
         resourceType: ServerResourceType.Directory as const,

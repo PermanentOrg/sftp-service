@@ -444,7 +444,7 @@ export class PermanentFileSystem {
     );
 
     if (overrideParentCache && !targetFolder) {
-      throw new ResourceDoesNotExistError('The specified folder does not exist');
+      throw new ResourceDoesNotExistError(`The specified folder does not exist (${parentPath}/${folderName})`);
     }
     return targetFolder ?? this.findFolderInParentDirectory(
       parentPath,
