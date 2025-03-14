@@ -698,7 +698,6 @@ export class SftpSessionHandler {
     logger.debug(`Opening directory ${dirPath}:`, handle);
     const permanentFileSystem = this.getCurrentPermanentFileSystem();
     permanentFileSystem.loadDirectory(dirPath).then((fileEntries) => {
-      logger.debug('Contents:', fileEntries);
       const directoryResource = {
         virtualFilePath: dirPath,
         resourceType: ServerResourceType.Directory as const,
@@ -798,12 +797,15 @@ export class SftpSessionHandler {
       this.sftpConnection.status(reqId, SFTP_STATUS_CODE.EOF);
       return;
     }
-    logger.verbose('Response: Name', { reqId, fileEntries });
+
+    const pageSize = 20;
+    const paginatedFileEntries = fileEntries.slice(cursor, cursor + pageSize);
     this.activeHandles.set(handle.toString(), {
       ...serverResource,
-      cursor: fileEntries.length,
+      cursor: cursor + pageSize,
     });
-    this.sftpConnection.name(reqId, fileEntries);
+    logger.verbose('Response: Name', { reqId, paginatedFileEntries });
+    this.sftpConnection.name(reqId, paginatedFileEntries);
   }
 
   /**
