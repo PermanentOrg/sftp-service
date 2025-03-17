@@ -10,6 +10,10 @@ updates:
     ignore:
       - dependency-name: "node-fetch"
         update-types: ["version-update:semver-major"]
+    groups:
+      eslint:
+        patterns:
+          - '*eslint*'
 
   - package-ecosystem: "github-actions"
     directory: ".github/workflows"
