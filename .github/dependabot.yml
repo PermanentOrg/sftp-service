@@ -10,6 +10,12 @@ updates:
     ignore:
       - dependency-name: "node-fetch"
         update-types: ["version-update:semver-major"]
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@typescript-eslint/eslint-plugin'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@typescript-eslint/parser'
+        update-types: ['version-update:semver-major']
     groups:
       eslint:
         patterns:
