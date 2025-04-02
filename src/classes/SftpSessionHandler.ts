@@ -950,15 +950,30 @@ export class SftpSessionHandler {
       );
       this.sftpConnection.name(reqId, names);
     }).catch((err: unknown) => {
-      logger.debug(err);
-      logger.verbose(
-        'Response: Status (EOF)',
-        {
+      if (err instanceof ResourceDoesNotExistError) {
+        logger.verbose(
+          'Response: Status (NO_SUCH_FILE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.NO_SUCH_FILE,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      } else {
+        logger.debug(err);
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+          },
+        );
+        this.sftpConnection.status(
           reqId,
-          code: SFTP_STATUS_CODE.NO_SUCH_FILE,
-        },
-      );
-      this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+          SFTP_STATUS_CODE.FAILURE,
+          'An error occurred when attempting to load this path from Permanent.org.',
+        );
+      }
     });
   }
 
@@ -1123,16 +1138,32 @@ export class SftpSessionHandler {
         attrs,
       );
     }).catch((err: unknown) => {
-      logger.debug(err);
-      logger.verbose(
-        'Response: Status (NO_SUCH_FILE)',
-        {
+      if (err instanceof ResourceDoesNotExistError) {
+        logger.verbose(
+          'Response: Status (NO_SUCH_FILE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.NO_SUCH_FILE,
+            path: itemPath,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      } else {
+        logger.debug(err);
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+            path: itemPath,
+          },
+        );
+        this.sftpConnection.status(
           reqId,
-          code: SFTP_STATUS_CODE.NO_SUCH_FILE,
-          path: itemPath,
-        },
-      );
-      this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+          SFTP_STATUS_CODE.FAILURE,
+          'An error occurred when attempting to load this path from Permanent.org.',
+        );
+      }
     });
   }
 
@@ -1271,18 +1302,34 @@ export class SftpSessionHandler {
           Buffer.from(handle),
         );
       } catch (err) {
-        logger.verbose(
-          'Response: Status (NO_SUCH_FILE)',
-          {
+        if (err instanceof ResourceDoesNotExistError) {
+          logger.verbose(
+            'Response: Status (NO_SUCH_FILE)',
+            {
+              reqId,
+              code: SFTP_STATUS_CODE.NO_SUCH_FILE,
+            },
+          );
+          this.sftpConnection.status(
             reqId,
-            code: SFTP_STATUS_CODE.NO_SUCH_FILE,
-          },
-        );
-        this.sftpConnection.status(
-          reqId,
-          SFTP_STATUS_CODE.NO_SUCH_FILE,
-          'This path does not point to an existing resource, so it cannot be opened.',
-        );
+            SFTP_STATUS_CODE.NO_SUCH_FILE,
+            'This path does not point to an existing resource, so it cannot be opened.',
+          );
+        } else {
+          logger.debug(err);
+          logger.verbose(
+            'Response: Status (FAILURE)',
+            {
+              reqId,
+              code: SFTP_STATUS_CODE.FAILURE,
+            },
+          );
+          this.sftpConnection.status(
+            reqId,
+            SFTP_STATUS_CODE.FAILURE,
+            'An error occurred when attempting to load this path from Permanent.org.',
+          );
+        }
       }
     })().catch((err: unknown) => {
       logger.debug(err);
