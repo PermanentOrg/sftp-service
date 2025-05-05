@@ -13,7 +13,6 @@ import {
 } from '@permanentorg/sdk';
 import {
   InvalidOperationForPathError,
-  NotFoundError,
   OperationNotAllowedError,
   ResourceDoesNotExistError,
 } from '../errors';
@@ -128,7 +127,7 @@ export class PermanentFileSystem {
         true,
       );
     }
-    throw new NotFoundError(`This path does not exist ${itemPath}`);
+    throw new ResourceDoesNotExistError(`This path does not exist ${itemPath}`);
   }
 
   public async getItemAttributes(itemPath: string): Promise<Attributes> {
@@ -153,7 +152,7 @@ export class PermanentFileSystem {
         return generateAttributesForFolder(folder);
       }
       default:
-        throw new NotFoundError('The specified path is neither a file nor a directory.');
+        throw new ResourceDoesNotExistError('The specified path is neither a file nor a directory.');
     }
   }
 
