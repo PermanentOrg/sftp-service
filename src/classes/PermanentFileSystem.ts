@@ -97,12 +97,29 @@ export class PermanentFileSystem {
     overrideParentCache = false,
   ): Promise<number> {
     if (isRootPath(itemPath)
-     || isArchiveCataloguePath(itemPath)
-     || isArchivePath(itemPath)
-     || isArchiveChildFolderPath(itemPath)
-    ) {
+     || isArchiveCataloguePath(itemPath)) {
       return fs.constants.S_IFDIR;
     }
+
+    if (isArchivePath(itemPath)) {
+      await this.assertArchiveExistsByPath(
+        itemPath,
+      );
+      return fs.constants.S_IFDIR;
+    }
+
+    // Generally an archive child folder is an `item`, but since its parent
+    // is an archive we need to treat it a little bit differently.
+    //
+    // We also don't need to check its type (just its existence) since the root
+    // level of an archive is only allowed to hold folders.
+    if (isArchiveChildFolderPath(itemPath)) {
+      await this.assertArchiveChildFolderExistsByPath(
+        itemPath,
+      );
+      return fs.constants.S_IFDIR;
+    }
+
     const parentPath = path.dirname(itemPath);
     const childName = path.basename(itemPath);
     const parentFolder = await this.loadFolder(
@@ -127,7 +144,7 @@ export class PermanentFileSystem {
         true,
       );
     }
-    throw new ResourceDoesNotExistError(`This path does not exist ${itemPath}`);
+    throw new ResourceDoesNotExistError(`A resource at the specified path could not be found ${itemPath}`);
   }
 
   public async getItemAttributes(itemPath: string): Promise<Attributes> {
@@ -353,6 +370,39 @@ export class PermanentFileSystem {
       (folder) => folder.fileSystemCompatibleName === archiveRecordName,
     );
     return foundArchiveRecord !== undefined;
+  }
+
+  private async assertArchiveExistsByPath(
+    itemPath: string,
+  ): Promise<void> {
+    if (!isArchivePath(itemPath)) {
+      throw new InvalidOperationForPathError(`The requested path is not an archive path: ${itemPath}`);
+    }
+    try {
+      await this.loadArchive(itemPath);
+    } catch (error) {
+      if (error instanceof ResourceDoesNotExistError) {
+        throw new ResourceDoesNotExistError(`A resource at the specified path could not be found: ${itemPath}`);
+      }
+      throw error;
+    }
+  }
+
+  private async assertArchiveChildFolderExistsByPath(
+    itemPath: string,
+  ): Promise<void> {
+    if (!isArchiveChildFolderPath(itemPath)) {
+      throw new InvalidOperationForPathError('The requested path is not an archive child folder path');
+    }
+
+    try {
+      await this.loadFolder(itemPath);
+    } catch (error) {
+      if (error instanceof ResourceDoesNotExistError) {
+        throw new ResourceDoesNotExistError(`A resource at the specified path could not be found ${itemPath}`);
+      }
+      throw error;
+    }
   }
 
   private async loadArchiveRecord(
