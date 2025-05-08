@@ -14,7 +14,7 @@ import {
 import {
   FileSystemObjectNotFound,
   InvalidOperationForPathError,
-  OperationNotAllowedError,
+  PermissionDeniedError,
 } from '../errors';
 import {
   deduplicateFileEntries,
@@ -192,13 +192,13 @@ export class PermanentFileSystem {
 
   public async createDirectory(fileSystemPath: string): Promise<void> {
     if (isRootPath(fileSystemPath)) {
-      throw new InvalidOperationForPathError('You cannot create new root level folders via SFTP.');
+      throw new PermissionDeniedError('You cannot create new root level folders via SFTP.');
     }
     if (isArchiveCataloguePath(fileSystemPath)) {
-      throw new InvalidOperationForPathError('You cannot create new archives via SFTP.');
+      throw new PermissionDeniedError('You cannot create new archives via SFTP.');
     }
     if (isArchivePath(fileSystemPath)) {
-      throw new InvalidOperationForPathError('You cannot create new folders at the root level of an archive via SFTP.');
+      throw new PermissionDeniedError('You cannot create new folders at the root level of an archive via SFTP.');
     }
     const parentPath = path.dirname(fileSystemPath);
     const childName = path.basename(fileSystemPath);
@@ -223,17 +223,17 @@ export class PermanentFileSystem {
       await this.getClientConfiguration(),
     );
     if (!account.isSftpDeletionEnabled) {
-      throw new OperationNotAllowedError('You must enable SFTP deletion directly in your account settings.');
+      throw new PermissionDeniedError('You must enable SFTP deletion directly in your account settings.');
     }
 
     if (isRootPath(fileSystemPath)) {
-      throw new InvalidOperationForPathError('You cannot delete the root level folder.');
+      throw new PermissionDeniedError('You cannot delete the root level folder.');
     }
     if (isArchiveCataloguePath(fileSystemPath)) {
-      throw new InvalidOperationForPathError('You cannot delete the archive catalogue.');
+      throw new PermissionDeniedError('You cannot delete the archive catalogue.');
     }
     if (isArchivePath(fileSystemPath)) {
-      throw new InvalidOperationForPathError('You cannot delete archives via SFTP.');
+      throw new PermissionDeniedError('You cannot delete archives via SFTP.');
     }
 
     const folder = await this.loadFolder(fileSystemPath);
@@ -291,7 +291,7 @@ export class PermanentFileSystem {
       await this.getClientConfiguration(),
     );
     if (!account.isSftpDeletionEnabled) {
-      throw new OperationNotAllowedError('You must enable SFTP deletion directly in your account settings.');
+      throw new PermissionDeniedError('You must enable SFTP deletion directly in your account settings.');
     }
 
     if (!isItemPath(fileSystemPath)) {
