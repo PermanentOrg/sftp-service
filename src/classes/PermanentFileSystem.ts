@@ -12,9 +12,9 @@ import {
   uploadFile,
 } from '@permanentorg/sdk';
 import {
+  FileSystemObjectNotFound,
   InvalidOperationForPathError,
   OperationNotAllowedError,
-  ResourceDoesNotExistError,
 } from '../errors';
 import {
   deduplicateFileEntries,
@@ -144,7 +144,7 @@ export class PermanentFileSystem {
         true,
       );
     }
-    throw new ResourceDoesNotExistError(`A file system object at the specified path could not be found: ${fileSystemPath}`);
+    throw new FileSystemObjectNotFound(`A file system object at the specified path could not be found: ${fileSystemPath}`);
   }
 
   public async getFileSystemObjectAttributes(fileSystemPath: string): Promise<Attributes> {
@@ -169,7 +169,8 @@ export class PermanentFileSystem {
         return generateAttributesForFolder(folder);
       }
       default:
-        throw new ResourceDoesNotExistError(`The specified path is neither a file nor a directory: ${fileSystemPath}`);
+        // Since fileType is not an enum we need a default case
+        throw new FileSystemObjectNotFound(`The specified path is neither a file nor a directory: ${fileSystemPath}`);
     }
   }
 
@@ -381,8 +382,8 @@ export class PermanentFileSystem {
     try {
       await this.loadArchive(fileSystemPath);
     } catch (error) {
-      if (error instanceof ResourceDoesNotExistError) {
-        throw new ResourceDoesNotExistError(`A resource at the specified path could not be found: ${fileSystemPath}`);
+      if (error instanceof FileSystemObjectNotFound) {
+        throw new FileSystemObjectNotFound(`A resource at the specified path could not be found: ${fileSystemPath}`);
       }
       throw error;
     }
@@ -398,8 +399,8 @@ export class PermanentFileSystem {
     try {
       await this.loadFolder(fileSystemPath);
     } catch (error) {
-      if (error instanceof ResourceDoesNotExistError) {
-        throw new ResourceDoesNotExistError(`A resource at the specified path could not be found ${fileSystemPath}`);
+      if (error instanceof FileSystemObjectNotFound) {
+        throw new FileSystemObjectNotFound(`A resource at the specified path could not be found ${fileSystemPath}`);
       }
       throw error;
     }
@@ -446,7 +447,7 @@ export class PermanentFileSystem {
     const archives = await this.loadArchives();
     const archive = archives.find((candidate) => candidate.slug === slug);
     if (archive === undefined) {
-      throw new ResourceDoesNotExistError('An archive with that slug could not be found');
+      throw new FileSystemObjectNotFound('An archive with that slug could not be found');
     }
     return archive;
   }
@@ -494,7 +495,7 @@ export class PermanentFileSystem {
     );
 
     if (overrideParentCache && !targetFolder) {
-      throw new ResourceDoesNotExistError(`The specified folder does not exist (${parentPath}/${folderName})`);
+      throw new FileSystemObjectNotFound(`The specified folder does not exist (${parentPath}/${folderName})`);
     }
     return targetFolder ?? this.findFolderInParentDirectory(
       parentPath,
@@ -520,7 +521,7 @@ export class PermanentFileSystem {
       return targetArchiveRecord;
     }
     if (overrideParentCache) {
-      throw new ResourceDoesNotExistError('The specified archive record does not exist');
+      throw new FileSystemObjectNotFound('The specified archive record does not exist');
     }
     // At this point we know that the lookup failed but ALSO that we may have been using a cached
     // version of the parent directory when checking for the child (`overrideParentCache` is false).

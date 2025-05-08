@@ -7,7 +7,7 @@ import { logger } from '../logger';
 import { generateFileEntry } from '../utils';
 import {
   MissingTemporaryFileError,
-  ResourceDoesNotExistError,
+  FileSystemObjectNotFound,
 } from '../errors';
 import { PermanentFileSystem } from './PermanentFileSystem';
 import { TemporaryFileManager } from './TemporaryFileManager';
@@ -950,7 +950,7 @@ export class SftpSessionHandler {
       );
       this.sftpConnection.name(reqId, names);
     }).catch((err: unknown) => {
-      if (err instanceof ResourceDoesNotExistError) {
+      if (err instanceof FileSystemObjectNotFound) {
         logger.verbose(
           'Response: Status (NO_SUCH_FILE)',
           {
@@ -1138,7 +1138,7 @@ export class SftpSessionHandler {
         attrs,
       );
     }).catch((err: unknown) => {
-      if (err instanceof ResourceDoesNotExistError) {
+      if (err instanceof FileSystemObjectNotFound) {
         logger.verbose(
           'Response: Status (NO_SUCH_FILE)',
           {
@@ -1245,7 +1245,7 @@ export class SftpSessionHandler {
         );
       });
     }).catch((err: unknown) => {
-      if (err instanceof ResourceDoesNotExistError) {
+      if (err instanceof FileSystemObjectNotFound) {
         logger.verbose(
           'Response: Status (FAILURE)',
           {
@@ -1302,7 +1302,7 @@ export class SftpSessionHandler {
           Buffer.from(handle),
         );
       } catch (err) {
-        if (err instanceof ResourceDoesNotExistError) {
+        if (err instanceof FileSystemObjectNotFound) {
           logger.verbose(
             'Response: Status (NO_SUCH_FILE)',
             {
