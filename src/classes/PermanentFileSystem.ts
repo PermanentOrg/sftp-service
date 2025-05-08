@@ -42,30 +42,30 @@ import type {
 } from 'ssh2';
 import type { AuthTokenManager } from './AuthTokenManager';
 
-const isRootPath = (requestedPath: string): boolean => (
-  requestedPath === '/'
+const isRootPath = (fileSystemPath: string): boolean => (
+  fileSystemPath === '/'
 );
 
-const isArchiveCataloguePath = (requestedPath: string): boolean => (
-  requestedPath === '/archives'
+const isArchiveCataloguePath = (fileSystemPath: string): boolean => (
+  fileSystemPath === '/archives'
 );
 
 // e.g. '/archives/Foo (1)'
-const isArchivePath = (requestedPath: string): boolean => (
-  requestedPath.startsWith('/archives')
-  && requestedPath.split('/').length === 3
+const isArchivePath = (fileSystemPath: string): boolean => (
+  fileSystemPath.startsWith('/archives')
+  && fileSystemPath.split('/').length === 3
 );
 
 // e.g. '/archives/Foo (1)/My Files'
-const isArchiveChildFolderPath = (requestedPath: string): boolean => (
-  requestedPath.startsWith('/archives')
-  && requestedPath.split('/').length === 4
+const isArchiveChildFolderPath = (fileSystemPath: string): boolean => (
+  fileSystemPath.startsWith('/archives')
+  && fileSystemPath.split('/').length === 4
 );
 
 // e.g. '/archives/Foo (1)/**'
-const isItemPath = (requestedPath: string): boolean => (
-  requestedPath.startsWith('/archives')
-  && requestedPath.split('/').length > 3
+const isItemPath = (fileSystemPath: string): boolean => (
+  fileSystemPath.startsWith('/archives')
+  && fileSystemPath.split('/').length > 3
 );
 
 export class PermanentFileSystem {
@@ -92,18 +92,18 @@ export class PermanentFileSystem {
     ];
   }
 
-  public async getItemType(
-    itemPath: string,
+  public async getFileSystemObjectType(
+    fileSystemPath: string,
     overrideParentCache = false,
   ): Promise<number> {
-    if (isRootPath(itemPath)
-     || isArchiveCataloguePath(itemPath)) {
+    if (isRootPath(fileSystemPath)
+     || isArchiveCataloguePath(fileSystemPath)) {
       return fs.constants.S_IFDIR;
     }
 
-    if (isArchivePath(itemPath)) {
+    if (isArchivePath(fileSystemPath)) {
       await this.assertArchiveExistsByPath(
-        itemPath,
+        fileSystemPath,
       );
       return fs.constants.S_IFDIR;
     }
@@ -113,15 +113,15 @@ export class PermanentFileSystem {
     //
     // We also don't need to check its type (just its existence) since the root
     // level of an archive is only allowed to hold folders.
-    if (isArchiveChildFolderPath(itemPath)) {
+    if (isArchiveChildFolderPath(fileSystemPath)) {
       await this.assertArchiveChildFolderExistsByPath(
-        itemPath,
+        fileSystemPath,
       );
       return fs.constants.S_IFDIR;
     }
 
-    const parentPath = path.dirname(itemPath);
-    const childName = path.basename(itemPath);
+    const parentPath = path.dirname(fileSystemPath);
+    const childName = path.basename(fileSystemPath);
     const parentFolder = await this.loadFolder(
       parentPath,
       overrideParentCache,
@@ -139,68 +139,68 @@ export class PermanentFileSystem {
       return fs.constants.S_IFDIR;
     }
     if (!overrideParentCache) {
-      return this.getItemType(
-        itemPath,
+      return this.getFileSystemObjectType(
+        fileSystemPath,
         true,
       );
     }
-    throw new ResourceDoesNotExistError(`A resource at the specified path could not be found ${itemPath}`);
+    throw new ResourceDoesNotExistError(`A file system object at the specified path could not be found: ${fileSystemPath}`);
   }
 
-  public async getItemAttributes(itemPath: string): Promise<Attributes> {
-    if (isRootPath(itemPath)
-     || isArchiveCataloguePath(itemPath)) {
+  public async getFileSystemObjectAttributes(fileSystemPath: string): Promise<Attributes> {
+    if (isRootPath(fileSystemPath)
+     || isArchiveCataloguePath(fileSystemPath)) {
       return generateDefaultAttributes(fs.constants.S_IFDIR);
     }
 
-    if (isArchivePath(itemPath)) {
-      const archive = await this.loadArchive(itemPath);
+    if (isArchivePath(fileSystemPath)) {
+      const archive = await this.loadArchive(fileSystemPath);
       return generateAttributesForArchive(archive);
     }
 
-    const fileType = await this.getItemType(itemPath);
+    const fileType = await this.getFileSystemObjectType(fileSystemPath);
     switch (fileType) {
       case fs.constants.S_IFREG: {
-        const file = await this.loadFile(itemPath);
+        const file = await this.loadFile(fileSystemPath);
         return generateAttributesForFile(file);
       }
       case fs.constants.S_IFDIR: {
-        const folder = await this.loadFolder(itemPath);
+        const folder = await this.loadFolder(fileSystemPath);
         return generateAttributesForFolder(folder);
       }
       default:
-        throw new ResourceDoesNotExistError('The specified path is neither a file nor a directory.');
+        throw new ResourceDoesNotExistError(`The specified path is neither a file nor a directory: ${fileSystemPath}`);
     }
   }
 
-  public async loadDirectory(requestedPath: string): Promise<FileEntry[]> {
-    if (isRootPath(requestedPath)) {
+  public async loadDirectory(fileSystemPath: string): Promise<FileEntry[]> {
+    if (isRootPath(fileSystemPath)) {
       return PermanentFileSystem.loadRootFileEntries();
     }
-    if (isArchiveCataloguePath(requestedPath)) {
+    if (isArchiveCataloguePath(fileSystemPath)) {
       return this.loadArchiveFileEntries();
     }
-    if (isArchivePath(requestedPath)) {
-      return this.loadArchiveFoldersFileEntries(requestedPath);
+    if (isArchivePath(fileSystemPath)) {
+      return this.loadArchiveFoldersFileEntries(fileSystemPath);
     }
-    if (isItemPath(requestedPath)) {
-      return this.loadFolderFileEntries(requestedPath);
+    if (isItemPath(fileSystemPath)) {
+      return this.loadFolderFileEntries(fileSystemPath);
     }
     return [];
   }
 
-  public async createDirectory(requestedPath: string): Promise<void> {
-    if (isRootPath(requestedPath)) {
+  public async createDirectory(fileSystemPath: string): Promise<void> {
+    if (isRootPath(fileSystemPath)) {
       throw new InvalidOperationForPathError('You cannot create new root level folders via SFTP.');
     }
-    if (isArchiveCataloguePath(requestedPath)) {
+    if (isArchiveCataloguePath(fileSystemPath)) {
       throw new InvalidOperationForPathError('You cannot create new archives via SFTP.');
     }
-    if (isArchivePath(requestedPath)) {
+    if (isArchivePath(fileSystemPath)) {
       throw new InvalidOperationForPathError('You cannot create new folders at the root level of an archive via SFTP.');
     }
-    const parentPath = path.dirname(requestedPath);
-    const childName = path.basename(requestedPath);
+    const parentPath = path.dirname(fileSystemPath);
+    const childName = path.basename(fileSystemPath);
     const parentFolder = await this.loadFolder(parentPath);
     const newFolder = await createFolder(
       await this.getClientConfiguration(),
@@ -214,10 +214,10 @@ export class PermanentFileSystem {
     );
     parentFolder.folders.push(newFolder);
     await this.updateFolderInCache(parentPath, parentFolder);
-    await this.updateFolderInCache(requestedPath, newFolder);
+    await this.updateFolderInCache(fileSystemPath, newFolder);
   }
 
-  public async deleteDirectory(requestedPath: string): Promise<void> {
+  public async deleteDirectory(fileSystemPath: string): Promise<void> {
     const account = await getAuthenticatedAccount(
       await this.getClientConfiguration(),
     );
@@ -225,17 +225,17 @@ export class PermanentFileSystem {
       throw new OperationNotAllowedError('You must enable SFTP deletion directly in your account settings.');
     }
 
-    if (isRootPath(requestedPath)) {
+    if (isRootPath(fileSystemPath)) {
       throw new InvalidOperationForPathError('You cannot delete the root level folder.');
     }
-    if (isArchiveCataloguePath(requestedPath)) {
+    if (isArchiveCataloguePath(fileSystemPath)) {
       throw new InvalidOperationForPathError('You cannot delete the archive catalogue.');
     }
-    if (isArchivePath(requestedPath)) {
+    if (isArchivePath(fileSystemPath)) {
       throw new InvalidOperationForPathError('You cannot delete archives via SFTP.');
     }
 
-    const folder = await this.loadFolder(requestedPath);
+    const folder = await this.loadFolder(fileSystemPath);
 
     await deleteFolder(
       await this.getClientConfiguration(),
@@ -246,12 +246,12 @@ export class PermanentFileSystem {
   }
 
   public async createFile(
-    requestedPath: string,
+    fileSystemPath: string,
     dataStream: Readable,
     size: number,
   ): Promise<void> {
-    const parentPath = path.dirname(requestedPath);
-    const archiveRecordName = path.basename(requestedPath);
+    const parentPath = path.dirname(fileSystemPath);
+    const archiveRecordName = path.basename(fileSystemPath);
     const parentFolder = await this.loadFolder(parentPath);
     const fileFragment = {
       contentType: 'application/octet-stream',
@@ -281,11 +281,11 @@ export class PermanentFileSystem {
       },
     );
     parentFolder.archiveRecords.push(newArchiveRecord);
-    this.archiveRecordCache.set(requestedPath, newArchiveRecord);
+    this.archiveRecordCache.set(fileSystemPath, newArchiveRecord);
     await this.updateFolderInCache(parentPath, parentFolder);
   }
 
-  public async deleteFile(requestedPath: string): Promise<void> {
+  public async deleteFile(fileSystemPath: string): Promise<void> {
     const account = await getAuthenticatedAccount(
       await this.getClientConfiguration(),
     );
@@ -293,12 +293,12 @@ export class PermanentFileSystem {
       throw new OperationNotAllowedError('You must enable SFTP deletion directly in your account settings.');
     }
 
-    if (!isItemPath(requestedPath)) {
+    if (!isItemPath(fileSystemPath)) {
       throw new InvalidOperationForPathError('Invalid file path');
     }
 
     const archiveRecord = await this.loadArchiveRecord(
-      requestedPath,
+      fileSystemPath,
     );
 
     await deleteArchiveRecord(
@@ -310,14 +310,14 @@ export class PermanentFileSystem {
   }
 
   public async loadFile(
-    requestedPath: string,
+    fileSystemPath: string,
     overrideCache = false,
   ): Promise<File> {
-    if (!isItemPath(requestedPath)) {
+    if (!isItemPath(fileSystemPath)) {
       throw new InvalidOperationForPathError('Invalid file path');
     }
     const archiveRecord = await this.loadArchiveRecord(
-      requestedPath,
+      fileSystemPath,
       overrideCache,
     );
     return getOriginalFileForArchiveRecord(archiveRecord);
@@ -340,12 +340,12 @@ export class PermanentFileSystem {
     }
   }
 
-  public folderPathExistsInCache(itemPath: string): boolean {
-    if (this.folderCache.has(itemPath)) {
+  public folderPathExistsInCache(fileSystemPath: string): boolean {
+    if (this.folderCache.has(fileSystemPath)) {
       return true;
     }
-    const parentPath = path.dirname(itemPath);
-    const folderName = path.basename(itemPath);
+    const parentPath = path.dirname(fileSystemPath);
+    const folderName = path.basename(fileSystemPath);
     const parentFolder = this.folderCache.get(parentPath);
     if (!parentFolder) {
       return false;
@@ -356,12 +356,12 @@ export class PermanentFileSystem {
     return foundFolder !== undefined;
   }
 
-  public archiveRecordPathExistsInCache(itemPath: string): boolean {
-    if (this.archiveRecordCache.has(itemPath)) {
+  public archiveRecordPathExistsInCache(fileSystemPath: string): boolean {
+    if (this.archiveRecordCache.has(fileSystemPath)) {
       return true;
     }
-    const parentPath = path.dirname(itemPath);
-    const archiveRecordName = path.basename(itemPath);
+    const parentPath = path.dirname(fileSystemPath);
+    const archiveRecordName = path.basename(fileSystemPath);
     const parentFolder = this.folderCache.get(parentPath);
     if (!parentFolder) {
       return false;
@@ -373,53 +373,53 @@ export class PermanentFileSystem {
   }
 
   private async assertArchiveExistsByPath(
-    itemPath: string,
+    fileSystemPath: string,
   ): Promise<void> {
-    if (!isArchivePath(itemPath)) {
-      throw new InvalidOperationForPathError(`The requested path is not an archive path: ${itemPath}`);
+    if (!isArchivePath(fileSystemPath)) {
+      throw new InvalidOperationForPathError(`The requested path is not an archive path: ${fileSystemPath}`);
     }
     try {
-      await this.loadArchive(itemPath);
+      await this.loadArchive(fileSystemPath);
     } catch (error) {
       if (error instanceof ResourceDoesNotExistError) {
-        throw new ResourceDoesNotExistError(`A resource at the specified path could not be found: ${itemPath}`);
+        throw new ResourceDoesNotExistError(`A resource at the specified path could not be found: ${fileSystemPath}`);
       }
       throw error;
     }
   }
 
   private async assertArchiveChildFolderExistsByPath(
-    itemPath: string,
+    fileSystemPath: string,
   ): Promise<void> {
-    if (!isArchiveChildFolderPath(itemPath)) {
+    if (!isArchiveChildFolderPath(fileSystemPath)) {
       throw new InvalidOperationForPathError('The requested path is not an archive child folder path');
     }
 
     try {
-      await this.loadFolder(itemPath);
+      await this.loadFolder(fileSystemPath);
     } catch (error) {
       if (error instanceof ResourceDoesNotExistError) {
-        throw new ResourceDoesNotExistError(`A resource at the specified path could not be found ${itemPath}`);
+        throw new ResourceDoesNotExistError(`A resource at the specified path could not be found ${fileSystemPath}`);
       }
       throw error;
     }
   }
 
   private async loadArchiveRecord(
-    requestedPath: string,
+    fileSystemPath: string,
     overrideCache = false,
   ): Promise<ArchiveRecord> {
-    const cachedArchiveRecord = this.archiveRecordCache.get(requestedPath);
+    const cachedArchiveRecord = this.archiveRecordCache.get(fileSystemPath);
     if (cachedArchiveRecord && !overrideCache) {
       return cachedArchiveRecord;
     }
-    const parentPath = path.dirname(requestedPath);
-    const childName = path.basename(requestedPath);
+    const parentPath = path.dirname(fileSystemPath);
+    const childName = path.basename(fileSystemPath);
     const populatedArchiveRecord = await this.findArchiveRecordInParentDirectory(
       parentPath,
       childName,
     );
-    this.archiveRecordCache.set(requestedPath, populatedArchiveRecord);
+    this.archiveRecordCache.set(fileSystemPath, populatedArchiveRecord);
     return populatedArchiveRecord;
   }
 
@@ -451,8 +451,8 @@ export class PermanentFileSystem {
     return archive;
   }
 
-  private async loadArchiveIdFromPath(itemPath: string): Promise<number> {
-    const archiveSlug = getArchiveSlugFromPath(itemPath);
+  private async loadArchiveIdFromPath(fileSystemPath: string): Promise<number> {
+    const archiveSlug = getArchiveSlugFromPath(fileSystemPath);
     const archive = await this.loadArchiveByArchiveSlug(archiveSlug);
     return archive.id;
   }
@@ -472,11 +472,11 @@ export class PermanentFileSystem {
     return archiveFolders;
   }
 
-  private async loadArchive(requestedPath: string): Promise<Archive> {
-    if (!isArchivePath(requestedPath)) {
+  private async loadArchive(fileSystemPath: string): Promise<Archive> {
+    if (!isArchivePath(fileSystemPath)) {
       throw new InvalidOperationForPathError('The requested path is not an archive');
     }
-    const archiveSlug = getArchiveSlugFromPath(requestedPath);
+    const archiveSlug = getArchiveSlugFromPath(fileSystemPath);
     return this.loadArchiveByArchiveSlug(archiveSlug);
   }
 
@@ -534,20 +534,20 @@ export class PermanentFileSystem {
   }
 
   private async loadFolder(
-    requestedPath: string,
+    fileSystemPath: string,
     overrideCache = false,
   ): Promise<Folder> {
-    const cachedFolder = this.folderCache.get(requestedPath);
+    const cachedFolder = this.folderCache.get(fileSystemPath);
     if (cachedFolder && !overrideCache) {
       return cachedFolder;
     }
 
-    if (!isItemPath(requestedPath)) {
+    if (!isItemPath(fileSystemPath)) {
       throw new InvalidOperationForPathError('The requested path is not a folder');
     }
 
-    const parentPath = path.dirname(requestedPath);
-    const childName = path.basename(requestedPath);
+    const parentPath = path.dirname(fileSystemPath);
+    const childName = path.basename(fileSystemPath);
     const targetFolder = await this.findFolderInParentDirectory(
       parentPath,
       childName,
@@ -558,7 +558,7 @@ export class PermanentFileSystem {
         folderId: targetFolder.id,
       },
     );
-    this.folderCache.set(requestedPath, populatedTargetFolder);
+    this.folderCache.set(fileSystemPath, populatedTargetFolder);
     return populatedTargetFolder;
   }
 
@@ -580,11 +580,11 @@ export class PermanentFileSystem {
   }
 
   private async loadFolderFileEntries(
-    requestedPath: string,
+    fileSystemPath: string,
     overrideCache = false,
   ): Promise<FileEntry[]> {
     const childFolder = await this.loadFolder(
-      requestedPath,
+      fileSystemPath,
       overrideCache,
     );
     const folderFileEntities = generateFileEntriesForFolders(childFolder.folders);

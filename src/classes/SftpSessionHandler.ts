@@ -938,7 +938,7 @@ export class SftpSessionHandler {
     const resolvedPath = path.resolve('/', relativePath);
 
     const permanentFileSystem = this.getCurrentPermanentFileSystem();
-    permanentFileSystem.getItemAttributes(resolvedPath).then((attrs) => {
+    permanentFileSystem.getFileSystemObjectAttributes(resolvedPath).then((attrs) => {
       const fileEntry = generateFileEntry(
         resolvedPath,
         attrs,
@@ -1124,7 +1124,7 @@ export class SftpSessionHandler {
 
   private genericStatHandler(reqId: number, itemPath: string): void {
     const permanentFileSystem = this.getCurrentPermanentFileSystem();
-    permanentFileSystem.getItemAttributes(itemPath).then((attrs) => {
+    permanentFileSystem.getFileSystemObjectAttributes(itemPath).then((attrs) => {
       logger.verbose(
         'Response: Attrs',
         {
@@ -1271,7 +1271,7 @@ export class SftpSessionHandler {
     const handle = generateHandle();
 
     (async () => {
-      const itemType = await permanentFileSystem.getItemType(filePath);
+      const itemType = await permanentFileSystem.getFileSystemObjectType(filePath);
       if (itemType === fs.constants.S_IFDIR) {
         this.sftpConnection.status(
           reqId,
