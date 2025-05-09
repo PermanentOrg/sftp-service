@@ -8,6 +8,7 @@ import { generateFileEntry } from '../utils';
 import {
   MissingTemporaryFileError,
   FileSystemObjectNotFound,
+  PermissionDeniedError,
 } from '../errors';
 import { PermanentFileSystem } from './PermanentFileSystem';
 import { TemporaryFileManager } from './TemporaryFileManager';
@@ -1065,20 +1066,50 @@ export class SftpSessionHandler {
       });
       this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
     }).catch((err: unknown) => {
-      logger.debug(err);
-      logger.verbose(
-        'Response: Status (FAILURE)',
-        {
+      if (err instanceof FileSystemObjectNotFound) {
+        logger.verbose(
+          'Response: Status (NO_SUCH_FILE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.NO_SUCH_FILE,
+            message: err.message,
+          },
+        );
+        this.sftpConnection.status(
           reqId,
-          code: SFTP_STATUS_CODE.FAILURE,
-          path: dirPath,
-        },
-      );
-      this.sftpConnection.status(
-        reqId,
-        SFTP_STATUS_CODE.FAILURE,
-        'An error occurred when attempting to create this directory on Permanent.org.',
-      );
+          SFTP_STATUS_CODE.NO_SUCH_FILE,
+          err.message,
+        );
+      } else if (err instanceof PermissionDeniedError) {
+        logger.verbose(
+          'Response: Status (PERMISSION_DENIED)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+            message: err.message,
+          },
+        );
+        this.sftpConnection.status(
+          reqId,
+          SFTP_STATUS_CODE.PERMISSION_DENIED,
+          err.message,
+        );
+      } else {
+        logger.debug(err);
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+            path: dirPath,
+          },
+        );
+        this.sftpConnection.status(
+          reqId,
+          SFTP_STATUS_CODE.FAILURE,
+          'An error occurred when attempting to create this directory on Permanent.org.',
+        );
+      }
     });
   }
 
