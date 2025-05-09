@@ -7,7 +7,7 @@ import { logger } from '../logger';
 import { generateFileEntry } from '../utils';
 import {
   MissingTemporaryFileError,
-  ResourceDoesNotExistError,
+  FileSystemObjectNotFound,
 } from '../errors';
 import { PermanentFileSystem } from './PermanentFileSystem';
 import { TemporaryFileManager } from './TemporaryFileManager';
@@ -938,7 +938,7 @@ export class SftpSessionHandler {
     const resolvedPath = path.resolve('/', relativePath);
 
     const permanentFileSystem = this.getCurrentPermanentFileSystem();
-    permanentFileSystem.getItemAttributes(resolvedPath).then((attrs) => {
+    permanentFileSystem.getFileSystemObjectAttributes(resolvedPath).then((attrs) => {
       const fileEntry = generateFileEntry(
         resolvedPath,
         attrs,
@@ -950,7 +950,7 @@ export class SftpSessionHandler {
       );
       this.sftpConnection.name(reqId, names);
     }).catch((err: unknown) => {
-      if (err instanceof ResourceDoesNotExistError) {
+      if (err instanceof FileSystemObjectNotFound) {
         logger.verbose(
           'Response: Status (NO_SUCH_FILE)',
           {
@@ -1124,7 +1124,7 @@ export class SftpSessionHandler {
 
   private genericStatHandler(reqId: number, itemPath: string): void {
     const permanentFileSystem = this.getCurrentPermanentFileSystem();
-    permanentFileSystem.getItemAttributes(itemPath).then((attrs) => {
+    permanentFileSystem.getFileSystemObjectAttributes(itemPath).then((attrs) => {
       logger.verbose(
         'Response: Attrs',
         {
@@ -1138,7 +1138,7 @@ export class SftpSessionHandler {
         attrs,
       );
     }).catch((err: unknown) => {
-      if (err instanceof ResourceDoesNotExistError) {
+      if (err instanceof FileSystemObjectNotFound) {
         logger.verbose(
           'Response: Status (NO_SUCH_FILE)',
           {
@@ -1245,7 +1245,7 @@ export class SftpSessionHandler {
         );
       });
     }).catch((err: unknown) => {
-      if (err instanceof ResourceDoesNotExistError) {
+      if (err instanceof FileSystemObjectNotFound) {
         logger.verbose(
           'Response: Status (FAILURE)',
           {
@@ -1271,7 +1271,7 @@ export class SftpSessionHandler {
     const handle = generateHandle();
 
     (async () => {
-      const itemType = await permanentFileSystem.getItemType(filePath);
+      const itemType = await permanentFileSystem.getFileSystemObjectType(filePath);
       if (itemType === fs.constants.S_IFDIR) {
         this.sftpConnection.status(
           reqId,
@@ -1302,7 +1302,7 @@ export class SftpSessionHandler {
           Buffer.from(handle),
         );
       } catch (err) {
-        if (err instanceof ResourceDoesNotExistError) {
+        if (err instanceof FileSystemObjectNotFound) {
           logger.verbose(
             'Response: Status (NO_SUCH_FILE)',
             {
