@@ -68,6 +68,13 @@ const isItemPath = (fileSystemPath: string): boolean => (
   && fileSystemPath.split('/').length > 3
 );
 
+const isPermanentFileSystemPath = (fileSystemPath: string): boolean => (
+  isRootPath(fileSystemPath)
+  || isArchiveCataloguePath(fileSystemPath)
+  || isArchivePath(fileSystemPath)
+  || isItemPath(fileSystemPath)
+);
+
 export class PermanentFileSystem {
   private readonly folderCache = new Map<string, Folder>();
 
@@ -96,6 +103,9 @@ export class PermanentFileSystem {
     fileSystemPath: string,
     overrideParentCache = false,
   ): Promise<number> {
+    if (!isPermanentFileSystemPath(fileSystemPath)) {
+      throw new FileSystemObjectNotFound(`The specified path does not exist in the Permanent file system: ${fileSystemPath}`);
+    }
     if (isRootPath(fileSystemPath)
      || isArchiveCataloguePath(fileSystemPath)) {
       return fs.constants.S_IFDIR;
@@ -148,6 +158,9 @@ export class PermanentFileSystem {
   }
 
   public async getFileSystemObjectAttributes(fileSystemPath: string): Promise<Attributes> {
+    if (!isPermanentFileSystemPath(fileSystemPath)) {
+      throw new FileSystemObjectNotFound(`The specified path does not exist in the Permanent file system: ${fileSystemPath}`);
+    }
     if (isRootPath(fileSystemPath)
      || isArchiveCataloguePath(fileSystemPath)) {
       return generateDefaultAttributes(fs.constants.S_IFDIR);
@@ -175,6 +188,9 @@ export class PermanentFileSystem {
   }
 
   public async loadDirectory(fileSystemPath: string): Promise<FileEntry[]> {
+    if (!isPermanentFileSystemPath(fileSystemPath)) {
+      throw new FileSystemObjectNotFound(`The specified path does not exist in the Permanent file system: ${fileSystemPath}`);
+    }
     if (isRootPath(fileSystemPath)) {
       return PermanentFileSystem.loadRootFileEntries();
     }
@@ -191,6 +207,9 @@ export class PermanentFileSystem {
   }
 
   public async createDirectory(fileSystemPath: string): Promise<void> {
+    if (!isPermanentFileSystemPath(fileSystemPath)) {
+      throw new PermissionDeniedError(`The specified path cannot exist in the Permanent file system: ${fileSystemPath}`);
+    }
     if (isRootPath(fileSystemPath)) {
       throw new PermissionDeniedError('You cannot create the root folder.');
     }
@@ -202,9 +221,6 @@ export class PermanentFileSystem {
     }
     if (isArchiveChildFolderPath(fileSystemPath)) {
       throw new PermissionDeniedError('You cannot create folders at the root level of an archive.');
-    }
-    if (!isItemPath(fileSystemPath)) {
-      throw new PermissionDeniedError('You cannot create folders outside of your archives.');
     }
     const parentPath = path.dirname(fileSystemPath);
     const childName = path.basename(fileSystemPath);
@@ -231,7 +247,9 @@ export class PermanentFileSystem {
     if (!account.isSftpDeletionEnabled) {
       throw new PermissionDeniedError('You must enable SFTP deletion directly in your account settings.');
     }
-
+    if (!isPermanentFileSystemPath(fileSystemPath)) {
+      throw new FileSystemObjectNotFound(`The specified path does not exist in the Permanent file system: ${fileSystemPath}`);
+    }
     if (isRootPath(fileSystemPath)) {
       throw new PermissionDeniedError('You cannot delete the root folder.');
     }
@@ -243,9 +261,6 @@ export class PermanentFileSystem {
     }
     if (isArchiveChildFolderPath(fileSystemPath)) {
       throw new PermissionDeniedError('You cannot delete folders at the root level of an archive.');
-    }
-    if (!isItemPath(fileSystemPath)) {
-      throw new PermissionDeniedError('You cannot delete folders outside of your archives.');
     }
 
     const folder = await this.loadFolder(fileSystemPath);
@@ -263,6 +278,9 @@ export class PermanentFileSystem {
     dataStream: Readable,
     size: number,
   ): Promise<void> {
+    if (!isPermanentFileSystemPath(fileSystemPath)) {
+      throw new PermissionDeniedError(`The specified path cannot exist in the Permanent file system: ${fileSystemPath}`);
+    }
     const parentPath = path.dirname(fileSystemPath);
     const archiveRecordName = path.basename(fileSystemPath);
     const parentFolder = await this.loadFolder(parentPath);
@@ -299,6 +317,9 @@ export class PermanentFileSystem {
   }
 
   public async deleteFile(fileSystemPath: string): Promise<void> {
+    if (!isPermanentFileSystemPath(fileSystemPath)) {
+      throw new FileSystemObjectNotFound(`The specified path does not exist in the Permanent file system: ${fileSystemPath}`);
+    }
     const account = await getAuthenticatedAccount(
       await this.getClientConfiguration(),
     );
@@ -326,6 +347,9 @@ export class PermanentFileSystem {
     fileSystemPath: string,
     overrideCache = false,
   ): Promise<File> {
+    if (!isPermanentFileSystemPath(fileSystemPath)) {
+      throw new FileSystemObjectNotFound(`The specified path does not exist in the Permanent file system: ${fileSystemPath}`);
+    }
     if (!isItemPath(fileSystemPath)) {
       throw new InvalidOperationForPathError('Invalid file path');
     }
