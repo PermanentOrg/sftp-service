@@ -540,18 +540,15 @@ export class SftpSessionHandler {
       return;
     }
     if (serverResource.resourceType === ServerResourceType.Directory) {
+      this.activeHandles.delete(handle.toString());
       logger.verbose(
-        'Response: Status (FAILURE)',
+        'Response: Status (OK)',
         {
           reqId,
-          code: SFTP_STATUS_CODE.FAILURE,
+          code: SFTP_STATUS_CODE.OK,
         },
       );
-      this.sftpConnection.status(
-        reqId,
-        SFTP_STATUS_CODE.FAILURE,
-        'This handle does not refer to a file.',
-      );
+      this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
       return;
     }
     if (serverResource.resourceType === ServerResourceType.PermanentFile) {
