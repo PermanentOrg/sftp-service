@@ -20,6 +20,9 @@ updates:
       eslint:
         patterns:
           - '*eslint*'
+      babel:
+        patterns:
+          - '@babel/*'
 
   - package-ecosystem: "github-actions"
     directory: ".github/workflows"
