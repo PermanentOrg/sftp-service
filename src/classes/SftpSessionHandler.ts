@@ -715,21 +715,31 @@ export class SftpSessionHandler {
         Buffer.from(handle),
       );
     }).catch((err: unknown) => {
-      logger.warn(err);
-      logger.warn('Failed to load path', { reqId, dirPath });
-      logger.verbose(
-        'Response: Status (FAILURE)',
-        {
+      if (err instanceof FileSystemObjectNotFound) {
+        logger.verbose(
+          'Response: Status (NO_SUCH_FILE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.NO_SUCH_FILE,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      } else {
+        logger.debug(err);
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+            path: dirPath,
+          },
+        );
+        this.sftpConnection.status(
           reqId,
-          code: SFTP_STATUS_CODE.FAILURE,
-          path: dirPath,
-        },
-      );
-      this.sftpConnection.status(
-        reqId,
-        SFTP_STATUS_CODE.FAILURE,
-        'An error occurred when attempting to load this directory from Permanent.org.',
-      );
+          SFTP_STATUS_CODE.FAILURE,
+          'An error occurred when attempting to load this directory from Permanent.org.',
+        );
+      }
     });
   }
 
