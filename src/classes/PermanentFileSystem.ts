@@ -192,13 +192,19 @@ export class PermanentFileSystem {
 
   public async createDirectory(fileSystemPath: string): Promise<void> {
     if (isRootPath(fileSystemPath)) {
-      throw new PermissionDeniedError('You cannot create new root level folders via SFTP.');
+      throw new PermissionDeniedError('You cannot create the root folder.');
     }
     if (isArchiveCataloguePath(fileSystemPath)) {
-      throw new PermissionDeniedError('You cannot create new archives via SFTP.');
+      throw new PermissionDeniedError('You cannot create the archive catalogue.');
     }
     if (isArchivePath(fileSystemPath)) {
-      throw new PermissionDeniedError('You cannot create new folders at the root level of an archive via SFTP.');
+      throw new PermissionDeniedError('You cannot create archives via SFTP.');
+    }
+    if (isArchiveChildFolderPath(fileSystemPath)) {
+      throw new PermissionDeniedError('You cannot create folders at the root level of an archive.');
+    }
+    if (!isItemPath(fileSystemPath)) {
+      throw new PermissionDeniedError('You cannot create folders outside of your archives.');
     }
     const parentPath = path.dirname(fileSystemPath);
     const childName = path.basename(fileSystemPath);
@@ -227,13 +233,19 @@ export class PermanentFileSystem {
     }
 
     if (isRootPath(fileSystemPath)) {
-      throw new PermissionDeniedError('You cannot delete the root level folder.');
+      throw new PermissionDeniedError('You cannot delete the root folder.');
     }
     if (isArchiveCataloguePath(fileSystemPath)) {
       throw new PermissionDeniedError('You cannot delete the archive catalogue.');
     }
     if (isArchivePath(fileSystemPath)) {
       throw new PermissionDeniedError('You cannot delete archives via SFTP.');
+    }
+    if (isArchiveChildFolderPath(fileSystemPath)) {
+      throw new PermissionDeniedError('You cannot delete folders at the root level of an archive.');
+    }
+    if (!isItemPath(fileSystemPath)) {
+      throw new PermissionDeniedError('You cannot delete folders outside of your archives.');
     }
 
     const folder = await this.loadFolder(fileSystemPath);
