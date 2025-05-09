@@ -1254,17 +1254,31 @@ export class SftpSessionHandler {
     }).catch((err: unknown) => {
       if (err instanceof FileSystemObjectNotFound) {
         logger.verbose(
-          'Response: Status (FAILURE)',
+          'Response: Status (NO_SUCH_FILE)',
           {
             reqId,
-            code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+            code: SFTP_STATUS_CODE.NO_SUCH_FILE,
             path: filePath,
           },
         );
         this.sftpConnection.status(
           reqId,
           SFTP_STATUS_CODE.FAILURE,
-          'The specified parent folder does not exist on Permanent.org.',
+          err.message,
+        );
+      } else {
+        logger.debug(err);
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+          },
+        );
+        this.sftpConnection.status(
+          reqId,
+          SFTP_STATUS_CODE.FAILURE,
+          'An error occurred when attempting to verify the existence of the parent directory.',
         );
       }
     });
