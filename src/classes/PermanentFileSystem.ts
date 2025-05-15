@@ -10,6 +10,7 @@ import {
   getFolder,
   getAuthenticatedAccount,
   uploadFile,
+  HttpResponseError,
 } from '@permanentorg/sdk';
 import {
   FileSystemObjectNotFound,
@@ -241,6 +242,9 @@ export class PermanentFileSystem {
   }
 
   public async deleteDirectory(fileSystemPath: string): Promise<void> {
+    // This is not wrapped in a try / catch block because if this endpoint fails it
+    // represents some kind of system failure / users should be able to
+    // access this endpoint so long as they are authenticated.
     const account = await getAuthenticatedAccount(
       await this.getClientConfiguration(),
     );
@@ -265,12 +269,22 @@ export class PermanentFileSystem {
 
     const folder = await this.loadFolder(fileSystemPath);
 
-    await deleteFolder(
-      await this.getClientConfiguration(),
-      {
-        folderId: folder.id,
-      },
-    );
+    try {
+      await deleteFolder(
+        await this.getClientConfiguration(),
+        {
+          folderId: folder.id,
+        },
+      );
+    } catch (error) {
+      if (error instanceof HttpResponseError && error.statusCode === 404) {
+        throw new FileSystemObjectNotFound(`The specified folder does not exist: ${fileSystemPath}`);
+      }
+      if (error instanceof HttpResponseError && error.statusCode === 401) {
+        throw new PermissionDeniedError(`You do not have permission to delete this folder: ${fileSystemPath}`);
+      }
+      throw error;
+    }
   }
 
   public async createFile(
@@ -292,6 +306,13 @@ export class PermanentFileSystem {
       displayName: archiveRecordName,
       fileSystemCompatibleName: archiveRecordName,
     };
+
+    // These calls are SDK operations that are not in a try / catch block because
+    // if something goes wrong at this point it really is a `FAILURE`.
+    //
+    // We may want to get more specific error types (e.g. "not enough space") which
+    // could be translated to more specific sftp response messages, but even in those
+    // cases the SFTP response would be a `FAILURE`.
     const s3Url = await uploadFile(
       await this.getClientConfiguration(),
       {
@@ -472,6 +493,9 @@ export class PermanentFileSystem {
 
   private async loadArchives(): Promise<Archive[]> {
     if (!this.archivesCache) {
+      // This is not in a try / catch block because if this endpoint fails it
+      // represents some kind of system failure / users should be able to
+      // access this endpoint so long as they are authenticated.
       this.archivesCache = await getArchives(
         await this.getClientConfiguration(),
       );
@@ -499,14 +523,24 @@ export class PermanentFileSystem {
     if (cachedArchiveFolders) {
       return cachedArchiveFolders;
     }
-    const archiveFolders = await getArchiveFolders(
-      await this.getClientConfiguration(),
-      {
-        archiveId,
-      },
-    );
-    this.archiveFoldersCache.set(archiveId, archiveFolders);
-    return archiveFolders;
+    try {
+      const archiveFolders = await getArchiveFolders(
+        await this.getClientConfiguration(),
+        {
+          archiveId,
+        },
+      );
+      this.archiveFoldersCache.set(archiveId, archiveFolders);
+      return archiveFolders;
+    } catch (error) {
+      if (error instanceof HttpResponseError && error.statusCode === 404) {
+        throw new FileSystemObjectNotFound('The specified archive does not exist');
+      }
+      if (error instanceof HttpResponseError && error.statusCode === 401) {
+        throw new PermissionDeniedError('You do not have permission to access this archive');
+      }
+      throw error;
+    }
   }
 
   private async loadArchive(fileSystemPath: string): Promise<Archive> {
@@ -589,14 +623,25 @@ export class PermanentFileSystem {
       parentPath,
       childName,
     );
-    const populatedTargetFolder = await getFolder(
-      await this.getClientConfiguration(),
-      {
-        folderId: targetFolder.id,
-      },
-    );
-    this.folderCache.set(fileSystemPath, populatedTargetFolder);
-    return populatedTargetFolder;
+
+    try {
+      const populatedTargetFolder = await getFolder(
+        await this.getClientConfiguration(),
+        {
+          folderId: targetFolder.id,
+        },
+      );
+      this.folderCache.set(fileSystemPath, populatedTargetFolder);
+      return populatedTargetFolder;
+    } catch (error) {
+      if (error instanceof HttpResponseError && error.statusCode === 404) {
+        throw new FileSystemObjectNotFound(`The specified folder does not exist: ${fileSystemPath}`);
+      }
+      if (error instanceof HttpResponseError && error.statusCode === 401) {
+        throw new PermissionDeniedError(`You do not have permission to access this folder: ${fileSystemPath}`);
+      }
+      throw error;
+    }
   }
 
   private async loadArchiveFileEntries(): Promise<FileEntry[]> {
