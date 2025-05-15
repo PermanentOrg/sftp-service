@@ -725,6 +725,19 @@ export class SftpSessionHandler {
           },
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      } else if (err instanceof PermissionDeniedError) {
+        logger.verbose(
+          'Response: Status (PERMISSION_DENIED)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+            path: dirPath,
+          },
+        );
+        this.sftpConnection.status(
+          reqId,
+          SFTP_STATUS_CODE.PERMISSION_DENIED,
+        );
       } else {
         logger.debug(err);
         logger.verbose(
@@ -874,20 +887,44 @@ export class SftpSessionHandler {
       );
       this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
     }).catch((err: unknown) => {
-      logger.debug(err);
-      logger.verbose(
-        'Response: Status (FAILURE)',
-        {
+      if (err instanceof FileSystemObjectNotFound) {
+        logger.verbose(
+          'Response: Status (NO_SUCH_FILE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.NO_SUCH_FILE,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      } else if (err instanceof PermissionDeniedError) {
+        logger.verbose(
+          'Response: Status (PERMISSION_DENIED)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+            path: filePath,
+          },
+        );
+        this.sftpConnection.status(
           reqId,
-          code: SFTP_STATUS_CODE.FAILURE,
-          path: filePath,
-        },
-      );
-      this.sftpConnection.status(
-        reqId,
-        SFTP_STATUS_CODE.FAILURE,
-        'An error occurred when attempting to delete this file on Permanent.org.',
-      );
+          SFTP_STATUS_CODE.PERMISSION_DENIED,
+        );
+      } else {
+        logger.debug(err);
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+            path: filePath,
+          },
+        );
+        this.sftpConnection.status(
+          reqId,
+          SFTP_STATUS_CODE.FAILURE,
+          'An error occurred when attempting to delete this file on Permanent.org.',
+        );
+      }
     });
   }
 
@@ -915,20 +952,44 @@ export class SftpSessionHandler {
       );
       this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
     }).catch((err: unknown) => {
-      logger.debug(err);
-      logger.verbose(
-        'Response: Status (FAILURE)',
-        {
+      if (err instanceof FileSystemObjectNotFound) {
+        logger.verbose(
+          'Response: Status (NO_SUCH_FILE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.NO_SUCH_FILE,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      } else if (err instanceof PermissionDeniedError) {
+        logger.verbose(
+          'Response: Status (PERMISSION_DENIED)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+            path: directoryPath,
+          },
+        );
+        this.sftpConnection.status(
           reqId,
-          code: SFTP_STATUS_CODE.FAILURE,
-          path: directoryPath,
-        },
-      );
-      this.sftpConnection.status(
-        reqId,
-        SFTP_STATUS_CODE.FAILURE,
-        'An error occurred when attempting to delete this directory on Permanent.org.',
-      );
+          SFTP_STATUS_CODE.PERMISSION_DENIED,
+        );
+      } else {
+        logger.debug(err);
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+            path: directoryPath,
+          },
+        );
+        this.sftpConnection.status(
+          reqId,
+          SFTP_STATUS_CODE.FAILURE,
+          'An error occurred when attempting to delete this directory on Permanent.org.',
+        );
+      }
     });
   }
 
@@ -967,6 +1028,19 @@ export class SftpSessionHandler {
           },
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      } else if (err instanceof PermissionDeniedError) {
+        logger.verbose(
+          'Response: Status (PERMISSION_DENIED)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+            path: relativePath,
+          },
+        );
+        this.sftpConnection.status(
+          reqId,
+          SFTP_STATUS_CODE.PERMISSION_DENIED,
+        );
       } else {
         logger.debug(err);
         logger.verbose(
@@ -1186,6 +1260,21 @@ export class SftpSessionHandler {
           },
         );
         this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      } else if (err instanceof PermissionDeniedError) {
+        logger.verbose(
+          'Response: Status (PERMISSION_DENIED)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+            message: err.message,
+            path: itemPath,
+          },
+        );
+        this.sftpConnection.status(
+          reqId,
+          SFTP_STATUS_CODE.PERMISSION_DENIED,
+          err.message,
+        );
       } else {
         logger.debug(err);
         logger.verbose(
@@ -1220,7 +1309,7 @@ export class SftpSessionHandler {
           'Response: Status (FAILURE)',
           {
             reqId,
-            code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+            code: SFTP_STATUS_CODE.FAILURE,
             path: filePath,
           },
         );
@@ -1233,16 +1322,16 @@ export class SftpSessionHandler {
       }
       if (permanentFileSystem.archiveRecordPathExistsInCache(filePath)) {
         logger.verbose(
-          'Response: Status (PERMISSION_DENIED)',
+          'Response: Status (FAILURE)',
           {
             reqId,
-            code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+            code: SFTP_STATUS_CODE.FAILURE,
             path: filePath,
           },
         );
         this.sftpConnection.status(
           reqId,
-          SFTP_STATUS_CODE.PERMISSION_DENIED,
+          SFTP_STATUS_CODE.FAILURE,
           `An archive record already exists at ${filePath}.`,
         );
         return;
@@ -1296,6 +1385,19 @@ export class SftpSessionHandler {
           reqId,
           SFTP_STATUS_CODE.FAILURE,
           err.message,
+        );
+      } else if (err instanceof PermissionDeniedError) {
+        logger.verbose(
+          'Response: Status (PERMISSION_DENIED)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+            path: filePath,
+          },
+        );
+        this.sftpConnection.status(
+          reqId,
+          SFTP_STATUS_CODE.PERMISSION_DENIED,
         );
       } else {
         logger.debug(err);
@@ -1366,6 +1468,19 @@ export class SftpSessionHandler {
             reqId,
             SFTP_STATUS_CODE.NO_SUCH_FILE,
             'This path does not point to an existing resource, so it cannot be opened.',
+          );
+        } else if (err instanceof PermissionDeniedError) {
+          logger.verbose(
+            'Response: Status (PERMISSION_DENIED)',
+            {
+              reqId,
+              code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+              path: filePath,
+            },
+          );
+          this.sftpConnection.status(
+            reqId,
+            SFTP_STATUS_CODE.PERMISSION_DENIED,
           );
         } else {
           logger.debug(err);
