@@ -874,20 +874,31 @@ export class SftpSessionHandler {
       );
       this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
     }).catch((err: unknown) => {
-      logger.debug(err);
-      logger.verbose(
-        'Response: Status (FAILURE)',
-        {
+      if (err instanceof FileSystemObjectNotFound) {
+        logger.verbose(
+          'Response: Status (NO_SUCH_FILE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.NO_SUCH_FILE,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      } else {
+        logger.debug(err);
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+            path: filePath,
+          },
+        );
+        this.sftpConnection.status(
           reqId,
-          code: SFTP_STATUS_CODE.FAILURE,
-          path: filePath,
-        },
-      );
-      this.sftpConnection.status(
-        reqId,
-        SFTP_STATUS_CODE.FAILURE,
-        'An error occurred when attempting to delete this file on Permanent.org.',
-      );
+          SFTP_STATUS_CODE.FAILURE,
+          'An error occurred when attempting to delete this file on Permanent.org.',
+        );
+      }
     });
   }
 
@@ -915,20 +926,31 @@ export class SftpSessionHandler {
       );
       this.sftpConnection.status(reqId, SFTP_STATUS_CODE.OK);
     }).catch((err: unknown) => {
-      logger.debug(err);
-      logger.verbose(
-        'Response: Status (FAILURE)',
-        {
+      if (err instanceof FileSystemObjectNotFound) {
+        logger.verbose(
+          'Response: Status (NO_SUCH_FILE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.NO_SUCH_FILE,
+          },
+        );
+        this.sftpConnection.status(reqId, SFTP_STATUS_CODE.NO_SUCH_FILE);
+      } else {
+        logger.debug(err);
+        logger.verbose(
+          'Response: Status (FAILURE)',
+          {
+            reqId,
+            code: SFTP_STATUS_CODE.FAILURE,
+            path: directoryPath,
+          },
+        );
+        this.sftpConnection.status(
           reqId,
-          code: SFTP_STATUS_CODE.FAILURE,
-          path: directoryPath,
-        },
-      );
-      this.sftpConnection.status(
-        reqId,
-        SFTP_STATUS_CODE.FAILURE,
-        'An error occurred when attempting to delete this directory on Permanent.org.',
-      );
+          SFTP_STATUS_CODE.FAILURE,
+          'An error occurred when attempting to delete this directory on Permanent.org.',
+        );
+      }
     });
   }
 
