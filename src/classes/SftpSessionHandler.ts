@@ -107,15 +107,15 @@ export class SftpSessionHandler {
       case 'xa+': // append and read (file must not exist)
       case 'a': // append
         logger.verbose(
-          'Response: Status (FAILURE)',
+          'Response: Status (OP_UNSUPPORTED)',
           {
             reqId,
-            code: SFTP_STATUS_CODE.FAILURE,
+            code: SFTP_STATUS_CODE.OP_UNSUPPORTED,
           },
         );
         this.sftpConnection.status(
           reqId,
-          SFTP_STATUS_CODE.FAILURE,
+          SFTP_STATUS_CODE.OP_UNSUPPORTED,
           'Append operations are not supported by Permanent.org',
         );
         break;
@@ -495,17 +495,17 @@ export class SftpSessionHandler {
   public fsetStatHandler(reqId: number, handle: Buffer, attrs: Attributes): void {
     logger.error('UNIMPLEMENTED Request: SFTP write open file statistics (SSH_FXP_FSETSTAT)');
     logger.verbose(
-      'Response: Status (FAILURE)',
+      'Response: Status (OP_UNSUPPORTED)',
       {
         reqId,
-        code: SFTP_STATUS_CODE.FAILURE,
+        code: SFTP_STATUS_CODE.OP_UNSUPPORTED,
         handle,
         attrs,
       },
     );
     this.sftpConnection.status(
       reqId,
-      SFTP_STATUS_CODE.FAILURE,
+      SFTP_STATUS_CODE.OP_UNSUPPORTED,
       'Setting file attributes is not supported by Permanent.org.',
     );
   }
@@ -1068,16 +1068,16 @@ export class SftpSessionHandler {
   public readLinkHandler(reqId: number, linkPath: string): void {
     logger.error('UNIMPLEMENTED Request: SFTP read link (SSH_FXP_READLINK)');
     logger.verbose(
-      'Response: Status (FAILURE)',
+      'Response: Status (OP_UNSUPPORTED)',
       {
         reqId,
-        code: SFTP_STATUS_CODE.FAILURE,
+        code: SFTP_STATUS_CODE.OP_UNSUPPORTED,
         linkPath,
       },
     );
     this.sftpConnection.status(
       reqId,
-      SFTP_STATUS_CODE.FAILURE,
+      SFTP_STATUS_CODE.OP_UNSUPPORTED,
       'Symlinks are not supported by Permanent.org.',
     );
   }
@@ -1196,16 +1196,16 @@ export class SftpSessionHandler {
   public renameHandler(reqId: number, itemPath: string): void {
     logger.error('UNIMPLEMENTED Request: SFTP file rename (SSH_FXP_RENAME)');
     logger.verbose(
-      'Response: Status (FAILURE)',
+      'Response: Status (OP_UNSUPPORTED)',
       {
         reqId,
-        code: SFTP_STATUS_CODE.FAILURE,
+        code: SFTP_STATUS_CODE.OP_UNSUPPORTED,
         itemPath,
       },
     );
     this.sftpConnection.status(
       reqId,
-      SFTP_STATUS_CODE.FAILURE,
+      SFTP_STATUS_CODE.OP_UNSUPPORTED,
       'Renaming is not supported by this sftp service.',
     );
   }
@@ -1219,17 +1219,17 @@ export class SftpSessionHandler {
   public symLinkHandler(reqId: number, linkPath: string, targetPath: string): void {
     logger.error('UNIMPLEMENTED Request: SFTP create symlink (SSH_FXP_SYMLINK)');
     logger.verbose(
-      'Response: Status (FAILURE)',
+      'Response: Status (OP_UNSUPPORTED)',
       {
         reqId,
-        code: SFTP_STATUS_CODE.FAILURE,
+        code: SFTP_STATUS_CODE.OP_UNSUPPORTED,
         linkPath,
         targetPath,
       },
     );
     this.sftpConnection.status(
       reqId,
-      SFTP_STATUS_CODE.FAILURE,
+      SFTP_STATUS_CODE.OP_UNSUPPORTED,
       'Symlinks are not supported by Permanent.org.',
     );
   }
