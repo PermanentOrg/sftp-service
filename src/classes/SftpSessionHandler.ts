@@ -1220,7 +1220,7 @@ export class SftpSessionHandler {
           'Response: Status (FAILURE)',
           {
             reqId,
-            code: SFTP_STATUS_CODE.PERMISSION_DENIED,
+            code: SFTP_STATUS_CODE.FAILURE,
             path: filePath,
           },
         );
