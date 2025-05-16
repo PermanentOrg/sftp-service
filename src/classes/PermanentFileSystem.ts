@@ -634,6 +634,13 @@ export class PermanentFileSystem {
       this.folderCache.set(fileSystemPath, populatedTargetFolder);
       return populatedTargetFolder;
     } catch (error) {
+      // This is a temporary workaround for the fact that the SDK does not return an
+      // appropriate error when a folder is not found / there is no 404 response
+      // since Stela does not support individual item lookups.
+      // See https://github.com/PermanentOrg/permanent-sdk/issues/518
+      if (error instanceof Error && error.message === 'Folder not found') {
+        throw new FileSystemObjectNotFound(`The specified folder does not exist: ${fileSystemPath}`);
+      }
       if (error instanceof HttpResponseError && error.statusCode === 404) {
         throw new FileSystemObjectNotFound(`The specified folder does not exist: ${fileSystemPath}`);
       }
