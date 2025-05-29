@@ -487,7 +487,7 @@ export class PermanentFileSystem {
       bearerToken: authToken,
       baseUrl: process.env.PERMANENT_API_BASE_PATH,
       stelaBaseUrl: process.env.STELA_API_BASE_PATH,
-      retryOn: [500, 502, 503, 504],
+      retryOn: [429, 500, 502, 503, 504],
     };
   }
 
