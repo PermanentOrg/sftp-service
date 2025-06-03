@@ -488,6 +488,8 @@ export class PermanentFileSystem {
       baseUrl: process.env.PERMANENT_API_BASE_PATH,
       stelaBaseUrl: process.env.STELA_API_BASE_PATH,
       retryOn: [429, 500, 502, 503, 504],
+      retries: 5, // given our delay function, the total retry window with 5 retries is ~15 minutes
+      retryDelay: (attempt: number) => (2 ** attempt) * 15000,
     };
   }
 
