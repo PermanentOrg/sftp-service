@@ -4,12 +4,12 @@
   "main": "index.js",
   "repository": "git@github.com:PermanentOrg/sftp-service.git",
   "scripts": {
-    "build": "babel --extensions \".ts,.tsx\" src -d build",
-    "check-types": "tsc",
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
     "eslint": "eslint ./src --ext .ts,.tsx",
     "lint": "npm run eslint && npm run check-types",
     "start": "npm run build && node -r dotenv/config build/index.js",
-    "dev": "nodemon --delay 500ms --exec babel-node -r dotenv/config --extensions \".ts,.tsx\" src/index.ts",
+    "dev": "nodemon --delay 500ms --exec ts-node src/index.ts",
     "test": "jest"
   },
   "author": {
@@ -33,11 +33,6 @@
   },
   "private": true,
   "devDependencies": {
-    "@babel/cli": "^7.28.0",
-    "@babel/core": "^7.28.0",
-    "@babel/node": "^7.28.0",
-    "@babel/preset-env": "^7.28.0",
-    "@babel/preset-typescript": "^7.27.1",
     "@tsconfig/node22": "^22.0.1",
     "@types/node-fetch": "^2.6.4",
     "@types/ssh2": "^1.15.5",
@@ -52,6 +47,8 @@
     "eslint-plugin-sort-exports": "^0.9.1",
     "jest": "^30.0.4",
     "nodemon": "^3.1.10",
+    "ts-jest": "^29.4.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
   "dependencies": {
