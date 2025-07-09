@@ -5,7 +5,7 @@ import type { Attributes } from "ssh2";
 import type { File } from "@permanentorg/sdk";
 
 export const generateAttributesForFile = (file?: File): Attributes =>
-	file
+	file !== undefined
 		? {
 				mode: generateDefaultMode(fs.constants.S_IFREG),
 				uid: 0,

@@ -319,7 +319,7 @@ export class SftpSessionHandler {
 					data.length,
 					offset,
 					(err, written, buffer) => {
-						if (err) {
+						if (err !== null) {
 							logger.verbose("Response: Status (FAILURE)", {
 								reqId,
 								code: SFTP_STATUS_CODE.FAILURE,

@@ -67,12 +67,12 @@ export class AuthTokenManager {
 			);
 		}
 
-		if (!clientResponse.response.access_token) {
+		if (clientResponse.response.access_token === undefined) {
 			logger.warn("No access token in response:", clientResponse.response);
 			throw new AuthTokenRefreshError("Response does not contain access_token");
 		}
 
-		if (!clientResponse.response.expires_in) {
+		if (clientResponse.response.expires_in === undefined) {
 			logger.warn(
 				"Response lacks token TTL (expires_in):",
 				clientResponse.response,

@@ -31,7 +31,7 @@ export class PermanentFileSystemManager {
 
 	private resetDeletionTimeout(user: string): void {
 		const existingTimeout = this.deletionTimeouts.get(user);
-		if (existingTimeout) {
+		if (existingTimeout !== undefined) {
 			clearTimeout(existingTimeout);
 		}
 		this.deletionTimeouts.set(

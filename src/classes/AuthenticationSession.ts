@@ -64,7 +64,7 @@ export class AuthenticationSession {
 						logger.verbose("Successful password authentication attempt.", {
 							username: this.authContext.username,
 						});
-						if (clientResponse.response.refreshToken) {
+						if (clientResponse.response.refreshToken !== undefined) {
 							this.successHandler(clientResponse.response.refreshToken);
 							this.authContext.accept();
 						} else {
@@ -230,7 +230,7 @@ export class AuthenticationSession {
 						logger.verbose("Successful 2FA authentication attempt.", {
 							username: this.authContext.username,
 						});
-						if (clientResponse.response.refreshToken) {
+						if (clientResponse.response.refreshToken !== undefined) {
 							this.successHandler(clientResponse.response.refreshToken);
 							this.authContext.accept();
 						} else {

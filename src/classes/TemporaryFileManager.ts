@@ -21,7 +21,7 @@ export class TemporaryFileManager {
 	): Promise<boolean> {
 		return new Promise((resolve) => {
 			fs.access(localPath, (err) => {
-				if (err) {
+				if (err !== null) {
 					resolve(false);
 				}
 				resolve(true);
@@ -59,7 +59,7 @@ export class TemporaryFileManager {
 		this.setCleanupTimeout(virtualPath);
 		return new Promise<TemporaryFile>((resolve, reject) => {
 			tmp.file((err, name, fd, removeCallback) => {
-				if (err) {
+				if (err !== null) {
 					reject(err);
 				}
 				const temporaryFile = {

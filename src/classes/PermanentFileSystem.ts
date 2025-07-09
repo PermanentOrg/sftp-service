@@ -407,7 +407,7 @@ export class PermanentFileSystem {
 		const parentPath = path.dirname(fileSystemPath);
 		const folderName = path.basename(fileSystemPath);
 		const parentFolder = this.folderCache.get(parentPath);
-		if (!parentFolder) {
+		if (parentFolder === undefined) {
 			return false;
 		}
 		const foundFolder = parentFolder.folders.find(
@@ -423,7 +423,7 @@ export class PermanentFileSystem {
 		const parentPath = path.dirname(fileSystemPath);
 		const archiveRecordName = path.basename(fileSystemPath);
 		const parentFolder = this.folderCache.get(parentPath);
-		if (!parentFolder) {
+		if (parentFolder === undefined) {
 			return false;
 		}
 		const foundArchiveRecord = parentFolder.archiveRecords.find(
@@ -478,7 +478,7 @@ export class PermanentFileSystem {
 		overrideCache = false,
 	): Promise<ArchiveRecord> {
 		const cachedArchiveRecord = this.archiveRecordCache.get(fileSystemPath);
-		if (cachedArchiveRecord && !overrideCache) {
+		if (cachedArchiveRecord !== undefined && !overrideCache) {
 			return cachedArchiveRecord;
 		}
 		const parentPath = path.dirname(fileSystemPath);
@@ -502,7 +502,7 @@ export class PermanentFileSystem {
 	}
 
 	private async loadArchives(): Promise<Archive[]> {
-		if (!this.archivesCache) {
+		if (this.archivesCache === undefined) {
 			// This is not in a try / catch block because if this endpoint fails it
 			// represents some kind of system failure / users should be able to
 			// access this endpoint so long as they are authenticated.
@@ -532,7 +532,7 @@ export class PermanentFileSystem {
 
 	private async loadArchiveFolders(archiveId: number): Promise<Folder[]> {
 		const cachedArchiveFolders = this.archiveFoldersCache.get(archiveId);
-		if (cachedArchiveFolders) {
+		if (cachedArchiveFolders !== undefined) {
 			return cachedArchiveFolders;
 		}
 		try {
@@ -582,7 +582,7 @@ export class PermanentFileSystem {
 			(folder) => folder.fileSystemCompatibleName === folderName,
 		);
 
-		if (overrideParentCache && !targetFolder) {
+		if (overrideParentCache && targetFolder === undefined) {
 			throw new FileSystemObjectNotFound(
 				`The specified folder does not exist (${parentPath}/${folderName})`,
 			);
@@ -603,7 +603,7 @@ export class PermanentFileSystem {
 			(folder) => folder.fileSystemCompatibleName === archiveRecordName,
 		);
 
-		if (targetArchiveRecord) {
+		if (targetArchiveRecord !== undefined) {
 			return targetArchiveRecord;
 		}
 		if (overrideParentCache) {
@@ -627,7 +627,7 @@ export class PermanentFileSystem {
 		overrideCache = false,
 	): Promise<Folder> {
 		const cachedFolder = this.folderCache.get(fileSystemPath);
-		if (cachedFolder && !overrideCache) {
+		if (cachedFolder !== undefined && !overrideCache) {
 			return cachedFolder;
 		}
 
