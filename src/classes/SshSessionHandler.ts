@@ -116,18 +116,20 @@ export class SshSessionHandler {
 	}
 
 	public onEof(): void {
-		// This addresses a bug in the ssh2 library where EOF is not properly
-		// handled for sftp connections.
-		// An upstream PR that would fix the behavior: https://github.com/mscdex/ssh2/pull/1111
-		// And some context from our own debugging: https://github.com/PermanentOrg/sftp-service/issues/45
-		//
-		// The solution here is not ideal, as it is accessing an undocumented attribute that
-		// doesn't exist in TypeScript.  As a result I need to disable typescript checks.
-		//
-		// Once upstream makes that patch this entire handler should become completely unnecessary
-		//
+		/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access --
+		 * This addresses a bug in the ssh2 library where EOF is not properly
+		 * handled for sftp connections.
+		 * An upstream PR that would fix the behavior: https://github.com/mscdex/ssh2/pull/1111
+		 * And some context from our own debugging: https://github.com/PermanentOrg/sftp-service/issues/45
+		 *
+		 * The solution here is not ideal, as it is accessing an undocumented attribute that
+		 * doesn't exist in TypeScript.  As a result I need to disable typescript checks.
+		 *
+		 * Once upstream makes that patch this entire handler should become completely unnecessary
+		 */
 		// !!BEWARE: THERE BE DRAGONS HERE!!
 		// @ts-expect-error because `_channel` is private / isn't actually documented.
-		this.session._channel.end(); // eslint-disable-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+		this.session._channel.end();
+		/* eslint-enable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 	}
 }

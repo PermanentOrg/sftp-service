@@ -61,7 +61,6 @@ export default defineConfig([
 
 			// These rules are disabled because they require code changes.
 			// We'll turn them on alongside fixes over time.
-			"eslint-comments/require-description": "off",
 			"@typescript-eslint/class-methods-use-this": "off",
 			"@typescript-eslint/prefer-readonly": "off",
 			"@typescript-eslint/no-unnecessary-type-conversion": "off",

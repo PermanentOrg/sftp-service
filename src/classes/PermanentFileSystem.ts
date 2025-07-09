@@ -614,10 +614,8 @@ export class PermanentFileSystem {
 				`The specified folder does not exist (${parentPath}/${folderName})`,
 			);
 		}
-		return (
-			await (targetFolder ??
-			this.findFolderInParentDirectory(parentPath, folderName, true))
-		);
+		return await (targetFolder ??
+			this.findFolderInParentDirectory(parentPath, folderName, true));
 	}
 
 	private async findArchiveRecordInParentDirectory(
