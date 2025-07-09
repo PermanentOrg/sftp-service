@@ -1,0 +1,1 @@
+export const FIVE_GIGABYTES_BYTES = 5368709120;

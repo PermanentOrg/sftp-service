@@ -11,6 +11,9 @@ enum FusionAuthStatusCode {
 
 type SuccessHandler = (refreshToken: string) => void;
 
+const TWO_FACTOR_PROMPT_RENDERING_OFFSET = 1;
+const TWO_FACTOR_PROMPT_MINIMUM_SELECTION = 1;
+
 export class AuthenticationSession {
 	private readonly authContext;
 
@@ -161,7 +164,8 @@ export class AuthenticationSession {
 
 	private promptForTwoFactorMethod(): void {
 		const promptOptions = this.twoFactorMethods.map(
-			(method, index) => `[${String(index + 1)}] ${method.method ?? ""}`,
+			(method, index) =>
+				`[${String(index + TWO_FACTOR_PROMPT_RENDERING_OFFSET)}] ${method.method ?? ""}`,
 		);
 		this.authContext.prompt(
 			[
@@ -185,14 +189,16 @@ export class AuthenticationSession {
 		if (
 			Number.isNaN(selection) ||
 			selection > this.twoFactorMethods.length ||
-			selection < 1
+			selection < TWO_FACTOR_PROMPT_MINIMUM_SELECTION
 		) {
 			this.authContext.reject();
 			return;
 		}
 		this.fusionAuthClient
 			.sendTwoFactorCodeForLoginUsingMethod(this.twoFactorId, {
-				methodId: this.twoFactorMethods[selection - 1].id,
+				methodId:
+					this.twoFactorMethods[selection - TWO_FACTOR_PROMPT_RENDERING_OFFSET]
+						.id,
 			})
 			.then(() => {
 				this.promptForTwoFactorCode();

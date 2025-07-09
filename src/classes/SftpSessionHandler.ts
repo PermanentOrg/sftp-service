@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { HTTP_STATUS } from "@pdc/http-status-codes";
 import fetch from "node-fetch";
 import { v4 as uuidv4 } from "uuid";
 import ssh2 from "ssh2";
@@ -10,6 +11,7 @@ import {
 	FileSystemObjectNotFound,
 	PermissionDeniedError,
 } from "../errors";
+import { FIVE_GIGABYTES_BYTES } from "../constants";
 import { PermanentFileSystem } from "./PermanentFileSystem";
 import { TemporaryFileManager } from "./TemporaryFileManager";
 import type { AuthTokenManager } from "./AuthTokenManager";
@@ -189,9 +191,10 @@ export class SftpSessionHandler {
 			return;
 		}
 
+		const BASE_BYTE_RANGE_OFFSET = 1;
 		fetch(file.downloadUrl, {
 			headers: {
-				Range: `bytes=${String(offset)}-${String(offset + length - 1)}`,
+				Range: `bytes=${String(offset)}-${String(offset + length - BASE_BYTE_RANGE_OFFSET)}`,
 			},
 		})
 			.then(async (response) => {
@@ -199,15 +202,15 @@ export class SftpSessionHandler {
 					statusCode: response.status,
 				});
 				switch (response.status) {
-					case 206:
-					case 200: {
+					case HTTP_STATUS.SUCCESSFUL.PARTIAL_CONTENT.valueOf():
+					case HTTP_STATUS.SUCCESSFUL.OK.valueOf(): {
 						const data = await response.buffer();
 						logger.verbose("Response: Data", { reqId });
 						logger.silly("Sent data...", { data });
 						this.sftpConnection.data(reqId, data);
 						break;
 					}
-					case 403:
+					case HTTP_STATUS.CLIENT_ERROR.FORBIDDEN.valueOf():
 						logger.verbose("Response: Status (PERMISSION_DENIED)", {
 							reqId,
 							code: SFTP_STATUS_CODE.PERMISSION_DENIED,
@@ -295,8 +298,7 @@ export class SftpSessionHandler {
 			return;
 		}
 		const { virtualFilePath } = serverResource;
-		if (offset + data.length > 5368709120) {
-			// 5 GB
+		if (offset + data.length > FIVE_GIGABYTES_BYTES) {
 			logger.verbose("Response: Status (FAILURE)", {
 				reqId,
 				code: SFTP_STATUS_CODE.FAILURE,

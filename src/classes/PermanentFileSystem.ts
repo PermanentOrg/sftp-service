@@ -12,6 +12,7 @@ import {
 	uploadFile,
 	HttpResponseError,
 } from "@permanentorg/sdk";
+import { HTTP_STATUS } from "@pdc/http-status-codes";
 import {
 	FileSystemObjectNotFound,
 	InvalidOperationForPathError,
@@ -45,20 +46,22 @@ const isRootPath = (fileSystemPath: string): boolean => fileSystemPath === "/";
 const isArchiveCataloguePath = (fileSystemPath: string): boolean =>
 	fileSystemPath === "/archives";
 
+const ARCHIVE_PATH_LENGTH = 3;
+const ARCHIVE_CHILD_FOLDER_PATH_LENGTH = 4;
 // e.g. '/archives/Foo (1)'
 const isArchivePath = (fileSystemPath: string): boolean =>
 	fileSystemPath.startsWith("/archives") &&
-	fileSystemPath.split("/").length === 3;
+	fileSystemPath.split("/").length === ARCHIVE_PATH_LENGTH;
 
 // e.g. '/archives/Foo (1)/My Files'
 const isArchiveChildFolderPath = (fileSystemPath: string): boolean =>
 	fileSystemPath.startsWith("/archives") &&
-	fileSystemPath.split("/").length === 4;
+	fileSystemPath.split("/").length === ARCHIVE_CHILD_FOLDER_PATH_LENGTH;
 
 // e.g. '/archives/Foo (1)/**'
 const isItemPath = (fileSystemPath: string): boolean =>
 	fileSystemPath.startsWith("/archives") &&
-	fileSystemPath.split("/").length > 3;
+	fileSystemPath.split("/").length >= ARCHIVE_CHILD_FOLDER_PATH_LENGTH;
 
 const isPermanentFileSystemPath = (fileSystemPath: string): boolean =>
 	isRootPath(fileSystemPath) ||
@@ -275,12 +278,18 @@ export class PermanentFileSystem {
 				folderId: folder.id,
 			});
 		} catch (error) {
-			if (error instanceof HttpResponseError && error.statusCode === 404) {
+			if (
+				error instanceof HttpResponseError &&
+				error.statusCode === HTTP_STATUS.CLIENT_ERROR.NOT_FOUND.valueOf()
+			) {
 				throw new FileSystemObjectNotFound(
 					`The specified folder does not exist: ${fileSystemPath}`,
 				);
 			}
-			if (error instanceof HttpResponseError && error.statusCode === 401) {
+			if (
+				error instanceof HttpResponseError &&
+				error.statusCode === HTTP_STATUS.CLIENT_ERROR.UNAUTHORIZED.valueOf()
+			) {
 				throw new PermissionDeniedError(
 					`You do not have permission to delete this folder: ${fileSystemPath}`,
 				);
@@ -490,14 +499,26 @@ export class PermanentFileSystem {
 	}
 
 	private async getClientConfiguration(): Promise<ClientConfiguration> {
+		// given our delay function, the total retry window with 5 retries is ~15 minutes
+		const TOTAL_RETRIES = 5;
+		const BACKOFF_GROWTH_FACTOR = 2;
+		const BACKOFF_BASE_MS = 15000;
+
 		const authToken = await this.authTokenManager.getAuthToken();
 		return {
 			bearerToken: authToken,
 			baseUrl: process.env.PERMANENT_API_BASE_PATH,
 			stelaBaseUrl: process.env.STELA_API_BASE_PATH,
-			retryOn: [429, 500, 502, 503, 504],
-			retries: 5, // given our delay function, the total retry window with 5 retries is ~15 minutes
-			retryDelay: (attempt: number) => 2 ** attempt * 15000,
+			retryOn: [
+				HTTP_STATUS.CLIENT_ERROR.TOO_MANY_REQUESTS.valueOf(),
+				HTTP_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR.valueOf(),
+				HTTP_STATUS.SERVER_ERROR.BAD_GATEWAY.valueOf(),
+				HTTP_STATUS.SERVER_ERROR.SERVICE_UNAVAILABLE.valueOf(),
+				HTTP_STATUS.SERVER_ERROR.GATEWAY_TIMEOUT.valueOf(),
+			],
+			retries: TOTAL_RETRIES,
+			retryDelay: (attempt: number) =>
+				BACKOFF_GROWTH_FACTOR ** attempt * BACKOFF_BASE_MS,
 		};
 	}
 
@@ -545,12 +566,18 @@ export class PermanentFileSystem {
 			this.archiveFoldersCache.set(archiveId, archiveFolders);
 			return archiveFolders;
 		} catch (error) {
-			if (error instanceof HttpResponseError && error.statusCode === 404) {
+			if (
+				error instanceof HttpResponseError &&
+				error.statusCode === HTTP_STATUS.CLIENT_ERROR.NOT_FOUND.valueOf()
+			) {
 				throw new FileSystemObjectNotFound(
 					"The specified archive does not exist",
 				);
 			}
-			if (error instanceof HttpResponseError && error.statusCode === 401) {
+			if (
+				error instanceof HttpResponseError &&
+				error.statusCode === HTTP_STATUS.CLIENT_ERROR.UNAUTHORIZED.valueOf()
+			) {
 				throw new PermissionDeniedError(
 					"You do not have permission to access this archive",
 				);
@@ -663,12 +690,18 @@ export class PermanentFileSystem {
 					`The specified folder does not exist: ${fileSystemPath}`,
 				);
 			}
-			if (error instanceof HttpResponseError && error.statusCode === 404) {
+			if (
+				error instanceof HttpResponseError &&
+				error.statusCode === HTTP_STATUS.CLIENT_ERROR.NOT_FOUND.valueOf()
+			) {
 				throw new FileSystemObjectNotFound(
 					`The specified folder does not exist: ${fileSystemPath}`,
 				);
 			}
-			if (error instanceof HttpResponseError && error.statusCode === 401) {
+			if (
+				error instanceof HttpResponseError &&
+				error.statusCode === HTTP_STATUS.CLIENT_ERROR.UNAUTHORIZED.valueOf()
+			) {
 				throw new PermissionDeniedError(
 					`You do not have permission to access this folder: ${fileSystemPath}`,
 				);

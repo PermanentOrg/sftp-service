@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import tmp from "tmp";
+import { ONE_DAY_MS } from "../constants";
 import { logger } from "../logger";
 import { MissingTemporaryFileError } from "../errors";
 import type { FileResult } from "tmp";
@@ -83,26 +84,23 @@ export class TemporaryFileManager {
 	}
 
 	private setCleanupTimeout(virtualPath: string): void {
-		const timeout = setTimeout(
-			() => {
-				logger.info(
-					`Deleting the temporary file associated with ${virtualPath} via cleanup timeout.`,
-				);
-				this.deleteTemporaryFile(virtualPath).catch((err: unknown) => {
-					if (err instanceof MissingTemporaryFileError) {
-						logger.info(
-							`The temporary file associated with "${virtualPath}" does not exist.`,
-						);
-						return;
-					}
-					logger.info(err);
+		const timeout = setTimeout(() => {
+			logger.info(
+				`Deleting the temporary file associated with ${virtualPath} via cleanup timeout.`,
+			);
+			this.deleteTemporaryFile(virtualPath).catch((err: unknown) => {
+				if (err instanceof MissingTemporaryFileError) {
 					logger.info(
-						`Unable to delete temporary file associated with ${virtualPath}`,
+						`The temporary file associated with "${virtualPath}" does not exist.`,
 					);
-				});
-			},
-			86400000, // 24 hours
-		);
+					return;
+				}
+				logger.info(err);
+				logger.info(
+					`Unable to delete temporary file associated with ${virtualPath}`,
+				);
+			});
+		}, ONE_DAY_MS);
 		this.temporaryFileCleanupTimeouts.set(virtualPath, timeout);
 	}
 

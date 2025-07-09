@@ -2,6 +2,8 @@ import { logger } from "../logger";
 import { PermanentFileSystem } from "./PermanentFileSystem";
 import type { AuthTokenManager } from "./AuthTokenManager";
 
+const FILE_CLEANUP_TIMEOUT_MS = 300000; // 5 minutes
+
 export class PermanentFileSystemManager {
 	private readonly permanentFileSystems = new Map<
 		string,
@@ -39,7 +41,7 @@ export class PermanentFileSystemManager {
 			setTimeout(() => {
 				logger.silly("Delete permanent file system for user", { user });
 				this.deletePermanentFileSystemForUser(user);
-			}, 300000),
+			}, FILE_CLEANUP_TIMEOUT_MS),
 		);
 	}
 }

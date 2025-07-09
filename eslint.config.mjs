@@ -52,9 +52,15 @@ export default defineConfig([
 				},
 			],
 
+			// 0 is used for checking if an array is empty; this will unfortunately allow magic 0's in some contexts
+			// but we preferred to override the rule here as opposed to writing `isEmptyArray` with disabled linting
+			"@typescript-eslint/no-magic-numbers": [
+				"error",
+				{ ignore: [0], ignoreEnums: true, detectObjects: true },
+			],
+
 			// These rules are disabled because they require code changes.
 			// We'll turn them on alongside fixes over time.
-			"@typescript-eslint/no-magic-numbers": "off",
 			"promise/avoid-new": "off",
 			"@typescript-eslint/return-await": "off",
 			"eslint-comments/require-description": "off",

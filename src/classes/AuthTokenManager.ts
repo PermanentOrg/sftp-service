@@ -1,6 +1,7 @@
 import { logger } from "../logger";
 import { AuthTokenRefreshError } from "../errors/AuthTokenRefreshError";
 import { getFusionAuthClient, isPartialClientResponse } from "../fusionAuth";
+import { FIVE_MINUTES_SECONDS, MS_PER_SECOND } from "../constants";
 
 export class AuthTokenManager {
 	public readonly username: string;
@@ -88,15 +89,18 @@ export class AuthTokenManager {
 		 */
 		this.authToken = clientResponse.response.access_token;
 		this.authTokenExpiresAt = new Date(
-			Date.now() + clientResponse.response.expires_in * 1000,
+			Date.now() + clientResponse.response.expires_in * MS_PER_SECOND,
 		);
 		logger.debug("New access token obtained:", clientResponse.response);
 	}
 
-	private tokenWouldExpireSoon(expirationThresholdInSeconds = 300): boolean {
+	private tokenWouldExpireSoon(
+		expirationThresholdInSeconds = FIVE_MINUTES_SECONDS,
+	): boolean {
 		const currentTime = new Date();
 		const remainingTokenLife =
-			(this.authTokenExpiresAt.getTime() - currentTime.getTime()) / 1000;
+			(this.authTokenExpiresAt.getTime() - currentTime.getTime()) /
+			MS_PER_SECOND;
 		return remainingTokenLife <= expirationThresholdInSeconds;
 	}
 }
