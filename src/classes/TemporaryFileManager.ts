@@ -1,4 +1,4 @@
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import tmp from "tmp";
 import { ONE_DAY_MS } from "../constants";
 import { logger } from "../logger";
@@ -20,14 +20,12 @@ export class TemporaryFileManager {
 	private static async verifyPathExistsOnDisk(
 		localPath: string,
 	): Promise<boolean> {
-		return new Promise((resolve) => {
-			fs.access(localPath, (err) => {
-				if (err !== null) {
-					resolve(false);
-				}
-				resolve(true);
-			});
-		});
+		try {
+			await fs.access(localPath);
+			return true;
+		} catch (err) {
+			return false;
+		}
 	}
 
 	public async getTemporaryFile(virtualPath: string): Promise<TemporaryFile> {
@@ -58,6 +56,15 @@ export class TemporaryFileManager {
 		virtualPath: string,
 	): Promise<TemporaryFile> {
 		this.setCleanupTimeout(virtualPath);
+
+		/* eslint-disable-next-line promise/avoid-new --
+		 * Unfortunately `util.promisify` does not work with `tmp.file` because
+		 * the callback returns multiple fields (name, fd, removeCallback) and promisify
+		 * only supports and returns a single `err` argument.)
+		 *
+		 * We could use tmp-promise but that looks like a stale project.
+		 * This leaves us here: we just need to have this wrapped in a custom promise.
+		 */
 		return new Promise<TemporaryFile>((resolve, reject) => {
 			tmp.file((err, name, fd, removeCallback) => {
 				if (err !== null) {
