@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import fetch from "node-fetch";
 import { v4 as uuidv4 } from "uuid";
 import ssh2 from "ssh2";

@@ -54,7 +54,6 @@ export default defineConfig([
 
 			// These rules are disabled because they require code changes.
 			// We'll turn them on alongside fixes over time.
-			"import/enforce-node-protocol-usage": "off",
 			"@typescript-eslint/no-magic-numbers": "off",
 			"promise/avoid-new": "off",
 			"@typescript-eslint/return-await": "off",

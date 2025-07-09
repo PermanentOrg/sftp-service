@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 
 export const generateDefaultMode = (baseType: number): number =>
 	baseType |

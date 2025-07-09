@@ -1,7 +1,7 @@
 import "./instrument";
 import { server } from "./server";
 import { logger } from "./logger";
-import type { ListenOptions } from "net";
+import type { ListenOptions } from "node:net";
 
 const listenOptions: ListenOptions = {
 	port: Number.parseInt(process.env.SSH_PORT ?? "22", 10),
