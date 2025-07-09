@@ -1,52 +1,45 @@
-import { logger } from '../logger';
-import { PermanentFileSystem } from './PermanentFileSystem';
-import type { AuthTokenManager } from './AuthTokenManager';
+import { logger } from "../logger";
+import { PermanentFileSystem } from "./PermanentFileSystem";
+import type { AuthTokenManager } from "./AuthTokenManager";
 
 export class PermanentFileSystemManager {
-  private readonly permanentFileSystems = new Map<string, PermanentFileSystem>();
+	private readonly permanentFileSystems = new Map<
+		string,
+		PermanentFileSystem
+	>();
 
-  private readonly deletionTimeouts = new Map<string, NodeJS.Timeout>();
+	private readonly deletionTimeouts = new Map<string, NodeJS.Timeout>();
 
-  public getCurrentPermanentFileSystemForUser(
-    user: string,
-    authTokenManager: AuthTokenManager,
-  ): PermanentFileSystem {
-    logger.silly('Get permanent file system for user', { user });
-    this.resetDeletionTimeout(user);
-    const existingFileSystem = this.permanentFileSystems.get(user);
-    if (existingFileSystem !== undefined) {
-      return existingFileSystem;
-    }
-    const permanentFileSystem = new PermanentFileSystem(authTokenManager);
-    this.permanentFileSystems.set(
-      user,
-      permanentFileSystem,
-    );
-    return permanentFileSystem;
-  }
+	public getCurrentPermanentFileSystemForUser(
+		user: string,
+		authTokenManager: AuthTokenManager,
+	): PermanentFileSystem {
+		logger.silly("Get permanent file system for user", { user });
+		this.resetDeletionTimeout(user);
+		const existingFileSystem = this.permanentFileSystems.get(user);
+		if (existingFileSystem !== undefined) {
+			return existingFileSystem;
+		}
+		const permanentFileSystem = new PermanentFileSystem(authTokenManager);
+		this.permanentFileSystems.set(user, permanentFileSystem);
+		return permanentFileSystem;
+	}
 
-  public deletePermanentFileSystemForUser(
-    user: string,
-  ): void {
-    this.permanentFileSystems.delete(user);
-  }
+	public deletePermanentFileSystemForUser(user: string): void {
+		this.permanentFileSystems.delete(user);
+	}
 
-  private resetDeletionTimeout(
-    user: string,
-  ): void {
-    const existingTimeout = this.deletionTimeouts.get(user);
-    if (existingTimeout) {
-      clearTimeout(existingTimeout);
-    }
-    this.deletionTimeouts.set(
-      user,
-      setTimeout(
-        () => {
-          logger.silly('Delete permanent file system for user', { user });
-          this.deletePermanentFileSystemForUser(user);
-        },
-        300000,
-      ),
-    );
-  }
+	private resetDeletionTimeout(user: string): void {
+		const existingTimeout = this.deletionTimeouts.get(user);
+		if (existingTimeout) {
+			clearTimeout(existingTimeout);
+		}
+		this.deletionTimeouts.set(
+			user,
+			setTimeout(() => {
+				logger.silly("Delete permanent file system for user", { user });
+				this.deletePermanentFileSystemForUser(user);
+			}, 300000),
+		);
+	}
 }

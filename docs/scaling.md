@@ -9,6 +9,7 @@ The SFTP service currently leverages the following computational resources which
 5. Permanent back-end performance
 
 ## Resource Types
+
 ### Network Bandwidth
 
 Network bandwidth will most affect the following SFTP operations:
@@ -26,8 +27,8 @@ When a `WRITE` operation occurs, some amount of data is sent to the SFTP service
 
 #### Paths for improvement
 
-1. Deploy to EC2 instances that are designed for high bandwidth.  There is an article about [Amazon EC2 instance network bandwidth](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-network-bandwidth.html) with more information.
-2. Multiple instances + load balancing.  Since this is not an HTTP service load balancing would be performed through a [Network Load Balancer](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html).  I'll talk in more
+1. Deploy to EC2 instances that are designed for high bandwidth. There is an article about [Amazon EC2 instance network bandwidth](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-network-bandwidth.html) with more information.
+2. Multiple instances + load balancing. Since this is not an HTTP service load balancing would be performed through a [Network Load Balancer](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html). I'll talk in more
 
 ### Network Connections
 
@@ -37,13 +38,13 @@ There was a brief period of time when I was worried some of our latency bugs wer
 
 ### Temporary Storage
 
-The SFTP protocol does not provide the total size of a file that is being uploaded; this means we cannot know the size of an uploaded file until a `SSH_FXP_CLOSE` has been called.  Permanent, however, uses S3 presigned posts and requires a max file size in order to generate a presigned post.  The result is that we have to somehow "buffer" the file until it is closed, and only after the close happens can we upload the file to Permanent.
+The SFTP protocol does not provide the total size of a file that is being uploaded; this means we cannot know the size of an uploaded file until a `SSH_FXP_CLOSE` has been called. Permanent, however, uses S3 presigned posts and requires a max file size in order to generate a presigned post. The result is that we have to somehow "buffer" the file until it is closed, and only after the close happens can we upload the file to Permanent.
 
 We are currently using local file storage for that buffer. This is a problem because we can run out of local disk space (e.g. if the total amount of "in process" data across all SFTP clients is greater than the file system then all clients will be told there is no more disk space. The current implementation is not just a scalability problem, but a security problem as well since it exposes the service to a fairly easy to execute DOS attack (simply uploading a single file that is too large would cause the service to stop working for all users!).
 
 #### Paths for improvement
 
-1. Write temporary files to S3 -- this would allow our service to avoid any DOS risks.  We would likely want to also implement some kinds of limits to concurrent upload amounts for a given user to prevent risk of unlimited costs (e.g. a user uploading 100 TB of data to S3 in a single file).
+1. Write temporary files to S3 -- this would allow our service to avoid any DOS risks. We would likely want to also implement some kinds of limits to concurrent upload amounts for a given user to prevent risk of unlimited costs (e.g. a user uploading 100 TB of data to S3 in a single file).
 2. Increase the size of the local file system -- this would not protect from a DOS attack, but it would make the issue less likely to manifest for regular use.
 
 ### Memory
@@ -63,12 +64,12 @@ The upload processing times, in particular, means that transferring a thousand s
 
 1. Update the permanent backend to provide the necessary metadata / original file access instantaneously after a record is registered, rather than waiting until the processing pipeline to resolve.
 
-It's also possible we could augment the virtual filesystem to work against some kind of "staging" location for data in addition to the permanent API (e.g. a file is uploaded to S3 directly, and sits there for the purposes of SFTP until it has been completely processed).  This would be a much more complicated solution.
+It's also possible we could augment the virtual filesystem to work against some kind of "staging" location for data in addition to the permanent API (e.g. a file is uploaded to S3 directly, and sits there for the purposes of SFTP until it has been completely processed). This would be a much more complicated solution.
 
 ## Load Balancing
 
-The current system lends itself to having multiple copies running simultaneously, as each instance is ultimately acting as the mediator between the SFTP client and the permanent backend.  That said, there are some considerations:
+The current system lends itself to having multiple copies running simultaneously, as each instance is ultimately acting as the mediator between the SFTP client and the permanent backend. That said, there are some considerations:
 
-1. Caching - This may not be an issue at all, as the current cache is implemented in a way that will re-look-up in the event of a false positive, and most direct lookups bypass the cache.  That said, it should at least be thought about!
+1. Caching - This may not be an issue at all, as the current cache is implemented in a way that will re-look-up in the event of a false positive, and most direct lookups bypass the cache. That said, it should at least be thought about!
 
 2. Concurrent upload limits - Any potential limits on concurrent upload file sizes will be harder to monitor in a multi-instance scenario (since each instance would not necessarily know what uploads are happening for the same user on other instances).

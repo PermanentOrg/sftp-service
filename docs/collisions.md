@@ -1,15 +1,12 @@
-# Handling Path Name Collisions 
-
+# Handling Path Name Collisions
 
 ## Overview
 
-Permanent’s file system allows users to upload **files and folders** with exactly the same name in the same parent folder.** In the context of computers this is referred to as a **name collision.** 
+Permanent’s file system allows users to upload **files and folders** with exactly the same name in the same parent folder.** In the context of computers this is referred to as a **name collision.\*\*
 
-
-**In traditional file systems, name collisions are not allowed**. Typically such file systems handle name collisions by appending a number that uniquely identifies the incoming file (or folder)  within parentheses. Sometimes there’s a possibility to override or replace duplicates but this is not a consideration for Permanent and rclone. 
+**In traditional file systems, name collisions are not allowed**. Typically such file systems handle name collisions by appending a number that uniquely identifies the incoming file (or folder) within parentheses. Sometimes there’s a possibility to override or replace duplicates but this is not a consideration for Permanent and rclone.
 
 To achieve Permanent’s feature goal of letting it synchronize with other file systems, a way needs to be found to ensure **name collisions which are allowed within permanent can be safely transferred and mirrored on external file systems that do not allow name collisions.**
-
 
 ## Name collision handling algorithm for external file systems
 
@@ -17,26 +14,19 @@ Since Permanent already knows how to handle collisions the deduplication mechani
 
 To make this possible, a new property `downloadName` would be added to the data models of files and folders each. The intention is that it is the downloadName that would be used when mapping files and folders from Permanent’s file system to other file systems.
 
-
 ## Definitions
 
-
-###  Conflict/Name Collision
-
+### Conflict/Name Collision
 
 There is a name collision or conflict **IF more than one file and or folder in the same directory** has **the same name and extension when applicable. Summarily;**
 
+- More than one file with an exact name and extension is a conflict
+- More than one folder with an exact name including extension
+- More than one folder and file with an exact name including or excluding extension
 
-
-* More than one file with an exact name and extension is a conflict
-* More than one folder with an exact name including extension
-* More than one folder and file with an exact name including or excluding extension
-
-
-###  Siblings
+### Siblings
 
 Files and folders that are inside the same directory would be referred to as **siblings.**
-
 
 ## How does `downloadName` work
 
@@ -46,56 +36,50 @@ In the event of a conflict,
 
 For example if a folder has five 5 with the same name say **_A.txt _** the five files would have downloadName ‘s as `A, A (1).txt, A (2).txt, A (3).txt, A (4).txt`
 
-
-- Hence, the standard convention employed by most file systems that is; “space, parentheses open, number, parentheses close”  for example (5) is used.
+- Hence, the standard convention employed by most file systems that is; “space, parentheses open, number, parentheses close” for example (5) is used.
 - The number within the parenthesis is a sequential calculated by incrementing until it constitutes a unique `downloadName` within the destination namespace or folder.
 - If an incoming file of folder has a dedupe string that can lead to recursive concatenation, the existing dedupe string is updated to until it is unique. For example say an incoming file has name `A (1).txt` if there were already two files both named `A.txt` then one would have the download name `A (1).txt` implying that the unique download name for the incoming file should predictively be `A (1) (1).txt`. However, multiple deduplication strings would be avoided and the number in the last parentheses closest to the extension would be updated. Conclusively, the incoming file `A (1).txt` in the stated example would assume a download name such as `A (1+n).txt` instead of `A (1)(1).txt` and subsequently or arrangements like `A (1)(1)(1).txt | A (2)(3)(1).txt` ....
 
 ### Algorithm
 
-
-* **1: IF SIBLINGS :** check for conflicts
-* **2: IF NO CONFLICT :** The `downloadName = displayName + fileExtension` or simply  `downloadName = displayName` in the case of folder.
-* **3: IF CONFLICT:** The` downloadName = displayName (fileId) + fileExtension`
+- **1: IF SIBLINGS :** check for conflicts
+- **2: IF NO CONFLICT :** The `downloadName = displayName + fileExtension` or simply `downloadName = displayName` in the case of folder.
+- **3: IF CONFLICT:** The` downloadName = displayName (fileId) + fileExtension`
 
 **Notes:**
 
-* Name collisions should be checked across record and folder tables
-* [Extensions in folder names matter](https://apple.stackexchange.com/questions/123001/renamed-folder-becomes-a-file-with-an-extension) and should be handled :
-* Case sensitivity is taken into account. `Myfile` and `myFile` are different for example. That is useful to [ensure complete syncs](https://rclone.org/overview/#case-insensitive).
+- Name collisions should be checked across record and folder tables
+- [Extensions in folder names matter](https://apple.stackexchange.com/questions/123001/renamed-folder-becomes-a-file-with-an-extension) and should be handled :
+- Case sensitivity is taken into account. `Myfile` and `myFile` are different for example. That is useful to [ensure complete syncs](https://rclone.org/overview/#case-insensitive).
 
 #### Extensions
 
-For both files and folders the extension is any string that follows after the last dot in the `displayName` or `uploadFileName` (see; *Source of extensions* section below).
+For both files and folders the extension is any string that follows after the last dot in the `displayName` or `uploadFileName` (see; _Source of extensions_ section below).
 
 This means that an extension might contain spaces, parentheses, and other characters not traditionally thought of as extension characters. It also means that the last dot could also be the first dot, in which case the extension is the remaining string after that first dot.
 
 #### Source of extensions
 
-a) The **source string for file extensions ON FILES** could be the **`displayName`** OR the **`uploadFileName`**. When a file is uploaded to Permanent if the extension is recognized, then the `displayName` is calculated as `uploadFileName minus File Extension`. So, if `My File.txt` is uploaded the `displayName` is `My File` while the `uploadFileName` would be `My File.txt`. This means when Permanent recognizes the extension, the `displayName` is stored without the extension so we keep track of the extension via the `uploadFileName`. 
+a) The **source string for file extensions ON FILES** could be the **`displayName`** OR the **`uploadFileName`**. When a file is uploaded to Permanent if the extension is recognized, then the `displayName` is calculated as `uploadFileName minus File Extension`. So, if `My File.txt` is uploaded the `displayName` is `My File` while the `uploadFileName` would be `My File.txt`. This means when Permanent recognizes the extension, the `displayName` is stored without the extension so we keep track of the extension via the `uploadFileName`.
 
 When Permanent does not recognize the extension, the `uploadFileName` is the same as `displayName` **at the point of creation**. For example, in the case of `My File.abcxyz` both the `uploadFileName` and `displayName` would be `My File.abcxyz` and so in this case the source of the extension is the `displayName` even though the extension can be obtained from the `uploadFileName` it risk being wrong if the user ever updates the `displayName`. This is the case because an update to the `displayName` does not affect the `uploadFileName` correctly so.
 
-
 b) The **source string for file extensions ON FOLDERS** is the `displayName` because Permanent does not (or at least did not ) do any kind of extension processing on folders, hence folder extensions are always visible in their `displayName`.
-
 
 ### Reserved/unsupported characters
 
-Characters that do not map to various file systems would be encoded. For example, `/` is not allowed in file names in all operating systems, while Windows goes ahead to restrict a lot more characters including `*`, `<`, `>`, `/`, `:`, `"` and `|`. 
+Characters that do not map to various file systems would be encoded. For example, `/` is not allowed in file names in all operating systems, while Windows goes ahead to restrict a lot more characters including `*`, `<`, `>`, `/`, `:`, `"` and `|`.
 
-#### References for reserved characters. 
+#### References for reserved characters.
 
-* [Path Naming Conventions](https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file)
-* [Reserved Characters](https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words)
+- [Path Naming Conventions](https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file)
+- [Reserved Characters](https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words)
 
 _What each unsupported character encodes to has to ultimately be decided and the reference table developed if necessary._
 
-
-## Example 
+## Example
 
 **Folders**
-
 
 <table>
   <tr>
@@ -123,7 +107,6 @@ _What each unsupported character encodes to has to ultimately be decided and the
    </td>
   </tr>
 </table>
-
 
 **Files and expected downloadNames**
 
@@ -382,8 +365,6 @@ _What each unsupported character encodes to has to ultimately be decided and the
   </tr>
 </table>
 
-
-
 ## Implementation Plan
 
 1. Populate the downloadFileName field in the record table upon file upload with a unique name that is either the uploadFileName or resembles it. To ensure uniqueness, the value of this field will be dependent on the downloadFileName of other files that have the same parent folder.
@@ -392,27 +373,23 @@ _What each unsupported character encodes to has to ultimately be decided and the
 
 NB: downloadFileName & downloadFolderName **should be recalculated after file or folder rename.**
 
-
 ## Testing Plan
 
 - **File to file collision tests**: Test that colliding files get a directory-unique & correctly formatted `downloadName`, for instance in a case where 2 or more files in the same folder have the same name.
-- **Folder to folder collision tests**:  Test that colliding folders get a directory-unique & correctly formatted `downloadName`, for instance in a case where 2 or more folders in the same folder have the same name.
-- **File to folder collision tests**: Test that files colliding with folders or vice-verser get a directory-unique & correctly formatted `downloadName`. For instance, in a case where 2 or more *files AND folders* in the same folder have the same name.
+- **Folder to folder collision tests**: Test that colliding folders get a directory-unique & correctly formatted `downloadName`, for instance in a case where 2 or more folders in the same folder have the same name.
+- **File to folder collision tests**: Test that files colliding with folders or vice-verser get a directory-unique & correctly formatted `downloadName`. For instance, in a case where 2 or more _files AND folders_ in the same folder have the same name.
 - **File/Folder with dedupe string tests**: Test that files and folder with existing deduplication strings in them get a directory-unique & correctly formatted `downloadName`. For instance files containing dedupe strings such as `My File (1).png` as their original name.
 - **Edge case tests**: Test that files and folders with weird extensions, uncommon characters in files name, name with too many dots et al get a directory-unique & correctly formatted `downloadName` for files and folders with uncommon naming styles.
 
-*Directory-unique: Download names need be unique only for files and folders in the same directory*
-
+_Directory-unique: Download names need be unique only for files and folders in the same directory_
 
 # Synchronization
-
 
 ## Scenario Table Summary
 
 In this case “empty” means containing no files or folders
 
-Note that Permanent’s root directory will never be “empty” for the purposes of this table because we will always have a “virtual” permanent file structure defined in the root folder.  For instance all archives could / would be stored in a “/Archives” directory and therefore “/” is not empty.
-
+Note that Permanent’s root directory will never be “empty” for the purposes of this table because we will always have a “virtual” permanent file structure defined in the root folder. For instance all archives could / would be stored in a “/Archives” directory and therefore “/” is not empty.
 
 <table>
   <tr>
@@ -555,18 +532,15 @@ Note that Permanent’s root directory will never be “empty” for the purpose
   </tr>
 </table>
 
-
 ## Deletion Risks
 
 We want to make sure that users understand the difference between a **sync** and a **copy**. Those two commands mean different things in rclone:
 
-
-* **“sync”** is more destructive because it can delete files.  For example syncing an empty local folder with a populated Permanent archive would lead to the complete deletion of the archive which may not be what the user expected. Hence the buttons or whatever UI is exposed to the user for rclone interaction must provide the appropriate warning.
-* **“copy”** is less destructive because it does not delete files, it either creates or overwrites.  It can still cause data modification in the case of an overwrite. For example if a file exists both locally and on Permanent but with different content.  After the copy both files would contain the same content.
-
+- **“sync”** is more destructive because it can delete files. For example syncing an empty local folder with a populated Permanent archive would lead to the complete deletion of the archive which may not be what the user expected. Hence the buttons or whatever UI is exposed to the user for rclone interaction must provide the appropriate warning.
+- **“copy”** is less destructive because it does not delete files, it either creates or overwrites. It can still cause data modification in the case of an overwrite. For example if a file exists both locally and on Permanent but with different content. After the copy both files would contain the same content.
 
 ## Other Notes
 
-* [Proposal V1](https://docs.google.com/document/d/1zOFDjDQJb4A2VlbJDqqBLXw01LZwdVQYAJWsXwtcRFs/edit?usp=sharing)
-* [Meeting Notes on Collisions [02-03-2022]](https://pad.opentechstrategies.com/p/permanent-2022-02-03) 
-* [User Experience Notes](https://docs.google.com/document/d/13zsy2amn0AeEE_cA1gkZ9vM77acY3f3nxEkA7Rvox_g/edit?usp=sharing)
+- [Proposal V1](https://docs.google.com/document/d/1zOFDjDQJb4A2VlbJDqqBLXw01LZwdVQYAJWsXwtcRFs/edit?usp=sharing)
+- [Meeting Notes on Collisions [02-03-2022]](https://pad.opentechstrategies.com/p/permanent-2022-02-03)
+- [User Experience Notes](https://docs.google.com/document/d/13zsy2amn0AeEE_cA1gkZ9vM77acY3f3nxEkA7Rvox_g/edit?usp=sharing)

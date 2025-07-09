@@ -1,67 +1,73 @@
 {
-  "name": "sftp-service",
-  "version": "0.1.0",
-  "main": "index.js",
-  "repository": "git@github.com:PermanentOrg/sftp-service.git",
-  "scripts": {
-    "build": "tsc",
-    "check-types": "tsc --noEmit",
-    "eslint": "eslint ./src --ext .ts,.tsx",
-    "lint": "npm run eslint && npm run check-types",
-    "start": "npm run build && node -r dotenv/config build/index.js",
-    "dev": "nodemon --delay 500ms --exec ts-node src/index.ts",
-    "test": "jest"
-  },
-  "author": {
-    "name": "Permanent.org",
-    "email": "engineers@permanent.org",
-    "url": "https://www.permanent.org/"
-  },
-  "contributors": [
-    {
-      "name": "Dan Schultz",
-      "email": "dan@opentechstrategies.com",
-      "url": "https://slifty.com"
-    }
-  ],
-  "license": "AGPL-3.0",
-  "bugs": {
-    "url": "https://github.com/PermanentOrg/sftp-service/issues"
-  },
-  "engines": {
-    "node": ">=22.0"
-  },
-  "private": true,
-  "devDependencies": {
-    "@tsconfig/node22": "^22.0.1",
-    "@types/node-fetch": "^2.6.4",
-    "@types/ssh2": "^1.15.5",
-    "@types/tmp": "^0.2.6",
-    "@types/uuid": "^10.0.0",
-    "@typescript-eslint/eslint-plugin": "^7.17.0",
-    "@typescript-eslint/parser": "^7.17.0",
-    "eslint": "^8.57.1",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-airbnb-typescript": "^18.0.0",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-sort-exports": "^0.9.1",
-    "jest": "^30.0.4",
-    "nodemon": "^3.1.10",
-    "ts-jest": "^29.4.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
-  },
-  "dependencies": {
-    "@fusionauth/typescript-client": "^1.57.0",
-    "@permanentorg/sdk": "0.10.1",
-    "@sentry/node": "^9.35.0",
-    "dotenv": "^17.0.1",
-    "logform": "^2.6.1",
-    "node-fetch": "^2.7.0",
-    "require-env-variable": "^4.0.2",
-    "ssh2": "^1.16.0",
-    "tmp": "^0.2.3",
-    "uuid": "^11.1.0",
-    "winston": "^3.17.0"
-  }
+	"name": "sftp-service",
+	"version": "0.1.0",
+	"main": "index.js",
+	"repository": "git@github.com:PermanentOrg/sftp-service.git",
+	"scripts": {
+		"build": "tsc",
+		"lint": "npm run lint:eslint && npm run lint:prettier && npm run lint:tsc",
+		"lint:eslint": "eslint ./src --ext .ts",
+		"lint:prettier": "prettier . --check",
+		"lint:tsc": "tsc --noEmit",
+		"format": "npm run format:prettier && npm run format:eslint",
+		"format:prettier": "prettier --write .",
+		"format:eslint": "eslint ./src --fix || true",
+		"start": "npm run build && node -r dotenv/config build/index.js",
+		"dev": "nodemon --delay 500ms --exec ts-node src/index.ts",
+		"test": "jest"
+	},
+	"author": {
+		"name": "Permanent.org",
+		"email": "engineers@permanent.org",
+		"url": "https://www.permanent.org/"
+	},
+	"contributors": [
+		{
+			"name": "Dan Schultz",
+			"email": "dan@opentechstrategies.com",
+			"url": "https://slifty.com"
+		}
+	],
+	"license": "AGPL-3.0",
+	"bugs": {
+		"url": "https://github.com/PermanentOrg/sftp-service/issues"
+	},
+	"engines": {
+		"node": ">=22.0"
+	},
+	"private": true,
+	"devDependencies": {
+		"@tsconfig/node22": "^22.0.1",
+		"@types/node-fetch": "^2.6.4",
+		"@types/ssh2": "^1.15.5",
+		"@types/tmp": "^0.2.6",
+		"@types/uuid": "^10.0.0",
+		"@typescript-eslint/eslint-plugin": "^7.17.0",
+		"@typescript-eslint/parser": "^7.17.0",
+		"eslint": "^8.57.1",
+		"eslint-config-airbnb-base": "^15.0.0",
+		"eslint-config-airbnb-typescript": "^18.0.0",
+		"eslint-config-prettier": "^10.1.5",
+		"eslint-plugin-import": "^2.32.0",
+		"eslint-plugin-sort-exports": "^0.9.1",
+		"jest": "^30.0.4",
+		"nodemon": "^3.1.10",
+		"prettier": "^3.6.2",
+		"ts-jest": "^29.4.0",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.8.3"
+	},
+	"dependencies": {
+		"@fusionauth/typescript-client": "^1.57.0",
+		"@permanentorg/sdk": "0.10.1",
+		"@sentry/node": "^9.35.0",
+		"dotenv": "^17.0.1",
+		"logform": "^2.6.1",
+		"node-fetch": "^2.7.0",
+		"require-env-variable": "^4.0.2",
+		"ssh2": "^1.16.0",
+		"tmp": "^0.2.3",
+		"uuid": "^11.1.0",
+		"winston": "^3.17.0"
+	}
 }
