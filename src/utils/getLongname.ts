@@ -1,6 +1,3 @@
-// We are living in the realm of bits for these operations
-// and so we must accept our fate and use the bitwise operators.
-/* eslint-disable no-bitwise */
 import fs from "fs";
 import type { Attributes } from "ssh2";
 

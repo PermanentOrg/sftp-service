@@ -111,7 +111,6 @@ export class SshSessionHandler {
 	 * See: Session Events (close)
 	 * https://github.com/mscdex/ssh2#session-events
 	 */
-	// eslint-disable-next-line class-methods-use-this
 	public onClose(): void {
 		logger.verbose("SSH session closed");
 	}
@@ -129,6 +128,6 @@ export class SshSessionHandler {
 		//
 		// !!BEWARE: THERE BE DRAGONS HERE!!
 		// @ts-expect-error because `_channel` is private / isn't actually documented.
-		this.session._channel.end(); // eslint-disable-line max-len, no-underscore-dangle, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+		this.session._channel.end(); // eslint-disable-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 	}
 }
