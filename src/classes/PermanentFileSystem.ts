@@ -137,7 +137,7 @@ export class PermanentFileSystem {
 			return fs.constants.S_IFDIR;
 		}
 		if (!overrideParentCache) {
-			return this.getFileSystemObjectType(fileSystemPath, true);
+			return await this.getFileSystemObjectType(fileSystemPath, true);
 		}
 		throw new FileSystemObjectNotFound(
 			`A file system object at the specified path could not be found: ${fileSystemPath}`,
@@ -189,13 +189,13 @@ export class PermanentFileSystem {
 			return PermanentFileSystem.loadRootFileEntries();
 		}
 		if (isArchiveCataloguePath(fileSystemPath)) {
-			return this.loadArchiveFileEntries();
+			return await this.loadArchiveFileEntries();
 		}
 		if (isArchivePath(fileSystemPath)) {
-			return this.loadArchiveFoldersFileEntries(fileSystemPath);
+			return await this.loadArchiveFoldersFileEntries(fileSystemPath);
 		}
 		if (isItemPath(fileSystemPath)) {
-			return this.loadFolderFileEntries(fileSystemPath);
+			return await this.loadFolderFileEntries(fileSystemPath);
 		}
 		return [];
 	}
@@ -593,7 +593,7 @@ export class PermanentFileSystem {
 			);
 		}
 		const archiveSlug = getArchiveSlugFromPath(fileSystemPath);
-		return this.loadArchiveByArchiveSlug(archiveSlug);
+		return await this.loadArchiveByArchiveSlug(archiveSlug);
 	}
 
 	private async findFolderInParentDirectory(
@@ -615,8 +615,8 @@ export class PermanentFileSystem {
 			);
 		}
 		return (
-			targetFolder ??
-			this.findFolderInParentDirectory(parentPath, folderName, true)
+			await (targetFolder ??
+			this.findFolderInParentDirectory(parentPath, folderName, true))
 		);
 	}
 
@@ -642,7 +642,7 @@ export class PermanentFileSystem {
 		// version of the parent directory when checking for the child (`overrideParentCache` is false).
 		// It's possible the archiveRecord does actually exist; we just need to force a load of
 		// the parent, which is what this recursive call demands (by setting the override to true).
-		return this.findArchiveRecordInParentDirectory(
+		return await this.findArchiveRecordInParentDirectory(
 			parentPath,
 			archiveRecordName,
 			true,

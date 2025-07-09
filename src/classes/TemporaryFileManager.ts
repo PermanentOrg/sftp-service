@@ -65,7 +65,7 @@ export class TemporaryFileManager {
 		 * We could use tmp-promise but that looks like a stale project.
 		 * This leaves us here: we just need to have this wrapped in a custom promise.
 		 */
-		return new Promise<TemporaryFile>((resolve, reject) => {
+		return await new Promise<TemporaryFile>((resolve, reject) => {
 			tmp.file((err, name, fd, removeCallback) => {
 				if (err !== null) {
 					reject(err);
