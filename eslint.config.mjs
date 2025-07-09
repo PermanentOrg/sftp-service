@@ -4,13 +4,14 @@ import prettier from "eslint-config-prettier";
 import globals from "globals";
 import jest from "eslint-plugin-jest";
 import js from "@eslint/js";
-import importPlugin from "eslint-plugin-import";
+import love from "eslint-config-love";
 
 export default defineConfig([
 	js.configs.recommended,
 	typescriptEslint.configs.eslintRecommended,
 	typescriptEslint.configs.recommendedTypeChecked,
 	typescriptEslint.configs.strict,
+	love,
 	prettier,
 	{
 		languageOptions: {
@@ -21,10 +22,6 @@ export default defineConfig([
 			parserOptions: {
 				project: "./tsconfig.json",
 			},
-		},
-
-		plugins: {
-			import: importPlugin,
 		},
 
 		rules: {
@@ -54,6 +51,26 @@ export default defineConfig([
 					"newlines-between": "never",
 				},
 			],
+
+			// These rules are disabled because they require code changes.
+			// We'll turn them on alongside fixes over time.
+			"@typescript-eslint/strict-boolean-expressions": "off",
+			"import/enforce-node-protocol-usage": "off",
+			"@typescript-eslint/no-magic-numbers": "off",
+			"promise/avoid-new": "off",
+			"@typescript-eslint/return-await": "off",
+			"eslint-comments/require-description": "off",
+			"@typescript-eslint/class-methods-use-this": "off",
+			"@typescript-eslint/prefer-readonly": "off",
+			"@typescript-eslint/no-unnecessary-type-conversion": "off",
+			"max-lines": "off",
+			"@typescript-eslint/init-declarations": "off",
+			"@typescript-eslint/consistent-type-imports": "off",
+			"@typescript-eslint/prefer-destructuring": "off",
+			complexity: "off",
+			"logical-assignment-operators": "off",
+			"@typescript-eslint/explicit-function-return-type": "off",
+			"@typescript-eslint/prefer-nullish-coalescing": "off",
 		},
 	},
 	{
