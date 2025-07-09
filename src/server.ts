@@ -36,6 +36,7 @@ const connectionListener = (client: Connection): void => {
 		permanentFileSystemManager,
 		FUSION_AUTH_SFTP_CLIENT_ID,
 		FUSION_AUTH_SFTP_CLIENT_SECRET,
+		logger,
 	);
 	client.on(
 		"authentication",

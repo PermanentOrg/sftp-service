@@ -1,10 +1,12 @@
-import { logger } from "../logger";
 import { SftpSessionHandler } from "./SftpSessionHandler";
 import { AuthTokenManager } from "./AuthTokenManager";
+import type { Logger } from "winston";
 import type { PermanentFileSystemManager } from "./PermanentFileSystemManager";
 import type { Session, SFTPWrapper } from "ssh2";
 
 export class SshSessionHandler {
+	private readonly logger: Logger;
+
 	private readonly permanentFileSystemManager: PermanentFileSystemManager;
 
 	private readonly authTokenManager: AuthTokenManager;
@@ -15,10 +17,12 @@ export class SshSessionHandler {
 		session: Session,
 		authTokenManager: AuthTokenManager,
 		permanentFileSystemManager: PermanentFileSystemManager,
+		logger: Logger,
 	) {
 		this.session = session;
 		this.authTokenManager = authTokenManager;
 		this.permanentFileSystemManager = permanentFileSystemManager;
+		this.logger = logger;
 	}
 
 	/**
@@ -26,7 +30,7 @@ export class SshSessionHandler {
 	 * https://github.com/mscdex/ssh2#session-events
 	 */
 	public onSftp(accept: () => SFTPWrapper): void {
-		logger.verbose("SFTP requested");
+		this.logger.verbose("SFTP requested");
 		const sftpConnection = accept();
 		const sftpSessionHandler = new SftpSessionHandler(
 			sftpConnection,
@@ -112,7 +116,7 @@ export class SshSessionHandler {
 	 * https://github.com/mscdex/ssh2#session-events
 	 */
 	public onClose(): void {
-		logger.verbose("SSH session closed");
+		this.logger.verbose("SSH session closed");
 	}
 
 	public onEof(): void {

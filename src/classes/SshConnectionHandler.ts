@@ -1,11 +1,13 @@
-import { logger } from "../logger";
 import { AuthenticationSession } from "./AuthenticationSession";
 import { SshSessionHandler } from "./SshSessionHandler";
 import { AuthTokenManager } from "./AuthTokenManager";
+import type { Logger } from "winston";
 import type { AuthContext, Session } from "ssh2";
 import type { PermanentFileSystemManager } from "./PermanentFileSystemManager";
 
 export class SshConnectionHandler {
+	private readonly logger: Logger;
+
 	private readonly permanentFileSystemManager: PermanentFileSystemManager;
 
 	private authTokenManager?: AuthTokenManager;
@@ -18,10 +20,12 @@ export class SshConnectionHandler {
 		permanentFileSystemManager: PermanentFileSystemManager,
 		fusionAuthSftpClientId: string,
 		fusionAuthSftpClientSecret: string,
+		logger: Logger,
 	) {
 		this.permanentFileSystemManager = permanentFileSystemManager;
 		this.fusionAuthSftpClientId = fusionAuthSftpClientId;
 		this.fusionAuthSftpClientSecret = fusionAuthSftpClientSecret;
+		this.logger = logger;
 	}
 
 	/**
@@ -29,7 +33,7 @@ export class SshConnectionHandler {
 	 * https://datatracker.ietf.org/doc/html/rfc4252#section-5
 	 */
 	public onAuthentication(authContext: AuthContext): void {
-		logger.verbose("SSH authentication request received.", {
+		this.logger.verbose("SSH authentication request received.", {
 			username: authContext.username,
 			method: authContext.method,
 		});
@@ -61,7 +65,7 @@ export class SshConnectionHandler {
 	 * https://github.com/mscdex/ssh2#connection-events
 	 */
 	public onClose(): void {
-		logger.verbose("SSH connection has closed");
+		this.logger.verbose("SSH connection has closed");
 	}
 
 	/**
@@ -69,7 +73,7 @@ export class SshConnectionHandler {
 	 * https://github.com/mscdex/ssh2#connection-events
 	 */
 	public onEnd(): void {
-		logger.verbose("SSH connection is ending");
+		this.logger.verbose("SSH connection is ending");
 	}
 
 	/**
@@ -77,7 +81,7 @@ export class SshConnectionHandler {
 	 * https://github.com/mscdex/ssh2#connection-events
 	 */
 	public onError(error: Error): void {
-		logger.verbose("SSH error: ", error);
+		this.logger.verbose("SSH error: ", error);
 	}
 
 	/**
@@ -85,7 +89,7 @@ export class SshConnectionHandler {
 	 * https://github.com/mscdex/ssh2#connection-events
 	 */
 	public onHandshake(): void {
-		logger.verbose("SSH handshake complete");
+		this.logger.verbose("SSH handshake complete");
 	}
 
 	/**
@@ -93,7 +97,7 @@ export class SshConnectionHandler {
 	 * https://github.com/mscdex/ssh2#connection-events
 	 */
 	public onReady(): void {
-		logger.verbose("SSH connection is ready");
+		this.logger.verbose("SSH connection is ready");
 	}
 
 	/**
@@ -101,7 +105,7 @@ export class SshConnectionHandler {
 	 * https://github.com/mscdex/ssh2#connection-events
 	 */
 	public onRekey(): void {
-		logger.verbose("SSH connection has been re-keyed");
+		this.logger.verbose("SSH connection has been re-keyed");
 	}
 
 	/**
@@ -109,7 +113,7 @@ export class SshConnectionHandler {
 	 * https://github.com/mscdex/ssh2#connection-events
 	 */
 	public onRequest(): void {
-		logger.verbose("SSH request for a resource");
+		this.logger.verbose("SSH request for a resource");
 	}
 
 	/**
@@ -117,10 +121,10 @@ export class SshConnectionHandler {
 	 * https://github.com/mscdex/ssh2#connection-events
 	 */
 	public onSession(accept: () => Session): void {
-		logger.verbose("SSH request for a new session");
+		this.logger.verbose("SSH request for a new session");
 		const session = accept();
 		if (this.authTokenManager === undefined) {
-			logger.verbose(
+			this.logger.verbose(
 				"Closing SSH session immediately (no authentication context)",
 			);
 			session.close();
@@ -130,6 +134,7 @@ export class SshConnectionHandler {
 			session,
 			this.authTokenManager,
 			this.permanentFileSystemManager,
+			this.logger,
 		);
 		session.on("sftp", sessionHandler.onSftp.bind(sessionHandler));
 		session.on("close", sessionHandler.onClose.bind(sessionHandler));
@@ -141,6 +146,6 @@ export class SshConnectionHandler {
 	 * https://github.com/mscdex/ssh2#connection-events
 	 */
 	public onTcpip(): void {
-		logger.verbose("SSH request for an outbound TCP connection");
+		this.logger.verbose("SSH request for an outbound TCP connection");
 	}
 }
