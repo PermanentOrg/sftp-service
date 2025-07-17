@@ -261,7 +261,7 @@ export class SftpSessionHandler {
 		reqId: number,
 		handle: Buffer,
 		offset: number,
-		data: Buffer,
+		data: Uint8Array,
 	): void {
 		logger.verbose("Request: SFTP write file (SSH_FXP_WRITE)", {
 			reqId,
