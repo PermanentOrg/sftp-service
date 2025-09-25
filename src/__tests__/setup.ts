@@ -1,0 +1,10 @@
+process.env.NODE_ENV = "test";
+process.env.SSH_PORT = "2222";
+process.env.SSH_HOST = "127.0.0.1";
+process.env.SSH_HOST_KEY_PATH = "/tmp/test_host_key";
+process.env.FUSION_AUTH_HOST = "https://test.fusionauth.com";
+process.env.FUSION_AUTH_KEY = "test-key";
+process.env.PERMANENT_API_BASE_PATH = "https://test-api.permanent.org";
+process.env.STELA_API_BASE_PATH = "https://test-stela.permanent.org";
+process.env.FUSION_AUTH_SFTP_CLIENT_ID = "test-client-id";
+process.env.FUSION_AUTH_SFTP_CLIENT_SECRET = "test-client-secret";
