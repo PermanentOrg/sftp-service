@@ -92,7 +92,9 @@ export class AuthenticationSession {
 						return;
 					}
 					case FusionAuthStatusCode.SuccessNeedsTwoFactorAuth.valueOf(): {
-						if (clientResponse.response.twoFactorId !== undefined) {
+						if (clientResponse.response.twoFactorId === undefined) {
+							this.authContext.reject();
+						} else {
 							logger.verbose(
 								"Successful password authentication attempt; MFA required.",
 								{
@@ -102,8 +104,6 @@ export class AuthenticationSession {
 							this.twoFactorId = clientResponse.response.twoFactorId;
 							this.twoFactorMethods = clientResponse.response.methods ?? [];
 							this.promptForTwoFactorMethod();
-						} else {
-							this.authContext.reject();
 						}
 						return;
 					}
