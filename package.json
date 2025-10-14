@@ -12,7 +12,7 @@
 		"format": "npm run format:prettier && npm run format:eslint",
 		"format:prettier": "prettier --write .",
 		"format:eslint": "eslint ./src --fix || true",
-		"start": "npm run build && node -r dotenv/config build/index.js",
+		"start": "npm run build && node build/index.js",
 		"dev": "nodemon --delay 500ms --exec ts-node src/index.ts",
 		"test": "jest"
 	},
@@ -59,7 +59,6 @@
 		"@fusionauth/typescript-client": "^1.60.0",
 		"@permanentorg/sdk": "0.10.1",
 		"@sentry/node": "^10.19.0",
-		"dotenv": "^17.2.2",
 		"logform": "^2.6.1",
 		"node-fetch": "^2.7.0",
 		"require-env-variable": "^4.0.2",
