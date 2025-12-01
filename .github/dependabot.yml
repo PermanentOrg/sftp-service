@@ -10,6 +10,8 @@ updates:
     ignore:
       - dependency-name: "node-fetch"
         update-types: ["version-update:semver-major"]
+      - dependency-name: "uuid"
+        update-types: ["version-update:semver-major"]
       - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
       - dependency-name: "@typescript-eslint/eslint-plugin"
