@@ -86,6 +86,7 @@ export default defineConfig([
 		files: ["**/*.test.ts"],
 		rules: {
 			"max-lines": "off",
+			"max-nested-callbacks": "off",
 			"@typescript-eslint/no-magic-numbers": "off",
 		},
 	},
