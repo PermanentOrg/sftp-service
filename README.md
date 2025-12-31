@@ -230,6 +230,10 @@ grant_type: authorization_code
 redirect_uri: http://localhost:9000/auth/callback
 ```
 
+## Working with an LLM Agent
+
+This project includes an `AGENTS.md` which is intended to be a general file that can be used to help improve the context understood by any LLM agent.
+
 ## License
 
 This code is free software licensed as [AGPLv3](LICENSE), or at your option, any final, later version published by the Free Software Foundation.
