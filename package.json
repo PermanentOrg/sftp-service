@@ -38,6 +38,7 @@
 	"private": true,
 	"devDependencies": {
 		"@tsconfig/node24": "^24.0.3",
+		"@types/jest": "^30.0.0",
 		"@types/node-fetch": "^2.6.4",
 		"@types/ssh2": "^1.15.5",
 		"@types/tmp": "^0.2.6",
