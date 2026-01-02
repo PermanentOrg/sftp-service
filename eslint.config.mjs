@@ -68,7 +68,6 @@ export default defineConfig([
 			"logical-assignment-operators": "off",
 			"@typescript-eslint/explicit-function-return-type": "off",
 			"@typescript-eslint/prefer-nullish-coalescing": "off",
-			"prefer-named-capture-group": "off",
 		},
 	},
 	{
