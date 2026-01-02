@@ -1,8 +1,8 @@
 export const getArchiveSlugFromPath = (archivePath: string): string => {
-	const archiveIdPattern = /^\/archives\/[^/]* \(([^/]+)\)(\/.*)?$/;
+	const archiveIdPattern = /^\/archives\/[^/]* \((?<slug>[^/]+)\)(?:\/.*)?$/;
 	const matches = archiveIdPattern.exec(archivePath);
-	if (matches === null) {
+	if (matches?.groups?.slug === undefined) {
 		throw new Error("The specified path did not contain an archive slug");
 	}
-	return matches[1];
+	return matches.groups.slug;
 };
