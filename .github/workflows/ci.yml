@@ -58,7 +58,12 @@ jobs:
         with:
           path: node_modules
           key: ${{ needs.setup.outputs.cache-key }}
-      - run: npm test
+      - run: npm run test:ci
+      - uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: PermanentOrg/sftp-service
+          fail_ci_if_error: true
 
   build:
     needs: [setup]
