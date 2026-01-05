@@ -1,5 +1,5 @@
 module.exports = {
-	testPathIgnorePatterns: ["<rootDir>/lib/"],
+	roots: ["<rootDir>/src"],
 	silent: true,
 	passWithNoTests: true,
 	preset: "ts-jest",
