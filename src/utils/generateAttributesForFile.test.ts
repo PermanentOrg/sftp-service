@@ -3,122 +3,114 @@ import { createTestFile, FILE_MODE } from "../test/factories";
 import { generateAttributesForFile } from "./generateAttributesForFile";
 
 describe("generateAttributesForFile", () => {
-	describe("when given a file", () => {
-		it("should set mode to regular file with full permissions", () => {
-			const file = createTestFile();
+	test("should set mode to regular file with full permissions", () => {
+		const file = createTestFile();
 
-			const result = generateAttributesForFile(file);
+		const result = generateAttributesForFile(file);
 
-			expect(result.mode).toBe(FILE_MODE);
-		});
-
-		it("should use the file size", () => {
-			const file = createTestFile({ size: 2048 });
-
-			const result = generateAttributesForFile(file);
-
-			expect(result.size).toBe(2048);
-		});
-
-		it("should convert updatedAt to unix timestamp for mtime", () => {
-			const updatedAt = new Date("2024-06-15T10:30:00Z");
-			const file = createTestFile({ updatedAt });
-
-			const result = generateAttributesForFile(file);
-
-			expect(result.mtime).toBe(updatedAt.getTime() / 1000);
-		});
-
-		it("should set uid and gid to 0", () => {
-			const file = createTestFile();
-
-			const result = generateAttributesForFile(file);
-
-			expect(result.uid).toBe(0);
-			expect(result.gid).toBe(0);
-		});
-
-		it("should set atime to 0", () => {
-			const file = createTestFile();
-
-			const result = generateAttributesForFile(file);
-
-			expect(result.atime).toBe(0);
-		});
+		expect(result.mode).toBe(FILE_MODE);
 	});
 
-	describe("when not given a file", () => {
-		it("should return default attributes with file mode", () => {
-			const result = generateAttributesForFile(undefined);
+	test("should use the file size", () => {
+		const file = createTestFile({ size: 2048 });
 
-			expect(result.mode).toBe(FILE_MODE);
-		});
+		const result = generateAttributesForFile(file);
 
-		it("should set size to 0", () => {
-			const result = generateAttributesForFile(undefined);
-
-			expect(result.size).toBe(0);
-		});
-
-		it("should set all timestamps to 0", () => {
-			const result = generateAttributesForFile(undefined);
-
-			expect(result.atime).toBe(0);
-			expect(result.mtime).toBe(0);
-		});
-
-		it("should set uid and gid to 0", () => {
-			const result = generateAttributesForFile(undefined);
-
-			expect(result.uid).toBe(0);
-			expect(result.gid).toBe(0);
-		});
+		expect(result.size).toBe(2048);
 	});
 
-	describe("when called without arguments", () => {
-		it("should return default attributes", () => {
-			const result = generateAttributesForFile();
+	test("should convert updatedAt to unix timestamp for mtime", () => {
+		const updatedAt = new Date("2024-06-15T10:30:00Z");
+		const file = createTestFile({ updatedAt });
 
-			expect(result.mode).toBe(FILE_MODE);
-			expect(result.size).toBe(0);
-			expect(result.uid).toBe(0);
-			expect(result.gid).toBe(0);
-			expect(result.atime).toBe(0);
-			expect(result.mtime).toBe(0);
-		});
+		const result = generateAttributesForFile(file);
+
+		expect(result.mtime).toBe(updatedAt.getTime() / 1000);
 	});
 
-	describe("mode verification", () => {
-		it("should have the regular file type bit set", () => {
-			const file = createTestFile();
+	test("should set uid and gid to 0", () => {
+		const file = createTestFile();
 
-			const result = generateAttributesForFile(file);
+		const result = generateAttributesForFile(file);
 
-			expect(result.mode & fs.constants.S_IFMT).toBe(fs.constants.S_IFREG);
-		});
+		expect(result.uid).toBe(0);
+		expect(result.gid).toBe(0);
+	});
 
-		it("should have read/write/execute for user", () => {
-			const file = createTestFile();
+	test("should set atime to 0", () => {
+		const file = createTestFile();
 
-			const result = generateAttributesForFile(file);
+		const result = generateAttributesForFile(file);
 
-			expect(result.mode & fs.constants.S_IRWXU).toBe(fs.constants.S_IRWXU);
-		});
+		expect(result.atime).toBe(0);
+	});
 
-		it("should have read/write/execute for group", () => {
-			const file = createTestFile();
+	test("should return default attributes with file mode when not given a file", () => {
+		const result = generateAttributesForFile(undefined);
 
-			const result = generateAttributesForFile(file);
+		expect(result.mode).toBe(FILE_MODE);
+	});
 
-			expect(result.mode & fs.constants.S_IRWXG).toBe(fs.constants.S_IRWXG);
-		});
+	test("should set size to 0 when not given a file", () => {
+		const result = generateAttributesForFile(undefined);
 
-		it("should have read/write/execute for others", () => {
-			const file = createTestFile();
+		expect(result.size).toBe(0);
+	});
 
-			const result = generateAttributesForFile(file);
+	test("should set all timestamps to 0 when not given a file", () => {
+		const result = generateAttributesForFile(undefined);
 
-			expect(result.mode & fs.constants.S_IRWXO).toBe(fs.constants.S_IRWXO);
-		});
+		expect(result.atime).toBe(0);
+		expect(result.mtime).toBe(0);
+	});
+
+	test("should set uid and gid to 0 when not given a file", () => {
+		const result = generateAttributesForFile(undefined);
+
+		expect(result.uid).toBe(0);
+		expect(result.gid).toBe(0);
+	});
+
+	test("should return default attributes when called without arguments", () => {
+		const result = generateAttributesForFile();
+
+		expect(result.mode).toBe(FILE_MODE);
+		expect(result.size).toBe(0);
+		expect(result.uid).toBe(0);
+		expect(result.gid).toBe(0);
+		expect(result.atime).toBe(0);
+		expect(result.mtime).toBe(0);
+	});
+
+	test("should have the regular file type bit set", () => {
+		const file = createTestFile();
+
+		const result = generateAttributesForFile(file);
+
+		expect(result.mode & fs.constants.S_IFMT).toBe(fs.constants.S_IFREG);
+	});
+
+	test("should have read/write/execute for user", () => {
+		const file = createTestFile();
+
+		const result = generateAttributesForFile(file);
+
+		expect(result.mode & fs.constants.S_IRWXU).toBe(fs.constants.S_IRWXU);
+	});
+
+	test("should have read/write/execute for group", () => {
+		const file = createTestFile();
+
+		const result = generateAttributesForFile(file);
+
+		expect(result.mode & fs.constants.S_IRWXG).toBe(fs.constants.S_IRWXG);
+	});
+
+	test("should have read/write/execute for others", () => {
+		const file = createTestFile();
+
+		const result = generateAttributesForFile(file);
+
+		expect(result.mode & fs.constants.S_IRWXO).toBe(fs.constants.S_IRWXO);
 	});
 });
