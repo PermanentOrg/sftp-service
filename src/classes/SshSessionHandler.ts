@@ -128,6 +128,6 @@ export class SshSessionHandler {
 		//
 		// !!BEWARE: THERE BE DRAGONS HERE!!
 		// @ts-expect-error because `_channel` is private / isn't actually documented.
-		this.session._channel.end(); // eslint-disable-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+		this.session._channel.end(); // eslint-disable-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- accessing private _channel property to work around ssh2 library limitation
 	}
 }
