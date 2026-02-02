@@ -69,7 +69,6 @@ export default defineConfig([
 			"@typescript-eslint/explicit-function-return-type": "off",
 			"@typescript-eslint/prefer-nullish-coalescing": "off",
 			"@eslint-community/eslint-comments/require-description": "off",
-			"require-unicode-regexp": "off",
 		},
 	},
 	{
