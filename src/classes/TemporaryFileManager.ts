@@ -23,6 +23,7 @@ export class TemporaryFileManager {
 			fs.access(localPath, (err) => {
 				if (err) {
 					resolve(false);
+					return;
 				}
 				resolve(true);
 			});
@@ -61,6 +62,7 @@ export class TemporaryFileManager {
 			tmp.file((err, name, fd, removeCallback) => {
 				if (err) {
 					reject(err);
+					return;
 				}
 				const temporaryFile = {
 					name,

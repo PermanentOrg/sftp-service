@@ -69,7 +69,6 @@ export default defineConfig([
 			"@typescript-eslint/explicit-function-return-type": "off",
 			"@typescript-eslint/prefer-nullish-coalescing": "off",
 			"@typescript-eslint/strict-void-return": "off",
-			"promise/no-multiple-resolved": "off",
 		},
 	},
 	{
