@@ -18,7 +18,7 @@ jobs:
           node-version-file: .node-version
       - id: cache-key
         run: echo "key=node-modules-${{ hashFiles('package-lock.json') }}" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: cache
         with:
           path: node_modules
@@ -40,7 +40,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: .node-version
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: node_modules
           key: ${{ needs.setup.outputs.cache-key }}
@@ -54,7 +54,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: .node-version
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: node_modules
           key: ${{ needs.setup.outputs.cache-key }}
@@ -73,7 +73,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: .node-version
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: node_modules
           key: ${{ needs.setup.outputs.cache-key }}
