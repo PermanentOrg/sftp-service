@@ -25,7 +25,9 @@ hostKeys.push(readFileSync(SSH_HOST_KEY_PATH));
 
 const serverConfig: ServerConfig = {
 	hostKeys,
-	debug: (message) => logger.silly(message),
+	debug: (message) => {
+		logger.silly(message);
+	},
 };
 
 const permanentFileSystemManager = new PermanentFileSystemManager();
