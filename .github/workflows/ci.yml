@@ -34,7 +34,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:ci
-      - uses: codecov/codecov-action@v5
+      - uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: PermanentOrg/sftp-service
