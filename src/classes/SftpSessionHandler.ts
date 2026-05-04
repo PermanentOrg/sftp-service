@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import fetch from "node-fetch";
 import { v4 as uuidv4 } from "uuid";
 import ssh2 from "ssh2";
 import { logger } from "../logger";
@@ -201,7 +200,7 @@ export class SftpSessionHandler {
 				switch (response.status) {
 					case 206:
 					case 200: {
-						const data = await response.buffer();
+						const data = Buffer.from(await response.arrayBuffer());
 						logger.verbose("Response: Data", { reqId });
 						logger.silly("Sent data...", { data });
 						this.sftpConnection.data(reqId, data);

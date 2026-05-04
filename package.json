@@ -39,7 +39,6 @@
 	"private": true,
 	"devDependencies": {
 		"@tsconfig/node24": "^24.0.4",
-		"@types/node-fetch": "^2.6.4",
 		"@types/ssh2": "^1.15.5",
 		"@types/tmp": "^0.2.6",
 		"@types/uuid": "^11.0.0",
@@ -61,7 +60,6 @@
 		"@permanentorg/sdk": "0.10.1",
 		"@sentry/node": "^10.50.0",
 		"logform": "^2.6.1",
-		"node-fetch": "^2.7.0",
 		"require-env-variable": "^4.0.2",
 		"ssh2": "^1.17.0",
 		"tmp": "^0.2.5",
