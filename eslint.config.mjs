@@ -2,7 +2,7 @@ import { defineConfig } from "eslint/config";
 import typescriptEslint from "typescript-eslint";
 import prettier from "eslint-config-prettier";
 import globals from "globals";
-import jest from "eslint-plugin-jest";
+import vitest from "@vitest/eslint-plugin";
 import js from "@eslint/js";
 import love from "eslint-config-love";
 
@@ -17,7 +17,6 @@ export default defineConfig([
 		languageOptions: {
 			globals: {
 				...globals.node,
-				...globals.jest,
 			},
 		},
 
@@ -80,7 +79,13 @@ export default defineConfig([
 	},
 	{
 		files: ["**/*.test.ts"],
-		...jest.configs["flat/recommended"],
+		plugins: { vitest },
+		rules: vitest.configs.recommended.rules,
+		languageOptions: {
+			globals: {
+				...vitest.environments.env.globals,
+			},
+		},
 	},
 	{
 		files: ["**/*.test.ts"],
