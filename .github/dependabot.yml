@@ -9,8 +9,6 @@ updates:
     cooldown:
       default-days: 7
     ignore:
-      - dependency-name: "node-fetch"
-        update-types: ["version-update:semver-major"]
       - dependency-name: "uuid"
         update-types: ["version-update:semver-major"]
       - dependency-name: "eslint"
