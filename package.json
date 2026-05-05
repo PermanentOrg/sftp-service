@@ -1,7 +1,7 @@
 {
 	"name": "sftp-service",
 	"version": "0.1.0",
-	"main": "index.js",
+	"type": "module",
 	"repository": "git@github.com:PermanentOrg/sftp-service.git",
 	"scripts": {
 		"build": "tsc",
@@ -13,7 +13,7 @@
 		"format:prettier": "prettier --write .",
 		"format:eslint": "eslint ./src --fix || true",
 		"start": "npm run build && node build/index.js",
-		"dev": "nodemon --delay 500ms --exec ts-node src/index.ts",
+		"dev": "tsx watch src/index.ts",
 		"test": "vitest run",
 		"test:ci": "vitest run --coverage"
 	},
@@ -48,9 +48,8 @@
 		"eslint-config-love": "^153.0.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-sort-exports": "^0.9.1",
-		"nodemon": "^3.1.14",
 		"prettier": "^3.8.3",
-		"ts-node": "^10.9.2",
+		"tsx": "^4.21.0",
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.57.2",
 		"vitest": "^4.1.5"
