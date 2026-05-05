@@ -1,7 +1,7 @@
-import { logger } from "../logger";
-import { SftpSessionHandler } from "./SftpSessionHandler";
-import { AuthTokenManager } from "./AuthTokenManager";
-import type { PermanentFileSystemManager } from "./PermanentFileSystemManager";
+import { logger } from "../logger.js";
+import { SftpSessionHandler } from "./SftpSessionHandler.js";
+import { AuthTokenManager } from "./AuthTokenManager.js";
+import type { PermanentFileSystemManager } from "./PermanentFileSystemManager.js";
 import type { Session, SFTPWrapper } from "ssh2";
 
 export class SshSessionHandler {

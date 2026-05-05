@@ -1,4 +1,4 @@
-import { getArchiveSlugFromPath } from "./getArchiveSlugFromPath";
+import { getArchiveSlugFromPath } from "./getArchiveSlugFromPath.js";
 
 describe("getArchiveSlugFromPath", () => {
 	test("extracts slug from basic archive path", () => {

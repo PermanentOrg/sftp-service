@@ -2,18 +2,18 @@ import fs from "node:fs";
 import path from "node:path";
 import { v4 as uuidv4 } from "uuid";
 import ssh2 from "ssh2";
-import { logger } from "../logger";
-import { generateFileEntry } from "../utils";
+import { logger } from "../logger.js";
+import { generateFileEntry } from "../utils/index.js";
 import {
 	MissingTemporaryFileError,
 	FileSystemObjectNotFound,
 	PermissionDeniedError,
-} from "../errors";
-import { PermanentFileSystem } from "./PermanentFileSystem";
-import { TemporaryFileManager } from "./TemporaryFileManager";
-import type { AuthTokenManager } from "./AuthTokenManager";
-import type { PermanentFileSystemManager } from "./PermanentFileSystemManager";
-import type { TemporaryFile } from "./TemporaryFileManager";
+} from "../errors/index.js";
+import { PermanentFileSystem } from "./PermanentFileSystem.js";
+import { TemporaryFileManager } from "./TemporaryFileManager.js";
+import type { AuthTokenManager } from "./AuthTokenManager.js";
+import type { PermanentFileSystemManager } from "./PermanentFileSystemManager.js";
+import type { TemporaryFile } from "./TemporaryFileManager.js";
 import type { Attributes, FileEntry, SFTPWrapper } from "ssh2";
 import type { File } from "@permanentorg/sdk";
 

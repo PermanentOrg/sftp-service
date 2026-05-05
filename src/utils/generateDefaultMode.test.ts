@@ -1,6 +1,6 @@
 import fs from "node:fs";
-import { DIRECTORY_MODE, FILE_MODE } from "../test/factories";
-import { generateDefaultMode } from "./generateDefaultMode";
+import { DIRECTORY_MODE, FILE_MODE } from "../test/factories/index.js";
+import { generateDefaultMode } from "./generateDefaultMode.js";
 
 describe("generateDefaultMode", () => {
 	test("should add full permissions to a regular file type", () => {

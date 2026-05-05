@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { generateDefaultMode } from "./generateDefaultMode";
+import { generateDefaultMode } from "./generateDefaultMode.js";
 import type { Attributes } from "ssh2";
 import type { Archive } from "@permanentorg/sdk";
 

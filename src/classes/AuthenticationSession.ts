@@ -1,5 +1,5 @@
-import { logger } from "../logger";
-import { getFusionAuthClient, isPartialClientResponse } from "../fusionAuth";
+import { logger } from "../logger.js";
+import { getFusionAuthClient, isPartialClientResponse } from "../fusionAuth.js";
 import type { KeyboardAuthContext } from "ssh2";
 import type { TwoFactorMethod } from "@fusionauth/typescript-client";
 

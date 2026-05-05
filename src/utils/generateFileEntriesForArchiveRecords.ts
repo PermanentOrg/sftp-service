@@ -1,6 +1,6 @@
-import { getOriginalFileForArchiveRecord } from "./getOriginalFileForArchiveRecord";
-import { generateFileEntry } from "./generateFileEntry";
-import { generateAttributesForFile } from "./generateAttributesForFile";
+import { getOriginalFileForArchiveRecord } from "./getOriginalFileForArchiveRecord.js";
+import { generateFileEntry } from "./generateFileEntry.js";
+import { generateAttributesForFile } from "./generateAttributesForFile.js";
 import type { ArchiveRecord } from "@permanentorg/sdk";
 import type { FileEntry } from "ssh2";
 

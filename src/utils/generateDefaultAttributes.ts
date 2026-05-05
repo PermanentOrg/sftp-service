@@ -1,4 +1,4 @@
-import { generateDefaultMode } from "./generateDefaultMode";
+import { generateDefaultMode } from "./generateDefaultMode.js";
 import type { Attributes } from "ssh2";
 
 export const generateDefaultAttributes = (fileType: number): Attributes => ({

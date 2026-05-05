@@ -1,6 +1,6 @@
-import "./instrument";
-import { server } from "./server";
-import { logger } from "./logger";
+import "./instrument.js";
+import { server } from "./server.js";
+import { logger } from "./logger.js";
 import type { ListenOptions } from "node:net";
 
 const listenOptions: ListenOptions = {

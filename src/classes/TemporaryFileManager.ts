@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import tmp from "tmp";
-import { logger } from "../logger";
-import { MissingTemporaryFileError } from "../errors";
+import { logger } from "../logger.js";
+import { MissingTemporaryFileError } from "../errors/index.js";
 import type { FileResult } from "tmp";
 
 export interface TemporaryFile extends FileResult {

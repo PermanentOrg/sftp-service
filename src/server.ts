@@ -1,8 +1,11 @@
 import { readFileSync } from "node:fs";
 import { Server } from "ssh2";
 import { requireEnv } from "require-env-variable";
-import { logger } from "./logger";
-import { SshConnectionHandler, PermanentFileSystemManager } from "./classes";
+import { logger } from "./logger.js";
+import {
+	SshConnectionHandler,
+	PermanentFileSystemManager,
+} from "./classes/index.js";
 import type { Connection, ServerConfig } from "ssh2";
 
 const {

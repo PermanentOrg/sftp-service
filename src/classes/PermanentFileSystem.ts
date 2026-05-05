@@ -16,7 +16,7 @@ import {
 	FileSystemObjectNotFound,
 	InvalidOperationForPathError,
 	PermissionDeniedError,
-} from "../errors";
+} from "../errors/index.js";
 import {
 	deduplicateFileEntries,
 	generateAttributesForArchive,
@@ -28,7 +28,7 @@ import {
 	generateFileEntriesForFolders,
 	getArchiveSlugFromPath,
 	getOriginalFileForArchiveRecord,
-} from "../utils";
+} from "../utils/index.js";
 import type { Readable } from "node:stream";
 import type {
 	Archive,
@@ -38,7 +38,7 @@ import type {
 	ArchiveRecord,
 } from "@permanentorg/sdk";
 import type { Attributes, FileEntry } from "ssh2";
-import type { AuthTokenManager } from "./AuthTokenManager";
+import type { AuthTokenManager } from "./AuthTokenManager.js";
 
 const isRootPath = (fileSystemPath: string): boolean => fileSystemPath === "/";
 
