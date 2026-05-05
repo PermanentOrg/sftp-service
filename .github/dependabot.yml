@@ -9,8 +9,6 @@ updates:
     cooldown:
       default-days: 7
     ignore:
-      - dependency-name: "uuid"
-        update-types: ["version-update:semver-major"]
       - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
       - dependency-name: "@typescript-eslint/eslint-plugin"
