@@ -1,5 +1,5 @@
-import { createTestFolder, DIRECTORY_MODE } from "../test/factories";
-import { generateAttributesForFolder } from "./generateAttributesForFolder";
+import { createTestFolder, DIRECTORY_MODE } from "../test/factories/index.js";
+import { generateAttributesForFolder } from "./generateAttributesForFolder.js";
 
 describe("generateAttributesForFolder", () => {
 	test("should set mode to directory with full permissions", () => {

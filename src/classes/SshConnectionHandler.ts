@@ -1,9 +1,9 @@
-import { logger } from "../logger";
-import { AuthenticationSession } from "./AuthenticationSession";
-import { SshSessionHandler } from "./SshSessionHandler";
-import { AuthTokenManager } from "./AuthTokenManager";
+import { logger } from "../logger.js";
+import { AuthenticationSession } from "./AuthenticationSession.js";
+import { SshSessionHandler } from "./SshSessionHandler.js";
+import { AuthTokenManager } from "./AuthTokenManager.js";
 import type { AuthContext, Session } from "ssh2";
-import type { PermanentFileSystemManager } from "./PermanentFileSystemManager";
+import type { PermanentFileSystemManager } from "./PermanentFileSystemManager.js";
 
 export class SshConnectionHandler {
 	private readonly permanentFileSystemManager: PermanentFileSystemManager;

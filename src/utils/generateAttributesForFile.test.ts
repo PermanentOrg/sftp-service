@@ -1,6 +1,6 @@
-import fs from "fs";
-import { createTestFile, FILE_MODE } from "../test/factories";
-import { generateAttributesForFile } from "./generateAttributesForFile";
+import fs from "node:fs";
+import { createTestFile, FILE_MODE } from "../test/factories/index.js";
+import { generateAttributesForFile } from "./generateAttributesForFile.js";
 
 describe("generateAttributesForFile", () => {
 	test("should set mode to regular file with full permissions", () => {

@@ -1,5 +1,5 @@
 import { ArchiveRecordType, Status } from "@permanentorg/sdk";
-import { createTestFile } from "./createTestFile";
+import { createTestFile } from "./createTestFile.js";
 import type { ArchiveRecord, File } from "@permanentorg/sdk";
 
 interface TestArchiveRecordOverrides {

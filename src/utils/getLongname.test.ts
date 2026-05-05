@@ -2,8 +2,8 @@ import {
 	createTestAttributes,
 	DIRECTORY_MODE,
 	FILE_MODE,
-} from "../test/factories";
-import { getLongname } from "./getLongname";
+} from "../test/factories/index.js";
+import { getLongname } from "./getLongname.js";
 
 describe("getLongname", () => {
 	test("should return a longname starting with '-' for a regular file", () => {

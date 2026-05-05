@@ -3,8 +3,8 @@ import {
 	createTestArchiveRecord,
 	createTestFile,
 	FILE_MODE,
-} from "../test/factories";
-import { generateFileEntriesForArchiveRecords } from "./generateFileEntriesForArchiveRecords";
+} from "../test/factories/index.js";
+import { generateFileEntriesForArchiveRecords } from "./generateFileEntriesForArchiveRecords.js";
 
 describe("generateFileEntriesForArchiveRecords", () => {
 	test("should return an empty array when given an empty array", () => {

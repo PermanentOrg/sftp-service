@@ -1,5 +1,5 @@
-import path from "path";
-import { getLongname } from "./getLongname";
+import path from "node:path";
+import { getLongname } from "./getLongname.js";
 import type { Attributes, FileEntry } from "ssh2";
 
 export const generateFileEntry = (

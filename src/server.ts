@@ -1,8 +1,11 @@
-import { readFileSync } from "fs";
-import { Server } from "ssh2";
+import { readFileSync } from "node:fs";
+import ssh2 from "ssh2";
 import { requireEnv } from "require-env-variable";
-import { logger } from "./logger";
-import { SshConnectionHandler, PermanentFileSystemManager } from "./classes";
+import { logger } from "./logger.js";
+import {
+	SshConnectionHandler,
+	PermanentFileSystemManager,
+} from "./classes/index.js";
 import type { Connection, ServerConfig } from "ssh2";
 
 const {
@@ -54,6 +57,6 @@ const connectionListener = (client: Connection): void => {
 	client.on("tcpip", connectionHandler.onTcpip.bind(connectionHandler));
 };
 
-const server = new Server(serverConfig, connectionListener);
+const server = new ssh2.Server(serverConfig, connectionListener);
 
 export { server };

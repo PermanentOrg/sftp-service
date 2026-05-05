@@ -1,4 +1,4 @@
-import { createTestAttributes } from "./createTestAttributes";
+import { createTestAttributes } from "./createTestAttributes.js";
 import type { Attributes, FileEntry } from "ssh2";
 
 interface FileEntryOverrides {

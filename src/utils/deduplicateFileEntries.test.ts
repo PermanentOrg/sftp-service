@@ -1,5 +1,5 @@
-import { createTestFileEntry } from "../test/factories";
-import { deduplicateFileEntries } from "./deduplicateFileEntries";
+import { createTestFileEntry } from "../test/factories/index.js";
+import { deduplicateFileEntries } from "./deduplicateFileEntries.js";
 
 describe("deduplicateFileEntries", () => {
 	test("should return an empty array when given an empty array", () => {

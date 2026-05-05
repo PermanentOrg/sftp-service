@@ -1,6 +1,6 @@
-import fs from "fs";
-import { generateFileEntry } from "./generateFileEntry";
-import { generateDefaultAttributes } from "./generateDefaultAttributes";
+import fs from "node:fs";
+import { generateFileEntry } from "./generateFileEntry.js";
+import { generateDefaultAttributes } from "./generateDefaultAttributes.js";
 import type { Folder } from "@permanentorg/sdk";
 import type { FileEntry } from "ssh2";
 

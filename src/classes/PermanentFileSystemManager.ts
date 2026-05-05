@@ -1,6 +1,6 @@
-import { logger } from "../logger";
-import { PermanentFileSystem } from "./PermanentFileSystem";
-import type { AuthTokenManager } from "./AuthTokenManager";
+import { logger } from "../logger.js";
+import { PermanentFileSystem } from "./PermanentFileSystem.js";
+import type { AuthTokenManager } from "./AuthTokenManager.js";
 
 export class PermanentFileSystemManager {
 	private readonly permanentFileSystems = new Map<

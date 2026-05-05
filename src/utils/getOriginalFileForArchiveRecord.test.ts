@@ -1,6 +1,9 @@
 import { DerivativeType } from "@permanentorg/sdk";
-import { createTestArchiveRecord, createTestFile } from "../test/factories";
-import { getOriginalFileForArchiveRecord } from "./getOriginalFileForArchiveRecord";
+import {
+	createTestArchiveRecord,
+	createTestFile,
+} from "../test/factories/index.js";
+import { getOriginalFileForArchiveRecord } from "./getOriginalFileForArchiveRecord.js";
 
 describe("getOriginalFileForArchiveRecord", () => {
 	test("should return the original file from the archive record", () => {

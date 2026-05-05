@@ -1,6 +1,6 @@
-import fs from "fs";
-import { generateDefaultMode } from "./generateDefaultMode";
-import { generateDefaultAttributes } from "./generateDefaultAttributes";
+import fs from "node:fs";
+import { generateDefaultMode } from "./generateDefaultMode.js";
+import { generateDefaultAttributes } from "./generateDefaultAttributes.js";
 import type { Attributes } from "ssh2";
 import type { File } from "@permanentorg/sdk";
 

@@ -1,5 +1,5 @@
-import { createTestFolder, DIRECTORY_MODE } from "../test/factories";
-import { generateFileEntriesForFolders } from "./generateFileEntriesForFolders";
+import { createTestFolder, DIRECTORY_MODE } from "../test/factories/index.js";
+import { generateFileEntriesForFolders } from "./generateFileEntriesForFolders.js";
 
 describe("generateFileEntriesForFolders", () => {
 	test("should return an empty array when given an empty array", () => {

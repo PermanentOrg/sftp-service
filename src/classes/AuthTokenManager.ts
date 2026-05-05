@@ -1,6 +1,6 @@
-import { logger } from "../logger";
-import { AuthTokenRefreshError } from "../errors/AuthTokenRefreshError";
-import { getFusionAuthClient, isPartialClientResponse } from "../fusionAuth";
+import { logger } from "../logger.js";
+import { AuthTokenRefreshError } from "../errors/AuthTokenRefreshError.js";
+import { getFusionAuthClient, isPartialClientResponse } from "../fusionAuth.js";
 
 export class AuthTokenManager {
 	public readonly username: string;

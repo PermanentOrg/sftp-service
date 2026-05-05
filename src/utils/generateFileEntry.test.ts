@@ -2,8 +2,8 @@ import {
 	createTestAttributes,
 	DIRECTORY_MODE,
 	FILE_MODE,
-} from "../test/factories";
-import { generateFileEntry } from "./generateFileEntry";
+} from "../test/factories/index.js";
+import { generateFileEntry } from "./generateFileEntry.js";
 
 describe("generateFileEntry", () => {
 	test("should use the full path as the filename", () => {

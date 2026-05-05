@@ -1,5 +1,5 @@
-import path from "path";
-import fs from "fs";
+import path from "node:path";
+import fs from "node:fs";
 import {
 	createFolder,
 	createArchiveRecord,
@@ -16,7 +16,7 @@ import {
 	FileSystemObjectNotFound,
 	InvalidOperationForPathError,
 	PermissionDeniedError,
-} from "../errors";
+} from "../errors/index.js";
 import {
 	deduplicateFileEntries,
 	generateAttributesForArchive,
@@ -28,8 +28,8 @@ import {
 	generateFileEntriesForFolders,
 	getArchiveSlugFromPath,
 	getOriginalFileForArchiveRecord,
-} from "../utils";
-import type { Readable } from "stream";
+} from "../utils/index.js";
+import type { Readable } from "node:stream";
 import type {
 	Archive,
 	ClientConfiguration,
@@ -38,7 +38,7 @@ import type {
 	ArchiveRecord,
 } from "@permanentorg/sdk";
 import type { Attributes, FileEntry } from "ssh2";
-import type { AuthTokenManager } from "./AuthTokenManager";
+import type { AuthTokenManager } from "./AuthTokenManager.js";
 
 const isRootPath = (fileSystemPath: string): boolean => fileSystemPath === "/";
 
