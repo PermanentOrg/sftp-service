@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 import { createTestFile, FILE_MODE } from "../test/factories";
 import { generateAttributesForFile } from "./generateAttributesForFile";
 

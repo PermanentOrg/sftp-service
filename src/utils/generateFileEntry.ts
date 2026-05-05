@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import { getLongname } from "./getLongname";
 import type { Attributes, FileEntry } from "ssh2";
 

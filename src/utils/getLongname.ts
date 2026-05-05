@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 import type { Attributes } from "ssh2";
 
 const isDirectoryMode = (mode: number): boolean =>

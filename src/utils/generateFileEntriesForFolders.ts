@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 import { generateFileEntry } from "./generateFileEntry";
 import { generateDefaultAttributes } from "./generateDefaultAttributes";
 import type { Folder } from "@permanentorg/sdk";

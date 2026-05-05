@@ -1,5 +1,5 @@
-import path from "path";
-import fs from "fs";
+import path from "node:path";
+import fs from "node:fs";
 import {
 	createFolder,
 	createArchiveRecord,
@@ -29,7 +29,7 @@ import {
 	getArchiveSlugFromPath,
 	getOriginalFileForArchiveRecord,
 } from "../utils";
-import type { Readable } from "stream";
+import type { Readable } from "node:stream";
 import type {
 	Archive,
 	ClientConfiguration,

@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { readFileSync } from "node:fs";
 import { Server } from "ssh2";
 import { requireEnv } from "require-env-variable";
 import { logger } from "./logger";

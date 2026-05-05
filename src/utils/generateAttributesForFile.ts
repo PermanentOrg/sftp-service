@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 import { generateDefaultMode } from "./generateDefaultMode";
 import { generateDefaultAttributes } from "./generateDefaultAttributes";
 import type { Attributes } from "ssh2";

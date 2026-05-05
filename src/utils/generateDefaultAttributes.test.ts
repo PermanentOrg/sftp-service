@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 import { DIRECTORY_MODE, FILE_MODE } from "../test/factories";
 import { generateDefaultAttributes } from "./generateDefaultAttributes";
 
