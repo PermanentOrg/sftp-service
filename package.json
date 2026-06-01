@@ -55,7 +55,7 @@
 		"vitest": "^4.1.5"
 	},
 	"dependencies": {
-		"@fusionauth/typescript-client": "^1.64.0",
+		"@fusionauth/typescript-client": "^1.65.0",
 		"@permanentorg/sdk": "0.10.1",
 		"@sentry/node": "^10.53.1",
 		"logform": "^2.6.1",
