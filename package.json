@@ -57,7 +57,7 @@
 	"dependencies": {
 		"@fusionauth/typescript-client": "^1.65.0",
 		"@permanentorg/sdk": "0.10.1",
-		"@sentry/node": "^10.53.1",
+		"@sentry/node": "^10.58.0",
 		"logform": "^2.6.1",
 		"require-env-variable": "^4.0.2",
 		"ssh2": "^1.17.0",
