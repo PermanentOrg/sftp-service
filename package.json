@@ -43,7 +43,7 @@
 		"@types/ssh2": "^1.15.5",
 		"@types/tmp": "^0.2.6",
 		"@types/uuid": "^11.0.0",
-		"@vitest/coverage-istanbul": "^4.1.8",
+		"@vitest/coverage-istanbul": "^4.1.9",
 		"@vitest/eslint-plugin": "^1.6.20",
 		"eslint": "^9.39.4",
 		"eslint-config-love": "^154.0.0",
