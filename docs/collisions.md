@@ -34,7 +34,7 @@ The value of the **_downloadName_** field is obtained from the **_displayName._*
 
 In the event of a conflict,
 
-For example if a folder has five 5 with the same name say **_A.txt _** the five files would have downloadName ‘s as `A, A (1).txt, A (2).txt, A (3).txt, A (4).txt`
+For example if a folder has five 5 with the same name say **\_A.txt _** the five files would have downloadName ‘s as `A, A (1).txt, A (2).txt, A (3).txt, A (4).txt`
 
 - Hence, the standard convention employed by most file systems that is; “space, parentheses open, number, parentheses close” for example (5) is used.
 - The number within the parenthesis is a sequential calculated by incrementing until it constitutes a unique `downloadName` within the destination namespace or folder.

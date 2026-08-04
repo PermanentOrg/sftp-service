@@ -48,9 +48,7 @@ interface TemporaryFileResource extends GenericServerResource {
 }
 
 type ServerResource =
-	| DirectoryResource
-	| PermanentFileResource
-	| TemporaryFileResource;
+	DirectoryResource | PermanentFileResource | TemporaryFileResource;
 
 export class SftpSessionHandler {
 	private readonly sftpConnection: SFTPWrapper;
