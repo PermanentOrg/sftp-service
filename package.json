@@ -44,7 +44,7 @@
 		"@types/tmp": "^0.2.6",
 		"@types/uuid": "^11.0.0",
 		"@vitest/coverage-istanbul": "^4.1.11",
-		"@vitest/eslint-plugin": "^1.6.24",
+		"@vitest/eslint-plugin": "^1.6.27",
 		"eslint": "^9.39.5",
 		"eslint-config-love": "154.1.0",
 		"eslint-config-prettier": "^10.1.8",
@@ -52,7 +52,7 @@
 		"prettier": "^3.9.6",
 		"tsx": "^4.23.12",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "^8.65.0",
+		"typescript-eslint": "^8.68.0",
 		"vitest": "^4.1.10"
 	},
 	"dependencies": {
