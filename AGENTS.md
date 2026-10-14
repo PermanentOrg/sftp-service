@@ -10,7 +10,7 @@ This is an SFTP service for Permanent.org that implements the SFTP protocol to s
 
 ## Tech Stack
 
-- **Runtime**: Node.js 24.x
+- **Runtime**: Node.js 26.x
 - **Language**: TypeScript 5.x
 - **SFTP Protocol**: ssh2
 - **Authentication**: FusionAuth
