@@ -1,6 +1,6 @@
 # SFTP Service
 
-This project uses NodeJS 16.x and contains an implementation of the SFTP protocol that supports interaction with the Permanent API.
+This project uses Node.js and contains an implementation of the SFTP protocol that supports interaction with the Permanent API.
 
 ## Usage
 
